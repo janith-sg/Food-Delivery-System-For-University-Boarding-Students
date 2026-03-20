@@ -1,11 +1,12 @@
 import React from "react";
 import Cart from "./pages/Cart";
+import { CartProvider } from "./context/CartContext";
 
 function App() {
   return (
-    <div>
-      <Cart />
-    </div>
+    <CartProvider>
+      {/* your routes/components */}
+    </CartProvider>
   );
 }
 
