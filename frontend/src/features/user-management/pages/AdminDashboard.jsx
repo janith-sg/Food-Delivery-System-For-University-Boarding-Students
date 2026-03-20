@@ -1,21 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import UserMenuBar from '../components/UserMenuBar';
 import AdminSidebar from '../components/AdminSidebar';
-import LoginPage from './LoginPage';
 import idPhoto1 from '../mock/r1.png';
 import idPhoto2 from '../mock/r2.png';
 import idPhoto3 from '../mock/r3.png';
+import { isValidEmail, digitsOnlyMax10, isPhone10Digits } from '../utils/formValidation';
+
+const TAB_PATHS = {
+  Dashboard: 'dashboard',
+  'User Registration': 'user-registration',
+  'Role Management': 'role-management',
+  'Staff Management': 'staff-management',
+  'Customer Management': 'customer-management',
+  'User Profile': 'profile',
+  'Support Chatbot': 'support-chatbot',
+};
+
+const pathToTab = Object.fromEntries(
+  Object.entries(TAB_PATHS).map(([label, slug]) => [slug, label]),
+);
 
 const AdminDashboard = () => {
-  const [isLoggedOut, setIsLoggedOut] = useState(false);
-  const [activeTab, setActiveTab] = useState('Dashboard');
-  const [previousTab, setPreviousTab] = useState('Dashboard');
+  const { tab } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const activeTab = pathToTab[tab] || 'Dashboard';
+
   const [profileForm, setProfileForm] = useState({
     name: 'Induja Customer',
-    phone: '+94 77 456 1122',
+    phone: '0774561122',
     email: 'induja@unieats.com',
     photo: idPhoto1,
   });
+  const [profileErrors, setProfileErrors] = useState({});
   const salesHeights = [82, 95, 76, 88, 110, 72, 105, 84, 98, 120, 90, 0];
   const months = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'];
   const registrationRows = [
@@ -146,33 +165,50 @@ const AdminDashboard = () => {
     setCustomerManagementRows((prevRows) => prevRows.filter((row) => row.email !== email));
   };
 
+  useEffect(() => {
+    if (tab && !pathToTab[tab]) {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [tab, navigate]);
+
+  const goToTab = (tabLabel) => {
+    const slug = TAB_PATHS[tabLabel];
+    if (!slug) return;
+    if (tabLabel === 'User Profile') {
+      navigate(`/admin/${slug}`, { state: { from: location.pathname } });
+      return;
+    }
+    navigate(`/admin/${slug}`);
+  };
+
+  const validateProfile = () => {
+    const err = {};
+    if (!profileForm.name.trim()) err.name = 'Name is required.';
+    if (!isPhone10Digits(profileForm.phone)) err.phone = 'Phone must be exactly 10 digits (numbers only).';
+    if (!profileForm.email.trim()) err.email = 'Email is required.';
+    else if (!isValidEmail(profileForm.email)) err.email = 'Enter a valid email address.';
+    if (!profileForm.photo) err.photo = 'Profile photo is required.';
+    setProfileErrors(err);
+    return Object.keys(err).length === 0;
+  };
+
   const handleProfileSave = (e) => {
     e.preventDefault();
+    if (!validateProfile()) return;
     window.alert('Profile saved successfully (UI only).');
-    setActiveTab(previousTab);
+    navigate(location.state?.from || '/admin/dashboard', { replace: true });
   };
 
-  const openUserProfile = () => {
-    if (activeTab !== 'User Profile') {
-      setPreviousTab(activeTab);
-    }
-    setActiveTab('User Profile');
-  };
-
-  if (isLoggedOut) {
-    return <LoginPage />;
-  }
-
-  if (activeTab === 'User Profile') {
+  if (tab === 'profile') {
     return (
       <div className="min-h-screen bg-white">
-        <UserMenuBar onLogout={() => setIsLoggedOut(true)} onProfileClick={openUserProfile} />
+        <UserMenuBar onLogout={() => navigate('/login')} onProfileClick={() => goToTab('User Profile')} />
         <main className="p-5">
           <section className="max-w-3xl mx-auto bg-white border border-[#48A111]/45 rounded-2xl p-6">
             <h1 className="text-[24px] font-extrabold text-black">User Profile</h1>
             <p className="mt-2 text-black text-[14px]">View and update your profile details.</p>
 
-            <form className="mt-6 space-y-4" onSubmit={handleProfileSave}>
+            <form className="mt-6 space-y-4" onSubmit={handleProfileSave} noValidate>
               <div className="flex items-center gap-4">
                 <img
                   src={profileForm.photo}
@@ -184,16 +220,18 @@ const AdminDashboard = () => {
                   <input
                     type="file"
                     accept="image/*"
-                    className="mt-1 block text-sm text-black"
+                    className={`mt-1 block text-sm text-black ${profileErrors.photo ? 'ring-2 ring-red-500 rounded' : ''}`}
                     onChange={(e) => {
                       const selectedFile = e.target.files && e.target.files[0];
                       if (!selectedFile) return;
                       const previewUrl = URL.createObjectURL(selectedFile);
                       setProfileForm((prev) => ({ ...prev, photo: previewUrl }));
+                      setProfileErrors((prev) => ({ ...prev, photo: undefined }));
                     }}
                   />
                 </label>
               </div>
+              {profileErrors.photo ? <p className="text-xs text-red-600">{profileErrors.photo}</p> : null}
 
               <div>
                 <label className="text-sm font-bold text-black" htmlFor="profileName">
@@ -203,22 +241,37 @@ const AdminDashboard = () => {
                   id="profileName"
                   type="text"
                   value={profileForm.name}
-                  onChange={(e) => setProfileForm((prev) => ({ ...prev, name: e.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-black text-sm outline-none focus:border-[#48A111]"
+                  onChange={(e) => {
+                    setProfileForm((prev) => ({ ...prev, name: e.target.value }));
+                    setProfileErrors((prev) => ({ ...prev, name: undefined }));
+                  }}
+                  className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-black text-sm outline-none focus:border-[#48A111] ${
+                    profileErrors.name ? 'border-red-500' : 'border-[#48A111]/40'
+                  }`}
                 />
+                {profileErrors.name ? <p className="mt-1 text-xs text-red-600">{profileErrors.name}</p> : null}
               </div>
 
               <div>
                 <label className="text-sm font-bold text-black" htmlFor="profilePhone">
-                  Phone Number
+                  Phone Number (10 digits)
                 </label>
                 <input
                   id="profilePhone"
                   type="text"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={profileForm.phone}
-                  onChange={(e) => setProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-black text-sm outline-none focus:border-[#48A111]"
+                  onChange={(e) => {
+                    setProfileForm((prev) => ({ ...prev, phone: digitsOnlyMax10(e.target.value) }));
+                    setProfileErrors((prev) => ({ ...prev, phone: undefined }));
+                  }}
+                  placeholder="0712345678"
+                  className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-black text-sm outline-none focus:border-[#48A111] ${
+                    profileErrors.phone ? 'border-red-500' : 'border-[#48A111]/40'
+                  }`}
                 />
+                {profileErrors.phone ? <p className="mt-1 text-xs text-red-600">{profileErrors.phone}</p> : null}
               </div>
 
               <div>
@@ -229,9 +282,15 @@ const AdminDashboard = () => {
                   id="profileEmail"
                   type="email"
                   value={profileForm.email}
-                  onChange={(e) => setProfileForm((prev) => ({ ...prev, email: e.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-black text-sm outline-none focus:border-[#48A111]"
+                  onChange={(e) => {
+                    setProfileForm((prev) => ({ ...prev, email: e.target.value }));
+                    setProfileErrors((prev) => ({ ...prev, email: undefined }));
+                  }}
+                  className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-black text-sm outline-none focus:border-[#48A111] ${
+                    profileErrors.email ? 'border-red-500' : 'border-[#48A111]/40'
+                  }`}
                 />
+                {profileErrors.email ? <p className="mt-1 text-xs text-red-600">{profileErrors.email}</p> : null}
               </div>
 
               <button
@@ -249,11 +308,11 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <UserMenuBar onLogout={() => setIsLoggedOut(true)} onProfileClick={openUserProfile} />
+      <UserMenuBar onLogout={() => navigate('/login')} onProfileClick={() => goToTab('User Profile')} />
 
       <main className="p-5">
         <div className="grid grid-cols-[300px_1fr] gap-5 min-h-[calc(100vh-104px)]">
-          <AdminSidebar activeTab={activeTab} onTabClick={setActiveTab} />
+          <AdminSidebar activeTab={activeTab} onTabClick={goToTab} />
 
           <section className="bg-white border border-[#48A111]/45 rounded-2xl p-5 min-h-full transition-all duration-300 hover:shadow-xl hover:border-[#48A111]/80">
             <h1 className="text-[24px] font-extrabold text-black">{activeTab}</h1>

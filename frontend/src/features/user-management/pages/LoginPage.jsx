@@ -1,13 +1,29 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import bg1 from '../mock/r1.png';
 import bg2 from '../mock/r2.png';
 import bg3 from '../mock/r3.png';
+import { isValidEmail, digitsOnlyMax10, isPhone10Digits } from '../utils/formValidation';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const backgrounds = [bg3, bg1, bg2];
   const [bgIndex, setBgIndex] = useState(0);
   const [showRegister, setShowRegister] = useState(false);
   const [registerType, setRegisterType] = useState('customer');
+
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginErrors, setLoginErrors] = useState({});
+
+  const [regFullName, setRegFullName] = useState('');
+  const [regStudentId, setRegStudentId] = useState('');
+  const [regStudentPhoto, setRegStudentPhoto] = useState(null);
+  const [regStaffRole, setRegStaffRole] = useState('Delivery Manager');
+  const [regPhone, setRegPhone] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regErrors, setRegErrors] = useState({});
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -16,6 +32,49 @@ const LoginPage = () => {
 
     return () => clearInterval(timer);
   }, [backgrounds.length]);
+
+  const validateLogin = () => {
+    const err = {};
+    if (!loginEmail.trim()) err.email = 'Email is required.';
+    else if (!isValidEmail(loginEmail)) err.email = 'Enter a valid email address.';
+    if (!loginPassword.trim()) err.password = 'Password is required.';
+    setLoginErrors(err);
+    return Object.keys(err).length === 0;
+  };
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    if (!validateLogin()) return;
+    navigate('/admin/dashboard');
+  };
+
+  const validateRegister = () => {
+    const err = {};
+    if (!regFullName.trim()) err.fullName = 'Full name is required.';
+    if (!isPhone10Digits(regPhone)) err.phone = 'Phone must be exactly 10 digits (numbers only).';
+    if (!regEmail.trim()) err.email = 'Email is required.';
+    else if (!isValidEmail(regEmail)) err.email = 'Enter a valid email address.';
+    if (!regPassword.trim()) err.password = 'Password is required.';
+
+    if (registerType === 'customer') {
+      if (!regStudentId.trim()) err.studentId = 'Student ID is required.';
+      if (!regStudentPhoto) err.studentPhoto = 'Student ID photo is required.';
+    } else {
+      if (!regStaffRole) err.staffRole = 'Staff role is required.';
+    }
+
+    setRegErrors(err);
+    return Object.keys(err).length === 0;
+  };
+
+  const handleRegisterSubmit = (e) => {
+    e.preventDefault();
+    if (!validateRegister()) return;
+    window.alert('Account created (UI only — no backend).');
+  };
+
+  const inputErrorClass = 'border-red-500 focus:ring-red-200';
+  const inputOkClass = 'border-[#48A111]/40 focus:ring-[#48A111]/30';
 
   return (
     <div
@@ -58,7 +117,7 @@ const LoginPage = () => {
             )}
           </div>
 
-          <form className="mt-6 space-y-4">
+          <form className="mt-6 space-y-4" onSubmit={handleRegisterSubmit} noValidate>
             <div>
               <label className="text-sm font-bold text-[#48A111]" htmlFor="fullName">
                 Full Name
@@ -66,9 +125,14 @@ const LoginPage = () => {
               <input
                 id="fullName"
                 type="text"
+                value={regFullName}
+                onChange={(e) => setRegFullName(e.target.value)}
                 placeholder="Enter your full name"
-                className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 focus:ring-[#48A111]/30"
+                className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 ${
+                  regErrors.fullName ? inputErrorClass : inputOkClass
+                }`}
               />
+              {regErrors.fullName ? <p className="mt-1 text-xs text-red-600">{regErrors.fullName}</p> : null}
             </div>
 
             {registerType === 'customer' ? (
@@ -80,9 +144,14 @@ const LoginPage = () => {
                   <input
                     id="studentId"
                     type="text"
+                    value={regStudentId}
+                    onChange={(e) => setRegStudentId(e.target.value)}
                     placeholder="Enter student ID"
-                    className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 focus:ring-[#48A111]/30"
+                    className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 ${
+                      regErrors.studentId ? inputErrorClass : inputOkClass
+                    }`}
                   />
+                  {regErrors.studentId ? <p className="mt-1 text-xs text-red-600">{regErrors.studentId}</p> : null}
                 </div>
 
                 <div>
@@ -93,8 +162,12 @@ const LoginPage = () => {
                     id="studentIdPhoto"
                     type="file"
                     accept="image/*"
-                    className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-[#48A111] outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 focus:ring-[#48A111]/30"
+                    className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-[#48A111] outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 ${
+                      regErrors.studentPhoto ? inputErrorClass : inputOkClass
+                    }`}
+                    onChange={(e) => setRegStudentPhoto(e.target.files && e.target.files[0] ? e.target.files[0] : null)}
                   />
+                  {regErrors.studentPhoto ? <p className="mt-1 text-xs text-red-600">{regErrors.studentPhoto}</p> : null}
                 </div>
               </>
             ) : (
@@ -104,25 +177,38 @@ const LoginPage = () => {
                 </label>
                 <select
                   id="staffRole"
-                  className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-[#48A111] outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 focus:ring-[#48A111]/30"
+                  value={regStaffRole}
+                  onChange={(e) => setRegStaffRole(e.target.value)}
+                  className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-[#48A111] outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 ${
+                    regErrors.staffRole ? inputErrorClass : inputOkClass
+                  }`}
                 >
-                  <option>Delivery Manager</option>
-                  <option>Order Manager</option>
-                  <option>Food Menu Manager</option>
+                  <option value="Delivery Manager">Delivery Manager</option>
+                  <option value="Order Manager">Order Manager</option>
+                  <option value="Food Menu Manager">Food Menu Manager</option>
                 </select>
+                {regErrors.staffRole ? <p className="mt-1 text-xs text-red-600">{regErrors.staffRole}</p> : null}
               </div>
             )}
 
             <div>
               <label className="text-sm font-bold text-[#48A111]" htmlFor="phoneNumber">
-                Phone Number
+                Phone Number (10 digits)
               </label>
               <input
                 id="phoneNumber"
-                type="tel"
-                placeholder="Enter phone number"
-                className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 focus:ring-[#48A111]/30"
+                type="text"
+                inputMode="numeric"
+                autoComplete="tel"
+                maxLength={10}
+                value={regPhone}
+                onChange={(e) => setRegPhone(digitsOnlyMax10(e.target.value))}
+                placeholder="0712345678"
+                className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 ${
+                  regErrors.phone ? inputErrorClass : inputOkClass
+                }`}
               />
+              {regErrors.phone ? <p className="mt-1 text-xs text-red-600">{regErrors.phone}</p> : null}
             </div>
 
             <div>
@@ -132,9 +218,14 @@ const LoginPage = () => {
               <input
                 id="registerEmail"
                 type="email"
+                value={regEmail}
+                onChange={(e) => setRegEmail(e.target.value)}
                 placeholder="name@example.com"
-                className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 focus:ring-[#48A111]/30"
+                className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 ${
+                  regErrors.email ? inputErrorClass : inputOkClass
+                }`}
               />
+              {regErrors.email ? <p className="mt-1 text-xs text-red-600">{regErrors.email}</p> : null}
             </div>
 
             <div>
@@ -144,14 +235,18 @@ const LoginPage = () => {
               <input
                 id="registerPassword"
                 type="password"
+                value={regPassword}
+                onChange={(e) => setRegPassword(e.target.value)}
                 placeholder="Enter password"
-                className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 focus:ring-[#48A111]/30"
+                className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 ${
+                  regErrors.password ? inputErrorClass : inputOkClass
+                }`}
               />
+              {regErrors.password ? <p className="mt-1 text-xs text-red-600">{regErrors.password}</p> : null}
             </div>
 
             <button
-              type="button"
-              onClick={(e) => e.preventDefault()}
+              type="submit"
               className="w-full rounded-lg bg-[#48A111] py-2.5 text-white font-bold border-0 outline-none shadow-none m-0 transition-all duration-300 hover:bg-[#3d8e0c] hover:-translate-y-1 hover:shadow-lg"
             >
               Create Account
@@ -172,7 +267,7 @@ const LoginPage = () => {
             </button>
           </div>
 
-          <form className="mt-8 space-y-5">
+          <form className="mt-8 space-y-5" onSubmit={handleLoginSubmit} noValidate>
             <div>
               <label className="text-sm font-bold text-[#48A111]" htmlFor="email">
                 Email
@@ -180,9 +275,14 @@ const LoginPage = () => {
               <input
                 id="email"
                 type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
                 placeholder="name@example.com"
-                className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 focus:ring-[#48A111]/30"
+                className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 ${
+                  loginErrors.email ? inputErrorClass : inputOkClass
+                }`}
               />
+              {loginErrors.email ? <p className="mt-1 text-xs text-red-600">{loginErrors.email}</p> : null}
             </div>
 
             <div>
@@ -192,14 +292,18 @@ const LoginPage = () => {
               <input
                 id="password"
                 type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder="Enter password"
-                className="mt-1 w-full rounded-lg border border-[#48A111]/40 bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 focus:ring-[#48A111]/30"
+                className={`mt-1 w-full rounded-lg border bg-white px-3 py-2 text-[#48A111] placeholder:text-[#48A111]/55 outline-none transition-all duration-300 hover:border-[#48A111]/80 hover:bg-[#48A111]/10 focus:border-[#48A111] focus:ring-2 ${
+                  loginErrors.password ? inputErrorClass : inputOkClass
+                }`}
               />
+              {loginErrors.password ? <p className="mt-1 text-xs text-red-600">{loginErrors.password}</p> : null}
             </div>
 
             <button
-              type="button"
-              onClick={(e) => e.preventDefault()}
+              type="submit"
               className="w-full rounded-lg bg-[#48A111] py-2.5 text-white font-bold border-0 outline-none shadow-none m-0 transition-all duration-300 hover:bg-[#3d8e0c] hover:-translate-y-1 hover:shadow-lg"
             >
               Login
@@ -222,4 +326,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
