@@ -1,11 +1,10 @@
-// frontend/src/App.jsx
-import React from 'react';
-import AdminDashboard from './features/user-management/pages/AdminDashboard';
+import React from "react";
+import Cart from "./pages/Cart";
 
 function App() {
   return (
     <div>
-      <AdminDashboard />
+      <Cart />
     </div>
   );
 }
