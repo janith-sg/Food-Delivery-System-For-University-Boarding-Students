@@ -1,0 +1,65 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+function LeafIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z" />
+    </svg>
+  );
+}
+
+const UserMenuBar = ({ onLogout, onProfileClick }) => {
+  const username = 'IndujaAdmin';
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-[#bbf7d0]/60 bg-gradient-to-r from-[#f0fdf4]/95 via-white/90 to-[#eff6ff]/95 backdrop-blur-md">
+      <div className="h-0.5 w-full bg-gradient-to-r from-[#16a34a] via-[#4ade80] to-[#2563eb]" aria-hidden />
+      <div className="mx-auto flex h-[64px] max-w-[1600px] items-center justify-between gap-4 px-4 md:px-8">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#dcfce7] to-[#a7f3d0] text-black ring-2 ring-white/90 shadow-sm">
+            <LeafIcon className="h-6 w-6" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-serif text-xl font-bold tracking-tight text-black md:text-2xl">UNI EATS</span>
+            <span className="hidden text-[10px] font-bold uppercase tracking-[0.2em] text-black sm:block">
+              Admin
+            </span>
+          </div>
+        </Link>
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={onProfileClick}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#93c5fd]/50 bg-gradient-to-br from-[#dbeafe] to-[#dcfce7] text-black shadow-sm transition hover:from-[#bfdbfe] hover:to-[#bbf7d0]"
+            aria-label="Open user profile"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="3" />
+            </svg>
+          </button>
+
+          <div className="hidden leading-tight sm:block">
+            <div className="text-[11px] font-bold uppercase tracking-wide text-black">Hello</div>
+            <div className="text-sm font-bold text-black">{username}</div>
+          </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              if (onLogout) onLogout();
+            }}
+            className="rounded-full border border-[#86efac]/70 bg-gradient-to-r from-white to-[#ecfdf5] px-3 py-2 text-xs font-bold text-black shadow-sm transition hover:border-[#60a5fa]/50 hover:from-[#eff6ff] hover:to-white md:px-4 md:text-sm"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default UserMenuBar;

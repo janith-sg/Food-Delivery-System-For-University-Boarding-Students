@@ -1,0 +1,54 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+  background: #ffffff;
+}
+
+/* Browsers default <a> to underline + blue / purple when visited — reset for normal text links */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+a:visited {
+  color: inherit;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+/* Login page — horizontal food menu strip (right → left loop) */
+@keyframes login-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.login-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 1rem;
+  animation: login-marquee 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-marquee-track {
+    animation: none;
+  }
+}
