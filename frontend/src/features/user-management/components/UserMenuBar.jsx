@@ -1,34 +1,49 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
+function LeafIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z" />
+    </svg>
+  );
+}
 
 const UserMenuBar = ({ onLogout, onProfileClick }) => {
-  const username = 'IndujaCustomer';
+  const username = 'IndujaAdmin';
 
   return (
-    <header className="w-full bg-white border-b border-[#48A111]/40">
-      <div className="h-[64px] px-5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-[#48A111]/35 border border-[#48A111]/50 flex items-center justify-center text-[11px] font-extrabold text-[#48A111]">
-            UE
+    <header className="sticky top-0 z-50 w-full border-b border-[#bbf7d0]/60 bg-gradient-to-r from-[#f0fdf4]/95 via-white/90 to-[#eff6ff]/95 backdrop-blur-md">
+      <div className="h-0.5 w-full bg-gradient-to-r from-[#16a34a] via-[#4ade80] to-[#2563eb]" aria-hidden />
+      <div className="mx-auto flex h-[64px] max-w-[1600px] items-center justify-between gap-4 px-4 md:px-8">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#dcfce7] to-[#a7f3d0] text-black ring-2 ring-white/90 shadow-sm">
+            <LeafIcon className="h-6 w-6" />
           </div>
-          <div className="text-[15px] font-extrabold text-black">UNI EATS</div>
-        </div>
+          <div className="flex flex-col">
+            <span className="font-serif text-xl font-bold tracking-tight text-black md:text-2xl">UNI EATS</span>
+            <span className="hidden text-[10px] font-bold uppercase tracking-[0.2em] text-black sm:block">
+              Admin
+            </span>
+          </div>
+        </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={onProfileClick}
-            className="w-9 h-9 rounded-full bg-[#48A111]/35 border border-[#48A111]/50 flex items-center justify-center text-black hover:bg-[#48A111]/60 transition-all duration-200"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#93c5fd]/50 bg-gradient-to-br from-[#dbeafe] to-[#dcfce7] text-black shadow-sm transition hover:from-[#bfdbfe] hover:to-[#bbf7d0]"
             aria-label="Open user profile"
           >
-            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="3" />
             </svg>
           </button>
 
-          <div className="leading-tight">
-            <div className="text-[12px] font-bold text-black">Hello</div>
-            <div className="text-[13px] font-extrabold text-black">{username}</div>
+          <div className="hidden leading-tight sm:block">
+            <div className="text-[11px] font-bold uppercase tracking-wide text-black">Hello</div>
+            <div className="text-sm font-bold text-black">{username}</div>
           </div>
 
           <button
@@ -37,7 +52,7 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
               e.preventDefault();
               if (onLogout) onLogout();
             }}
-            className="px-3 py-2 rounded-lg border border-[#48A111]/50 bg-[#48A111]/35 text-black text-[13px] font-bold transition-all duration-300 hover:bg-[#48A111]/70 hover:-translate-y-1 hover:shadow-lg hover:border-[#48A111]"
+            className="rounded-full border border-[#86efac]/70 bg-gradient-to-r from-white to-[#ecfdf5] px-3 py-2 text-xs font-bold text-black shadow-sm transition hover:border-[#60a5fa]/50 hover:from-[#eff6ff] hover:to-white md:px-4 md:text-sm"
           >
             Logout
           </button>
@@ -48,4 +63,3 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
 };
 
 export default UserMenuBar;
-

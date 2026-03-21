@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { setAuth } from '../../../lib/auth';
 import { isValidEmail, digitsOnlyMax10, isPhone10Digits } from '../utils/formValidation';
 import food1 from '../../../assets/riceandcurry1.png';
 import food2 from '../../../assets/lunchbox.png';
@@ -18,6 +20,7 @@ function LeafIcon({ className }) {
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showRegister, setShowRegister] = useState(false);
   const [registerType, setRegisterType] = useState('customer');
 
@@ -33,6 +36,10 @@ const LoginPage = () => {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regErrors, setRegErrors] = useState({});
+  const [regApiError, setRegApiError] = useState('');
+  const [regSubmitting, setRegSubmitting] = useState(false);
+  const [loginApiError, setLoginApiError] = useState('');
+  const [loginSubmitting, setLoginSubmitting] = useState(false);
 
   const validateLogin = () => {
     const err = {};
@@ -43,10 +50,27 @@ const LoginPage = () => {
     return Object.keys(err).length === 0;
   };
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!validateLogin()) return;
-    navigate('/admin/dashboard');
+    setLoginApiError('');
+    setLoginSubmitting(true);
+    try {
+      const { data } = await axios.post('/api/login', {
+        email: loginEmail.trim(),
+        password: loginPassword,
+      });
+      if (data.token && data.user) {
+        setAuth(data.token, data.user);
+      }
+      const from = location.state?.from?.pathname || '/admin/dashboard';
+      navigate(from, { replace: true });
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Login failed.';
+      setLoginApiError(msg);
+    } finally {
+      setLoginSubmitting(false);
+    }
   };
 
   const validateRegister = () => {
@@ -68,10 +92,39 @@ const LoginPage = () => {
     return Object.keys(err).length === 0;
   };
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!validateRegister()) return;
-    window.alert('Account created (UI only — no backend).');
+    setRegApiError('');
+    setRegSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.append('fullName', regFullName.trim());
+      fd.append('email', regEmail.trim());
+      fd.append('password', regPassword);
+      fd.append('phone', regPhone);
+      fd.append('accountType', registerType === 'customer' ? 'customer' : 'staff');
+      if (registerType === 'customer') {
+        fd.append('studentId', regStudentId.trim());
+        fd.append('studentPhoto', regStudentPhoto);
+      } else {
+        fd.append('staffRole', regStaffRole);
+      }
+      const { data } = await axios.post('/api/register', fd);
+      window.alert(data.message || 'Account created.');
+      setShowRegister(false);
+      setRegFullName('');
+      setRegStudentId('');
+      setRegStudentPhoto(null);
+      setRegPhone('');
+      setRegEmail('');
+      setRegPassword('');
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Registration failed.';
+      setRegApiError(msg);
+    } finally {
+      setRegSubmitting(false);
+    }
   };
 
   const inputErrorClass = 'border-red-400 focus:ring-red-100';
@@ -177,9 +230,20 @@ const LoginPage = () => {
                   <h2 className="mt-0 text-center font-serif text-2xl font-semibold leading-tight text-[#354A3F] md:text-3xl">
                     Register
                   </h2>
+                  {regApiError ? (
+                    <p className="mt-2 text-center text-xs text-red-600 sm:text-sm">{regApiError}</p>
+                  ) : null}
                   <div className="mt-1 text-center text-[11px] text-[#5a5a5a] sm:text-xs">
                     <span>Already have an account? </span>
-                    <button type="button" onClick={() => setShowRegister(false)} className={linkClass}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRegApiError('');
+                        setLoginApiError('');
+                        setShowRegister(false);
+                      }}
+                      className={linkClass}
+                    >
                       Login
                     </button>
                   </div>
@@ -321,17 +385,35 @@ const LoginPage = () => {
                       {regErrors.password ? <p className="mt-1 text-xs text-red-600">{regErrors.password}</p> : null}
                     </div>
 
-                    <button type="submit" className={`${btnPrimary} py-2 text-sm`}>
-                      Create Account
+                    <button
+                      type="submit"
+                      disabled={regSubmitting}
+                      className={`${btnPrimary} py-2 text-sm disabled:opacity-60`}
+                    >
+                      {regSubmitting ? 'Saving…' : 'Create Account'}
                     </button>
                   </form>
                 </>
               ) : (
                 <>
                   <h2 className="text-center font-serif text-3xl font-semibold text-[#354A3F]">Login</h2>
+                  <p className="mt-2 text-center text-xs text-[#5a5a5a] sm:text-sm">
+                    Administrator login — use the admin email and password from your server config.
+                  </p>
+                  {loginApiError ? (
+                    <p className="mt-2 text-center text-sm text-red-600">{loginApiError}</p>
+                  ) : null}
                   <div className="mt-2 text-center text-sm text-[#5a5a5a]">
                     <span>New user? </span>
-                    <button type="button" onClick={() => setShowRegister(true)} className={linkClass}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRegApiError('');
+                        setLoginApiError('');
+                        setShowRegister(true);
+                      }}
+                      className={linkClass}
+                    >
                       Register
                     </button>
                   </div>
@@ -367,8 +449,12 @@ const LoginPage = () => {
                       {loginErrors.password ? <p className="mt-1 text-xs text-red-600">{loginErrors.password}</p> : null}
                     </div>
 
-                    <button type="submit" className={btnPrimary}>
-                      Login
+                    <button
+                      type="submit"
+                      disabled={loginSubmitting}
+                      className={`${btnPrimary} disabled:opacity-60`}
+                    >
+                      {loginSubmitting ? 'Signing in…' : 'Login'}
                     </button>
 
                     <div className="text-left">
