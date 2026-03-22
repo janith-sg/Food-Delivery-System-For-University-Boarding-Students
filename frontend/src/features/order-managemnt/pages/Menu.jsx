@@ -36,82 +36,37 @@ const Menu = () => {
   const { addToCart } = useContext(CartContext);
 
   return (
-    <div
-      style={{
-        background: "#ffffff",
-        borderRadius: "16px",
-        padding: "20px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-        marginBottom: "20px",
-      }}
-    >
-      <h2 style={{ marginBottom: "20px", color: "#222" }}>Food Menu</h2>
+    <div className="mb-5 rounded-2xl bg-white p-5 shadow-md">
+      <h2 className="mb-5 text-2xl font-bold text-gray-800">Food Menu</h2>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "20px",
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-5">
         {dummyItems.map((item) => (
           <div
             key={item.id}
-            style={{
-              background: "#fff",
-              border: "1px solid #eee",
-              borderRadius: "16px",
-              overflow: "hidden",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-            }}
+            className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
           >
             <img
               src={item.image}
               alt={item.name}
-              style={{
-                width: "100%",
-                height: "180px",
-                objectFit: "cover",
-              }}
+              className="h-[180px] w-full object-cover"
             />
 
-            <div style={{ padding: "16px" }}>
-              <h3 style={{ margin: "0 0 10px 0", color: "#222" }}>{item.name}</h3>
+            <div className="p-4">
+              <h3 className="mb-2.5 text-xl font-semibold text-gray-800">
+                {item.name}
+              </h3>
 
-              <p
-                style={{
-                  fontSize: "14px",
-                  color: "#666",
-                  minHeight: "40px",
-                  marginBottom: "12px",
-                }}
-              >
+              <p className="mb-3 min-h-[40px] text-sm text-gray-500">
                 {item.description}
               </p>
 
-              <p
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "bold",
-                  color: "#000000",
-                  marginBottom: "14px",
-                }}
-              >
+              <p className="mb-3.5 text-lg font-bold text-black">
                 Rs. {item.price}
               </p>
 
               <button
                 onClick={() => addToCart(item)}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  backgroundColor: "#48b222",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
+                className="w-full cursor-pointer rounded-xl bg-green-600 px-4 py-3 font-bold text-white transition hover:bg-green-700 border-none"
               >
                 Add to Bucket
               </button>

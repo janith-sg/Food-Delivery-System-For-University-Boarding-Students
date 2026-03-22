@@ -9,83 +9,41 @@ const Cart = ({ onCheckout }) => {
   const finalTotal = getCartTotal() + deliveryFee;
 
   return (
-    <div
-      style={{
-        background: "#ffffff",
-        borderRadius: "16px",
-        padding: "20px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-        position: "sticky",
-        top: "20px",
-      }}
-    >
-      <h2 style={{ marginBottom: "20px", color: "#1f2937" }}>Your Cart</h2>
+    <div className="sticky top-5 rounded-2xl bg-white p-5 shadow-md">
+      <h2 className="mb-5 text-2xl font-bold text-gray-800">Your Cart</h2>
 
       {cartItems.length === 0 ? (
-        <p style={{ color: "#666" }}>Cart is empty</p>
+        <p className="text-gray-500">Cart is empty</p>
       ) : (
         <>
           {cartItems.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                borderBottom: "1px solid #eee",
-                paddingBottom: "15px",
-                marginBottom: "15px",
-              }}
-            >
-              <h4 style={{ margin: "0 0 8px 0", color: "#222" }}>{item.name}</h4>
+            <div key={item.id} className="mb-4 border-b border-gray-200 pb-4">
+              <h4 className="mb-2 text-lg font-semibold text-gray-800">
+                {item.name}
+              </h4>
 
-              <p style={{ margin: "0 0 8px 0", color: "#666" }}>
-                Price: Rs. {item.price}
-              </p>
+              <p className="mb-2 text-gray-500">Price: Rs. {item.price}</p>
 
-              <p style={{ margin: "0 0 12px 0", color: "#666" }}>
-                Quantity: {item.qty}
-              </p>
+              <p className="mb-3 text-gray-500">Quantity: {item.qty}</p>
 
-              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              <div className="flex flex-wrap gap-2.5">
                 <button
                   onClick={() => addToCart(item)}
-                  style={{
-                    padding: "8px 14px",
-                    backgroundColor: "#48b222",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
+                  className="rounded-lg bg-green-600 px-3.5 py-2 font-bold text-white transition hover:bg-green-700 border-none"
                 >
                   +
                 </button>
 
                 <button
                   onClick={() => decreaseQty(item.id)}
-                  style={{
-                    padding: "8px 14px",
-                    backgroundColor: "#444",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
+                  className="rounded-lg bg-gray-700 px-3.5 py-2 font-bold text-white transition hover:bg-gray-800"
                 >
                   -
                 </button>
 
                 <button
                   onClick={() => removeFromCart(item.id)}
-                  style={{
-                    padding: "8px 14px",
-                    backgroundColor: "#e5e7eb",
-                    color: "#111",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
+                  className="rounded-lg bg-gray-200 px-3.5 py-2 font-bold text-gray-900 transition hover:bg-gray-300 border-none"
                 >
                   Remove
                 </button>
@@ -93,41 +51,21 @@ const Cart = ({ onCheckout }) => {
             </div>
           ))}
 
-          <div
-            style={{
-              marginTop: "20px",
-              paddingTop: "15px",
-              borderTop: "2px solid #eee",
-            }}
-          >
-            <p style={{ margin: "0 0 8px 0", color: "#555" }}>
-              Sub Total: Rs. {getCartTotal()}
-            </p>
+          <div className="mt-5 border-t-2 border-gray-200 pt-4">
+            <p className="mb-2 text-gray-600">Sub Total: Rs. {getCartTotal()}</p>
 
-            <p style={{ margin: "0 0 8px 0", color: "#555" }}>
-              Delivery Fee: Rs. {deliveryFee}
-            </p>
+            <p className="mb-2 text-gray-600">Delivery Fee: Rs. {deliveryFee}</p>
 
-            <h3 style={{ color: "#000000", marginBottom: "15px" }}>
+            <h3 className="mb-4 text-xl font-bold text-black">
               Total: Rs. {finalTotal}
             </h3>
 
-          <button
-  onClick={onCheckout}
-  style={{
-    width: "100%",
-    padding: "14px",
-    backgroundColor: "#48b222",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    fontSize: "16px",
-  }}
->
-  Checkout
-</button>
+            <button
+              onClick={onCheckout}
+              className="w-full rounded-xl bg-green-600 px-4 py-3.5 text-base font-bold text-white transition hover:bg-green-700 border-none"
+            >
+              Checkout
+            </button>
           </div>
         </>
       )}

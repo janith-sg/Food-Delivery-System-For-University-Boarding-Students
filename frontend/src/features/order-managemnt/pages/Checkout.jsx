@@ -20,66 +20,38 @@ const Checkout = ({ onBack }) => {
   };
 
   const handlePlaceOrder = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const orderData = {
-    customer: formData,
-    items: cartItems,
-    subTotal: getCartTotal(),
-    deliveryFee,
-    total: finalTotal,
+    const orderData = {
+      customer: formData,
+      items: cartItems,
+      subTotal: getCartTotal(),
+      deliveryFee,
+      total: finalTotal,
+    };
+
+    console.log("Order Placed:", orderData);
+
+    clearCart();
+
+    alert("🎉 Order placed successfully!");
   };
 
-  console.log("Order Placed:", orderData);
-
-  clearCart(); // ✅ clear cart
-
-  alert("🎉 Order placed successfully!");
-};
-
   return (
-    <div
-      style={{
-        background: "#ffffff",
-        borderRadius: "16px",
-        padding: "24px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-        marginTop: "20px",
-
-
-      }}
-      
-
-      
-    >
+    <div className="mt-5 rounded-2xl bg-white p-6 shadow-md">
       <button
-  onClick={onBack}
-  style={{
-    marginBottom: "20px",
-    padding: "10px 16px",
-    backgroundColor: "#e5e7eb",
-    color: "#111",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontWeight: "bold",
-  }}
->
-  Back to Menu
-</button>
-      <h2 style={{ marginBottom: "20px", color: "#1f2937" }}>Checkout</h2>
+        onClick={onBack}
+        className="mb-5 rounded-lg bg-gray-200 px-4 py-2.5 font-bold text-gray-900 transition hover:bg-gray-300"
+      >
+        Back to Menu
+      </button>
 
-      <form onSubmit={handlePlaceOrder} style={{ maxWidth: "700px" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "16px",
-            marginBottom: "16px",
-          }}
-        >
+      <h2 className="mb-5 text-2xl font-bold text-gray-800">Checkout</h2>
+
+      <form onSubmit={handlePlaceOrder} className="max-w-[700px]">
+        <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold" }}>
+            <label className="mb-1.5 block font-bold text-gray-800">
               Full Name
             </label>
             <input
@@ -88,17 +60,12 @@ const Checkout = ({ onBack }) => {
               value={formData.fullName}
               onChange={handleChange}
               required
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "10px",
-                border: "1px solid #ccc",
-              }}
+              className="w-full rounded-xl border border-gray-300 px-3 py-3 outline-none transition focus:border-green-600"
             />
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold" }}>
+            <label className="mb-1.5 block font-bold text-gray-800">
               Phone Number
             </label>
             <input
@@ -107,57 +74,40 @@ const Checkout = ({ onBack }) => {
               value={formData.phone}
               onChange={handleChange}
               required
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "10px",
-                border: "1px solid #ccc",
-              }}
+              className="w-full rounded-xl border border-gray-300 px-3 py-3 outline-none transition focus:border-green-600"
             />
           </div>
         </div>
 
-        <div style={{ marginBottom: "16px" }}>
-          <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold" }}>
-            Address
-          </label>
+        <div className="mb-4">
+          <label className="mb-1.5 block font-bold text-gray-800">Address</label>
           <textarea
             name="address"
             value={formData.address}
             onChange={handleChange}
             required
             rows="3"
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-            }}
+            className="w-full rounded-xl border border-gray-300 px-3 py-3 outline-none transition focus:border-green-600"
           />
         </div>
 
-        <div style={{ marginBottom: "16px" }}>
-          <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold" }}>
+        <div className="mb-4">
+          <label className="mb-1.5 block font-bold text-gray-800">
             Payment Method
           </label>
           <select
             name="paymentMethod"
             value={formData.paymentMethod}
             onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-            }}
+            className="w-full rounded-xl border border-gray-300 px-3 py-3 outline-none transition focus:border-green-600"
           >
             <option>Cash on Delivery</option>
             <option>Card Payment</option>
           </select>
         </div>
 
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold" }}>
+        <div className="mb-5">
+          <label className="mb-1.5 block font-bold text-gray-800">
             Special Note
           </label>
           <textarea
@@ -165,47 +115,21 @@ const Checkout = ({ onBack }) => {
             value={formData.note}
             onChange={handleChange}
             rows="3"
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-            }}
+            className="w-full rounded-xl border border-gray-300 px-3 py-3 outline-none transition focus:border-green-600"
           />
         </div>
 
-        <div
-          style={{
-            background: "#f9fafb",
-            borderRadius: "12px",
-            padding: "16px",
-            marginBottom: "20px",
-          }}
-        >
-          <p style={{ margin: "0 0 8px 0", color: "#555" }}>
-            Sub Total: Rs. {getCartTotal()}
-          </p>
-          <p style={{ margin: "0 0 8px 0", color: "#555" }}>
-            Delivery Fee: Rs. {deliveryFee}
-          </p>
-          <h3 style={{ margin: 0, color: "#000000" }}>
+        <div className="mb-5 rounded-xl bg-gray-50 p-4">
+          <p className="mb-2 text-gray-600">Sub Total: Rs. {getCartTotal()}</p>
+          <p className="mb-2 text-gray-600">Delivery Fee: Rs. {deliveryFee}</p>
+          <h3 className="text-xl font-bold text-black">
             Final Total: Rs. {finalTotal}
           </h3>
         </div>
 
         <button
           type="submit"
-          style={{
-            width: "100%",
-            padding: "14px",
-            backgroundColor: "#48b222",
-            color: "#fff",
-            border: "none",
-            borderRadius: "10px",
-            cursor: "pointer",
-            fontWeight: "bold",
-            fontSize: "16px",
-          }}
+          className="w-full rounded-xl bg-green-600 px-4 py-3.5 text-base font-bold text-white transition hover:bg-green-700"
         >
           Place Order
         </button>
