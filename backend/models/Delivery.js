@@ -3,10 +3,10 @@ const mongoose = require("mongoose");
 const deliverySchema = new mongoose.Schema(
   {
     orderId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Order",
-      required: true,
-    },
+  type: String,
+  required: true,
+  unique: true,
+  },
     deliveryPersonName: {
       type: String,
       required: true,
