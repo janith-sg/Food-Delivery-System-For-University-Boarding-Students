@@ -1,19 +1,19 @@
-
 const Order = require("../models/Order");
 
 const createOrder = async (req, res) => {
   try {
-    const {
-      customer,
-      paymentMethod,
-      items,
-      subTotal,
-      deliveryFee,
-      total,
-    } = req.body;
+    const { customer, paymentMethod, items, subTotal, deliveryFee, total } = req.body;
 
-    if (!customer || !paymentMethod || !items || items.length === 0) {
-      return res.status(400).json({ message: "Missing required order data" });
+    if (!customer || !customer.fullName || !customer.phone || !customer.address) {
+      return res.status(400).json({ message: "Customer details are required" });
+    }
+
+    if (!paymentMethod) {
+      return res.status(400).json({ message: "Payment method is required" });
+    }
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: "Order items are required" });
     }
 
     const newOrder = new Order({
@@ -39,6 +39,4 @@ const createOrder = async (req, res) => {
   }
 };
 
-module.exports = {
-  createOrder,
-};
+module.exports = { createOrder };

@@ -41,7 +41,7 @@ const Checkout = ({ onBack }) => {
     <div className="mt-5 rounded-2xl bg-white p-6 shadow-md">
       <button
         onClick={onBack}
-        className="mb-5 rounded-lg bg-gray-200 px-4 py-2.5 font-bold text-gray-900 transition hover:bg-gray-300"
+        className="mb-5 rounded-lg bg-gray-200 px-4 py-2.5 font-bold text-gray-900 transition hover:bg-gray-300 border-none "
       >
         Back to Menu
       </button>
@@ -129,7 +129,7 @@ const Checkout = ({ onBack }) => {
 
         <button
           type="submit"
-          className="w-full rounded-xl bg-green-600 px-4 py-3.5 text-base font-bold text-white transition hover:bg-green-700"
+          className="w-full rounded-xl bg-green-600 px-4 py-3.5 text-base font-bold text-white transition hover:bg-green-700 border-none"
         >
           Place Order
         </button>
