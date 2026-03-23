@@ -1,14 +1,51 @@
 const Delivery = require("../models/Delivery");
 const Notification = require("../models/Notification");
 
+// Simulated delivery staff pool
+const deliveryStaffPool = [
+  { id: "RIDER001", name: "Kamal Perera", phone: "0771234567" },
+  { id: "RIDER002", name: "Nimal Silva", phone: "0719876543" },
+  { id: "RIDER003", name: "Saman Kumara", phone: "0755551234" },
+];
 
 // Create a new delivery
 const createDelivery = async (req, res) => {
   try {
-    const delivery = await Delivery.create(req.body);
+    const { orderId, studentId, currentLocation, notes } = req.body;
+
+    const randomStaff = deliveryStaffPool[0];
+
+    const now = new Date();
+    const eta = new Date(now.getTime() + 30 * 60000);
+
+    const delivery = await Delivery.create({
+      orderId,
+      studentId: studentId || "",
+      deliveryPersonId: randomStaff.id,
+      deliveryPersonName: randomStaff.name,
+      deliveryPersonPhone: randomStaff.phone,
+      status: "Assigned",
+      estimatedDeliveryTime: eta,
+      assignedAt: now,
+      currentLocation,
+      notes: notes || "",
+    });
+
+    if (studentId) {
+      await Notification.create({
+        userId: studentId,
+        title: "Delivery Assigned",
+        message: `Your order has been assigned to ${randomStaff.name}.`,
+        type: "delivery",
+      });
+    }
+
     res.status(201).json(delivery);
   } catch (error) {
-    res.status(500).json({ message: "Failed to create delivery", error: error.message });
+    res.status(500).json({
+      message: "Failed to create delivery",
+      error: error.message,
+    });
   }
 };
 
@@ -99,10 +136,148 @@ const deleteDelivery = async (req, res) => {
   }
 };
 
+// Get deliveries by rider ID
+const getDeliveriesByRider = async (req, res) => {
+  try {
+    const { riderId } = req.params;
+
+    const deliveries = await Delivery.find({
+      deliveryPersonId: riderId,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json(deliveries);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch rider deliveries",
+      error: error.message,
+    });
+  }
+};
+
+// Update delivery location
+const updateDeliveryLocation = async (req, res) => {
+  try {
+    const { currentLocation } = req.body;
+
+    const delivery = await Delivery.findById(req.params.id);
+
+    if (!delivery) {
+      return res.status(404).json({ message: "Delivery not found" });
+    }
+
+    delivery.currentLocation = currentLocation || delivery.currentLocation;
+    await delivery.save();
+
+    res.status(200).json(delivery);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to update delivery location",
+      error: error.message,
+    });
+  }
+};
+
+// Get rider performance stats
+const getRiderStats = async (req, res) => {
+  try {
+    const { riderId } = req.params;
+
+    const riderDeliveries = await Delivery.find({
+      deliveryPersonId: riderId,
+    });
+
+    const totalAssigned = riderDeliveries.length;
+    const active = riderDeliveries.filter((d) =>
+      ["Assigned", "Picked Up", "On the Way"].includes(d.status)
+    ).length;
+    const delivered = riderDeliveries.filter(
+      (d) => d.status === "Delivered"
+    ).length;
+    const cancelled = riderDeliveries.filter(
+      (d) => d.status === "Cancelled"
+    ).length;
+
+    const completedWithDuration = riderDeliveries.filter(
+      (d) => d.status === "Delivered" && d.deliveryDurationMinutes > 0
+    );
+
+    const averageDeliveryTime =
+      completedWithDuration.length > 0
+        ? Math.round(
+            completedWithDuration.reduce(
+              (sum, d) => sum + d.deliveryDurationMinutes,
+              0
+            ) / completedWithDuration.length
+          )
+        : 0;
+
+    res.status(200).json({
+      riderId,
+      totalAssigned,
+      active,
+      delivered,
+      cancelled,
+      averageDeliveryTime,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch rider stats",
+      error: error.message,
+    });
+  }
+};
+
+// Get overall delivery stats
+const getDeliveryStats = async (req, res) => {
+  try {
+    const deliveries = await Delivery.find();
+
+    const total = deliveries.length;
+    const assigned = deliveries.filter((d) => d.status === "Assigned").length;
+    const pickedUp = deliveries.filter((d) => d.status === "Picked Up").length;
+    const onTheWay = deliveries.filter((d) => d.status === "On the Way").length;
+    const delivered = deliveries.filter((d) => d.status === "Delivered").length;
+    const cancelled = deliveries.filter((d) => d.status === "Cancelled").length;
+
+    const completedDeliveries = deliveries.filter(
+      (d) => d.status === "Delivered" && d.deliveryDurationMinutes > 0
+    );
+
+    const averageDeliveryTime =
+      completedDeliveries.length > 0
+        ? Math.round(
+            completedDeliveries.reduce(
+              (sum, d) => sum + d.deliveryDurationMinutes,
+              0
+            ) / completedDeliveries.length
+          )
+        : 0;
+
+    res.status(200).json({
+      total,
+      assigned,
+      pickedUp,
+      onTheWay,
+      delivered,
+      cancelled,
+      averageDeliveryTime,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch delivery stats",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createDelivery,
   getAllDeliveries,
   getDeliveryById,
   updateDeliveryStatus,
   deleteDelivery,
+  getDeliveryStats,
+  getDeliveriesByRider,
+  updateDeliveryLocation,
+  getRiderStats,
 };

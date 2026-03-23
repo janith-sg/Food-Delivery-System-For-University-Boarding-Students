@@ -3,17 +3,29 @@ const mongoose = require("mongoose");
 const deliverySchema = new mongoose.Schema(
   {
     orderId: {
-  type: String,
-  required: true,
-  unique: true,
-  },
+      type: String,
+      required: true,
+      trim: true,
+    },
+    studentId: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    deliveryPersonId: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     deliveryPersonName: {
       type: String,
       required: true,
+      trim: true,
     },
     deliveryPersonPhone: {
       type: String,
       required: true,
+      trim: true,
     },
     status: {
       type: String,
@@ -22,6 +34,7 @@ const deliverySchema = new mongoose.Schema(
     },
     estimatedDeliveryTime: {
       type: Date,
+      default: null,
     },
     assignedAt: {
       type: Date,
@@ -29,17 +42,25 @@ const deliverySchema = new mongoose.Schema(
     },
     pickedUpAt: {
       type: Date,
+      default: null,
     },
     deliveredAt: {
       type: Date,
+      default: null,
     },
     currentLocation: {
       type: String,
-      default: "",
+      required: true,
+      trim: true,
     },
     notes: {
       type: String,
       default: "",
+      trim: true,
+    },
+    deliveryDurationMinutes: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }
