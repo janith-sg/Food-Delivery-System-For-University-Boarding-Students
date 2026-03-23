@@ -40,7 +40,7 @@ const getDeliveryById = async (req, res) => {
 // Update delivery status
 const updateDeliveryStatus = async (req, res) => {
   try {
-    const { status, currentLocation } = req.body;
+    const { status, currentLocation, userId } = req.body;
 
     const updatedDelivery = await Delivery.findByIdAndUpdate(
       req.params.id,
@@ -52,9 +52,35 @@ const updateDeliveryStatus = async (req, res) => {
       return res.status(404).json({ message: "Delivery not found" });
     }
 
+    let notificationMessage = "";
+
+    if (status === "Assigned") {
+      notificationMessage = "Your order has been assigned to a delivery person.";
+    } else if (status === "Picked Up") {
+      notificationMessage = "Your order has been picked up.";
+    } else if (status === "On the Way") {
+      notificationMessage = "Your order is now on the way.";
+    } else if (status === "Delivered") {
+      notificationMessage = "Your order has been delivered.";
+    } else if (status === "Cancelled") {
+      notificationMessage = "Your delivery has been cancelled.";
+    }
+
+    if (userId && notificationMessage) {
+      await Notification.create({
+        userId,
+        title: "Delivery Update",
+        message: notificationMessage,
+        type: "delivery",
+      });
+    }
+
     res.status(200).json(updatedDelivery);
   } catch (error) {
-    res.status(500).json({ message: "Failed to update delivery", error: error.message });
+    res.status(500).json({
+      message: "Failed to update delivery",
+      error: error.message,
+    });
   }
 };
 
