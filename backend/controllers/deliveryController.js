@@ -157,7 +157,7 @@ const getDeliveriesByRider = async (req, res) => {
 // Update delivery location
 const updateDeliveryLocation = async (req, res) => {
   try {
-    const { currentLocation } = req.body;
+    const { currentLocation, latitude, longitude } = req.body;
 
     const delivery = await Delivery.findById(req.params.id);
 
@@ -166,6 +166,9 @@ const updateDeliveryLocation = async (req, res) => {
     }
 
     delivery.currentLocation = currentLocation || delivery.currentLocation;
+    delivery.latitude = latitude ?? delivery.latitude;
+    delivery.longitude = longitude ?? delivery.longitude;
+
     await delivery.save();
 
     res.status(200).json(delivery);
