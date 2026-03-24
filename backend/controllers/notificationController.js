@@ -1,26 +1,44 @@
 const Notification = require("../models/Notification");
 
-// Create notification
 const createNotification = async (req, res) => {
   try {
     const notification = await Notification.create(req.body);
     res.status(201).json(notification);
   } catch (error) {
-    res.status(500).json({ message: "Failed to create notification", error: error.message });
+    res.status(500).json({
+      message: "Failed to create notification",
+      error: error.message,
+    });
   }
 };
 
-// Get all notifications for a user
-const getUserNotifications = async (req, res) => {
+const getAllNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ userId: req.params.userId }).sort({ createdAt: -1 });
+    const notifications = await Notification.find().sort({ createdAt: -1 });
     res.status(200).json(notifications);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch notifications", error: error.message });
+    res.status(500).json({
+      message: "Failed to fetch notifications",
+      error: error.message,
+    });
   }
 };
 
-// Mark notification as read
+const getUserNotifications = async (req, res) => {
+  try {
+    const notifications = await Notification.find({
+      userId: req.params.userId,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json(notifications);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch notifications",
+      error: error.message,
+    });
+  }
+};
+
 const markAsRead = async (req, res) => {
   try {
     const notification = await Notification.findByIdAndUpdate(
@@ -35,18 +53,8 @@ const markAsRead = async (req, res) => {
 
     res.status(200).json(notification);
   } catch (error) {
-    res.status(500).json({ message: "Failed to update notification", error: error.message });
-  }
-};
-
-// Get all notifications (for admin)
-const getAllNotifications = async (req, res) => {
-  try {
-    const notifications = await Notification.find().sort({ createdAt: -1 });
-    res.status(200).json(notifications);
-  } catch (error) {
     res.status(500).json({
-      message: "Failed to fetch notifications",
+      message: "Failed to update notification",
       error: error.message,
     });
   }
@@ -54,7 +62,7 @@ const getAllNotifications = async (req, res) => {
 
 module.exports = {
   createNotification,
+  getAllNotifications,
   getUserNotifications,
   markAsRead,
-  getAllNotifications,
 };

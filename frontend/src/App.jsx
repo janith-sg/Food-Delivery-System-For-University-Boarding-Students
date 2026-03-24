@@ -7,11 +7,9 @@ import AdminNotificationPage from "./features/notification-management/pages/Admi
 
 // Rider
 import RiderDashboardPage from "./features/delivery-managemnet/pages/RiderDashboardPage";
-import RiderAssignedDeliveriesPage from "./features/delivery-managemnet/pages/RiderAssignedDeliveriesPage";
 
 // Customer
-import CustomerDeliveryPage from "./features/delivery-managemnet/pages/CustomerDeliveryPage";
-import CustomerNotificationPage from "./features/notification-management/pages/CustomerNotificationPage";
+import CustomerDashboardPage from "./features/delivery-managemnet/pages/CustomerDashboardPage";
 
 function App() {
   return (
@@ -19,19 +17,13 @@ function App() {
       <Navbar />
 
       <Routes>
-        {/* Admin */}
         <Route path="/admin/deliveries" element={<AdminDeliveryPage />} />
         <Route path="/admin/notifications" element={<AdminNotificationPage />} />
 
-        {/* Rider */}
         <Route path="/rider/dashboard" element={<RiderDashboardPage />} />
-        <Route path="/rider/deliveries" element={<RiderAssignedDeliveriesPage />} />
 
-        {/* Customer */}
-        <Route path="/customer/delivery" element={<CustomerDeliveryPage />} />
-        <Route path="/customer/notifications" element={<CustomerNotificationPage />} />
+        <Route path="/customer/dashboard" element={<CustomerDashboardPage />} />
 
-        {/* Default */}
         <Route path="/" element={<AdminDeliveryPage />} />
       </Routes>
     </div>

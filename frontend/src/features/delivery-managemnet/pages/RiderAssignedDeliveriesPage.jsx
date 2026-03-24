@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getDeliveriesByRider,
   updateDeliveryLocation,
@@ -11,6 +11,9 @@ function RiderAssignedDeliveriesPage() {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [locationInputs, setLocationInputs] = useState({});
+  const [trackingDeliveryId, setTrackingDeliveryId] = useState(null);
+  const [trackingMessage, setTrackingMessage] = useState("");
+  const watchIdRef = useRef(null);
 
   const fetchDeliveries = async () => {
     try {
@@ -26,6 +29,11 @@ function RiderAssignedDeliveriesPage() {
 
   useEffect(() => {
     fetchDeliveries();
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
   }, []);
 
   const handleStatusChange = async (deliveryId, status, studentId) => {
@@ -60,22 +68,90 @@ function RiderAssignedDeliveriesPage() {
     }
   };
 
+  const startLiveTracking = (deliveryId) => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+
+    setTrackingDeliveryId(deliveryId);
+    setTrackingMessage("Starting live location tracking...");
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      async (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        const locationText = `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`;
+
+        try {
+          await updateDeliveryLocation(deliveryId, {
+            currentLocation: locationText,
+            latitude,
+            longitude,
+          });
+
+          setTrackingMessage("Live location updated successfully.");
+          fetchDeliveries();
+        } catch (error) {
+          console.error("Failed to auto-update location:", error);
+          setTrackingMessage("Failed to send live location.");
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        if (error.code === 1) {
+          setTrackingMessage("Location permission denied.");
+        } else if (error.code === 2) {
+          setTrackingMessage("Location unavailable.");
+        } else if (error.code === 3) {
+          setTrackingMessage("Location request timed out.");
+        } else {
+          setTrackingMessage("Failed to get location.");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 10000,
+        timeout: 15000,
+      }
+    );
+  };
+
+  const stopLiveTracking = () => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    setTrackingDeliveryId(null);
+    setTrackingMessage("Live location tracking stopped.");
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-8">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white shadow-lg">
           <h1 className="text-3xl font-bold">Assigned Deliveries</h1>
           <p className="mt-2 text-sm text-emerald-50">
-            View your assigned orders, update delivery progress, and manage location updates.
+            View assigned orders, update delivery progress, and track your live location.
           </p>
         </div>
+
+        {trackingMessage && (
+          <div className="mb-6 rounded-2xl bg-white p-4 text-sm text-gray-700 shadow-sm">
+            {trackingMessage}
+          </div>
+        )}
 
         {loading ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
             Loading assigned deliveries...
           </div>
         ) : deliveries.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center shadow-sm text-gray-500">
+          <div className="rounded-2xl bg-white p-8 text-center text-gray-500 shadow-sm">
             No deliveries assigned to this rider.
           </div>
         ) : (
@@ -151,7 +227,7 @@ function RiderAssignedDeliveriesPage() {
 
                   <div>
                     <label className="mb-2 block text-sm font-semibold text-gray-800">
-                      Update Location
+                      Manual Location Update
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -171,6 +247,24 @@ function RiderAssignedDeliveriesPage() {
                       </button>
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button
+                    onClick={() => startLiveTracking(delivery._id)}
+                    className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                  >
+                    Start Live Location
+                  </button>
+
+                  {trackingDeliveryId === delivery._id && (
+                    <button
+                      onClick={stopLiveTracking}
+                      className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                    >
+                      Stop Live Tracking
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

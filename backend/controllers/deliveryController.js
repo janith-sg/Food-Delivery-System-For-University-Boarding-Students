@@ -31,14 +31,13 @@ const createDelivery = async (req, res) => {
       notes: notes || "",
     });
 
-    if (studentId) {
-      await Notification.create({
-        userId: studentId,
-        title: "Delivery Assigned",
-        message: `Your order has been assigned to ${randomStaff.name}.`,
-        type: "delivery",
-      });
-    }
+    // Notify the rider when a delivery is assigned
+    await Notification.create({
+      userId: randomStaff.id,
+      title: "New Delivery Assigned",
+      message: `A new delivery (${orderId}) has been assigned to you.`,
+      type: "delivery",
+    });
 
     res.status(201).json(delivery);
   } catch (error) {
@@ -77,42 +76,55 @@ const getDeliveryById = async (req, res) => {
 // Update delivery status
 const updateDeliveryStatus = async (req, res) => {
   try {
-    const { status, currentLocation, userId } = req.body;
+    const { status, currentLocation } = req.body;
 
-    const updatedDelivery = await Delivery.findByIdAndUpdate(
-      req.params.id,
-      { status, currentLocation },
-      { new: true }
-    );
+    const delivery = await Delivery.findById(req.params.id);
 
-    if (!updatedDelivery) {
+    if (!delivery) {
       return res.status(404).json({ message: "Delivery not found" });
     }
 
-    let notificationMessage = "";
+    delivery.status = status || delivery.status;
+    delivery.currentLocation = currentLocation || delivery.currentLocation;
 
-    if (status === "Assigned") {
-      notificationMessage = "Your order has been assigned to a delivery person.";
-    } else if (status === "Picked Up") {
-      notificationMessage = "Your order has been picked up.";
-    } else if (status === "On the Way") {
-      notificationMessage = "Your order is now on the way.";
-    } else if (status === "Delivered") {
-      notificationMessage = "Your order has been delivered.";
-    } else if (status === "Cancelled") {
-      notificationMessage = "Your delivery has been cancelled.";
+    if (status === "Picked Up" && !delivery.pickedUpAt) {
+      delivery.pickedUpAt = new Date();
     }
 
-    if (userId && notificationMessage) {
+    if (status === "Delivered" && !delivery.deliveredAt) {
+      delivery.deliveredAt = new Date();
+
+      if (delivery.pickedUpAt) {
+        const durationMs = delivery.deliveredAt - delivery.pickedUpAt;
+        delivery.deliveryDurationMinutes = Math.round(durationMs / 60000);
+      }
+    }
+
+    await delivery.save();
+
+    let customerMessage = "";
+
+    if (status === "Picked Up") {
+      customerMessage = "Your order has been picked up by the rider.";
+    } else if (status === "On the Way") {
+      customerMessage = "Your order is now on the way.";
+    } else if (status === "Delivered") {
+      customerMessage = "Your order has been delivered.";
+    } else if (status === "Cancelled") {
+      customerMessage = "Your delivery has been cancelled.";
+    }
+
+    // Notify customer only for delivery progress updates
+    if (delivery.studentId && customerMessage) {
       await Notification.create({
-        userId,
+        userId: delivery.studentId,
         title: "Delivery Update",
-        message: notificationMessage,
+        message: customerMessage,
         type: "delivery",
       });
     }
 
-    res.status(200).json(updatedDelivery);
+    res.status(200).json(delivery);
   } catch (error) {
     res.status(500).json({
       message: "Failed to update delivery",
