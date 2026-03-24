@@ -89,7 +89,7 @@ router.post("/", (req, res, next) => {
       registrationStatus: "pending",
     });
 
-    return res.status(201).json({ message: "Account created successfully." });
+    return res.status(201).json({ message: "Your account has been submitted for review." });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: err.message || "Registration failed." });

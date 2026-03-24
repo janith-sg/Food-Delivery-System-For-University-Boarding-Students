@@ -151,7 +151,7 @@ export default function AdminProfilePage() {
 
               <div>
                 <label className={labelClass} htmlFor="profilePhone">
-                  Phone number (10 digits)
+                  Phone number
                 </label>
                 <input
                   id="profilePhone"

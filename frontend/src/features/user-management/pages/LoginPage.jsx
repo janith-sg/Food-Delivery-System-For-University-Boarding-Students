@@ -104,7 +104,7 @@ const LoginPage = () => {
         fd.append('staffRole', regStaffRole);
       }
       const { data } = await axios.post('/api/register', fd);
-      window.alert(data.message || 'Account created.');
+      window.alert(data.message || 'Your account has been submitted for review.');
       setShowRegister(false);
       setRegFullName('');
       setRegStudentId('');
@@ -332,7 +332,7 @@ const LoginPage = () => {
 
                     <div>
                       <label className={`${labelClass} text-xs sm:text-sm`} htmlFor="phoneNumber">
-                        Phone Number (10 digits)
+                        Phone Number
                       </label>
                       <input
                         id="phoneNumber"
