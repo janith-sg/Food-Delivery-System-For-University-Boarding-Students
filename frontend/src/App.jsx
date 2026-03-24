@@ -51,7 +51,10 @@ function App() {
 
         {showGroupOrder ? (
           !groupJoined ? (
-            <GroupOrder onEnterGroup={handleEnterGroup} />
+            <GroupOrder
+  onEnterGroup={handleEnterGroup}
+  onBack={() => setShowGroupOrder(false)}
+/>
           ) : (
           groupView === "menu" ? (
   <GroupMenu
