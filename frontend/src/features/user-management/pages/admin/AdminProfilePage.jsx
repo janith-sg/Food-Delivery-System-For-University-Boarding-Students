@@ -25,7 +25,6 @@ function initialProfileForm() {
 
 export default function AdminProfilePage() {
   const navigate = useNavigate();
-  const sessionUser = getUser();
   const [profileForm, setProfileForm] = useState(initialProfileForm);
   const [profileErrors, setProfileErrors] = useState({});
 
@@ -41,7 +40,7 @@ export default function AdminProfilePage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#16a34a]/15 text-black">
               <LandingLeafIcon className="h-5 w-5" />
             </div>
-            <span className="font-serif text-lg font-normal tracking-tight text-black md:text-xl">UNI EATS</span>
+            <span className="font-sans text-lg font-normal tracking-tight text-black md:text-xl">UNI EATS</span>
           </Link>
 
           <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
@@ -85,20 +84,9 @@ export default function AdminProfilePage() {
           </Link>
 
           <section className="rounded-xl border border-[#bbf7d0]/60 bg-gradient-to-br from-white/98 to-[#eff6ff]/30 p-4 shadow-lg backdrop-blur md:p-5">
-            <h1 className="text-center font-serif text-xl leading-tight tracking-wide font-normal text-black md:text-2xl">
+            <h1 className="text-center font-sans text-xl leading-tight tracking-wide font-normal text-black md:text-2xl">
               YOUR PROFILE
             </h1>
-            {sessionUser?.email ? (
-              <p className="mt-2 text-center text-[11px] font-normal text-black/60">
-                Signed in as <span className="text-black/80">{sessionUser.email}</span>
-                {sessionUser.accountType ? (
-                  <span className="ml-1 rounded-full bg-[#16a34a]/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-black">
-                    {sessionUser.accountType}
-                  </span>
-                ) : null}
-              </p>
-            ) : null}
-
             <form className="mt-5 space-y-4" onSubmit={(e) => e.preventDefault()} noValidate>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="relative shrink-0">

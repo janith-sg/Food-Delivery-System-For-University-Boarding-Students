@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-/** Thumbnail opens a dimmed overlay with a large image and close control (Esc / backdrop / X). */
+
 export default function IdPhotoLightbox({ src, alt, children }) {
   const [open, setOpen] = useState(false);
 

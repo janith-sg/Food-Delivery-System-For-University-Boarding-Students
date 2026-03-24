@@ -7,6 +7,9 @@ const User = require("../models/User");
 
 const router = express.Router();
 
+/** Two English letters + exactly 8 digits (e.g. IT23419314). */
+const STUDENT_ID_REGEX = /^[A-Za-z]{2}\d{8}$/;
+
 const uploadDir = path.join(__dirname, "..", "uploads", "student-ids");
 fs.mkdirSync(uploadDir, { recursive: true });
 
@@ -61,9 +64,17 @@ router.post("/", (req, res, next) => {
       return res.status(409).json({ message: "This email is already registered." });
     }
 
+    let trimmedStudentId = "";
     if (accountType === "customer") {
-      if (!studentId?.trim()) {
+      trimmedStudentId = String(studentId ?? "").trim();
+      if (!trimmedStudentId) {
         return res.status(400).json({ message: "Student ID is required." });
+      }
+      if (!STUDENT_ID_REGEX.test(trimmedStudentId)) {
+        return res.status(400).json({
+          message:
+            "Student ID must be 2 letters followed by 8 digits (e.g. IT23419314).",
+        });
       }
       if (!req.file) {
         return res.status(400).json({ message: "Student ID photo is required." });
@@ -83,7 +94,7 @@ router.post("/", (req, res, next) => {
       passwordHash,
       phone: phone.trim(),
       accountType,
-      studentId: accountType === "customer" ? studentId.trim() : "",
+      studentId: accountType === "customer" ? trimmedStudentId : "",
       studentPhotoUrl,
       staffRole: accountType === "staff" ? String(staffRole || "").trim() : "",
       registrationStatus: "pending",

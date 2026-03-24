@@ -18,7 +18,7 @@ export default function CustomerRegistrationPage() {
     <AdminPageShell title="Customer Registration">
       <div className="mt-6 space-y-10">
         <div>
-          <h2 className="text-lg font-normal font-serif text-black">Pending customer review</h2>
+          <h2 className="text-lg font-normal font-sans text-black">Pending customer review</h2>
           <div className="mt-4 overflow-x-auto">
             {registrationLoading ? <p className="text-sm font-normal text-black">Loading…</p> : null}
             {registrationError ? <p className="text-sm text-red-600 mb-2">{registrationError}</p> : null}
@@ -88,7 +88,7 @@ export default function CustomerRegistrationPage() {
         </div>
 
         <div className="border-t border-[#16a34a]/30 pt-8">
-          <h2 className="text-lg font-normal font-serif text-black">Declined customer registrations</h2>
+          <h2 className="text-lg font-normal font-sans text-black">Declined customer registrations</h2>
           
           <div className="mt-4 overflow-x-auto">
             {registrationLoading ? <p className="text-sm font-normal text-black">Loading…</p> : null}

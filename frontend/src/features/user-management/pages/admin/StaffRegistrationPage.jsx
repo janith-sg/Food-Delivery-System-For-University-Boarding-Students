@@ -17,7 +17,7 @@ export default function StaffRegistrationPage() {
     <AdminPageShell title="Staff Registration">
       <div className="mt-6 space-y-10">
         <div>
-          <h2 className="text-lg font-normal font-serif text-black">Pending staff review</h2>
+          <h2 className="text-lg font-normal font-sans text-black">Pending staff review</h2>
           <div className="mt-4 overflow-x-auto">
             {registrationLoading ? <p className="text-sm font-normal text-black">Loading…</p> : null}
             {registrationError ? <p className="text-sm text-red-600 mb-2">{registrationError}</p> : null}
@@ -67,7 +67,7 @@ export default function StaffRegistrationPage() {
         </div>
 
         <div className="border-t border-[#16a34a]/30 pt-8">
-          <h2 className="text-lg font-normal font-serif text-black">Declined staff registrations</h2>
+          <h2 className="text-lg font-normal font-sans text-black">Declined staff registrations</h2>
           <p className="mt-1 text-sm font-normal text-black">Declined staff accounts. Delete a record to remove it from the database.</p>
           <div className="mt-4 overflow-x-auto">
             {registrationLoading ? <p className="text-sm font-normal text-black">Loading…</p> : null}

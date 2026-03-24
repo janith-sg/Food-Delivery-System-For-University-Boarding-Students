@@ -1,7 +1,7 @@
 // frontend/src/App.jsx
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
+import HomePage from './pages/HomePage';
 import AdminLayout from './features/user-management/pages/AdminLayout';
 import AdminDashboardPage from './features/user-management/pages/admin/AdminDashboardPage';
 import CustomerRegistrationPage from './features/user-management/pages/admin/CustomerRegistrationPage';
@@ -23,7 +23,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<HomePage />} />
         <Route
           path="/login"
           element={

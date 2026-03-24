@@ -51,8 +51,7 @@ export default function CustomerManagementPage() {
     <AdminPageShell title="Customer Management">
       <div className="mt-6">
         <p className="mb-4 text-sm font-normal text-black/80">
-          Approved student (customer) accounts from registration. Approve sign-ups in{' '}
-          <span className="font-medium text-black">Customer Registration</span> to add rows here.
+          Approved student (customer) accounts from registration. 
         </p>
 
         <div className="mb-4">

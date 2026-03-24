@@ -12,7 +12,7 @@ export default function RoleManagementPage() {
     <AdminPageShell title="Role Management">
       <div className="mt-6 space-y-6">
         <div className="overflow-x-auto">
-          <h3 className="mb-2 text-lg font-normal font-serif text-black">Staff</h3>
+          <h3 className="mb-2 text-lg font-normal font-sans text-black">Staff</h3>
           <table className="w-full border-collapse rounded-xl overflow-hidden">
             <thead>
               <tr className="bg-gradient-to-r from-[#d1fae5] to-[#dbeafe]">

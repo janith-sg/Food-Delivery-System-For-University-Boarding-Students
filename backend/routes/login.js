@@ -22,19 +22,13 @@ router.post("/", async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password." });
     }
 
-    if (user.accountType !== "admin") {
-      return res.status(403).json({
-        message: "This login is for administrators only. Use the correct portal for student/staff accounts.",
-      });
-    }
-
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       return res.status(500).json({ message: "Server missing JWT_SECRET." });
     }
 
     const token = jwt.sign(
-      { sub: user._id.toString(), email: user.email, role: "admin" },
+      { sub: user._id.toString(), email: user.email, role: user.accountType },
       secret,
       { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
     );

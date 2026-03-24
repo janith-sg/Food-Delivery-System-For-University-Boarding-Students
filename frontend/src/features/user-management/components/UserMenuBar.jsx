@@ -17,7 +17,7 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
             <LandingLeafIcon className="h-6 w-6" />
           </div>
           <div className="flex flex-col">
-            <span className="font-serif text-xl font-bold tracking-tight text-black md:text-2xl">UNI EATS</span>
+            <span className="font-sans text-xl font-bold tracking-tight text-black md:text-2xl">UNI EATS</span>
             <span className="hidden text-[10px] font-bold uppercase tracking-[0.2em] text-black sm:block">
               Admin
             </span>

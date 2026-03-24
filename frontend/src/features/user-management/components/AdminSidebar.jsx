@@ -1,13 +1,7 @@
 import React from 'react';
+import { TAB_PATHS } from '../constants/adminTabs';
 
-const tabs = [
-  'Dashboard',
-  'Customer Registration',
-  'Customer Management',
-  'Staff Registration',
-  'Role Management',
-  'User Profile',
-];
+const tabs = Object.keys(TAB_PATHS);
 
 const AdminSidebar = ({ activeTab, onTabClick }) => {
   return (

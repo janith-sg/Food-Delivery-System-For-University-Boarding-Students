@@ -11,3 +11,10 @@ export function digitsOnlyMax10(value) {
 export function isPhone10Digits(value) {
   return digitsOnlyMax10(value).length === 10;
 }
+
+/** Two English letters + exactly 8 digits (e.g. IT23419314). */
+export const STUDENT_ID_REGEX = /^[A-Za-z]{2}\d{8}$/;
+
+export function isValidStudentId(value) {
+  return typeof value === 'string' && STUDENT_ID_REGEX.test(value.trim());
+}

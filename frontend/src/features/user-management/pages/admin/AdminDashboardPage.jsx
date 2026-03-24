@@ -35,7 +35,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="rounded-xl border border-[#a7f3d0]/60 bg-gradient-to-br from-white to-[#f0fdf4]/80 p-4 transition-all duration-300 hover:shadow-lg hover:shadow-[#354A3F]/20">
-            <h2 className="text-xl font-normal font-serif text-black">Monthly Sales</h2>
+            <h2 className="text-xl font-normal font-sans text-black">Monthly Sales</h2>
             <div className="mt-4 h-[210px] rounded-xl border border-[#bfdbfe]/50 bg-gradient-to-b from-[#f8fafc]/95 to-[#eff6ff]/60 px-3 py-3">
               <div className="h-[160px] flex items-end gap-2">
                 {salesHeights.map((height, index) => (
@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="h-fit rounded-xl border border-[#93c5fd]/50 bg-gradient-to-b from-[#eff6ff]/90 via-white to-[#f0fdf4]/50 p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#3b82f6]/25">
-          <h2 className="text-xl font-normal font-serif text-black">Monthly target — new users</h2>
+          <h2 className="text-xl font-normal font-sans text-black">Monthly target-new users</h2>
           <p className="mt-1 text-sm font-normal text-black/80">
             Goal for approved customer &amp; staff sign-ups per month (registrations you review).
           </p>
@@ -87,7 +87,7 @@ export default function AdminDashboardPage() {
           <p className="mt-5 text-center text-sm font-normal text-black">
             89 new users approved so far this month (customers + staff).
             <br />
-            31 slots left to reach your target — keep reviewing registrations.
+            31 slots left to reach your target-keep reviewing registrations.
           </p>
 
           <div className="mt-6 grid grid-cols-3 gap-3 text-center">
