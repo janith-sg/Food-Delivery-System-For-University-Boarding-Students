@@ -10,6 +10,7 @@ import RoleManagementPage from './features/user-management/pages/admin/RoleManag
 import CustomerManagementPage from './features/user-management/pages/admin/CustomerManagementPage';
 import AdminProfilePage from './features/user-management/pages/admin/AdminProfilePage';
 import LoginPage from './features/user-management/pages/LoginPage';
+import RegisterPage from './features/user-management/pages/RegisterPage';
 import ForgotPasswordPage from './features/user-management/pages/ForgotPasswordPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
@@ -29,6 +30,14 @@ function App() {
           element={
             <GuestRoute>
               <LoginPage />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <GuestRoute>
+              <RegisterPage />
             </GuestRoute>
           }
         />

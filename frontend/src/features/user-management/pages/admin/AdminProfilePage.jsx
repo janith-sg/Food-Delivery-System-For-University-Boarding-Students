@@ -3,7 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { clearAuth, getUser } from '../../../../lib/auth';
 import LandingLeafIcon from '../../components/LandingLeafIcon';
 import idPhoto1 from '../../mock/r1.png';
-import { digitsOnlyMax10 } from '../../utils/formValidation';
+
+function digitsOnlyMax10(value) {
+  return String(value ?? '').replace(/\D/g, '').slice(0, 10);
+}
 
 function initialProfileForm() {
   const u = getUser();

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import LandingLeafIcon from '../components/LandingLeafIcon';
-import { isValidEmail } from '../utils/formValidation';
+
+const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const inputErrorClass = 'border-red-400 focus:ring-red-100';
 const inputOkClass = 'border-black/15 focus:border-[#0B8E3A] focus:ring-2 focus:ring-[#0B8E3A]/20';
@@ -23,7 +24,7 @@ function ForgotPasswordPage() {
       setEmailError('Email is required.');
       return false;
     }
-    if (!isValidEmail(email)) {
+    if (!EMAIL_OK.test(email.trim())) {
       setEmailError('Enter a valid email address.');
       return false;
     }

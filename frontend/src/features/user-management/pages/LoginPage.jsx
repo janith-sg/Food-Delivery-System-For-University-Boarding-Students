@@ -162,7 +162,7 @@ const LoginPage = () => {
             showRegister ? 'py-5 md:py-8 lg:py-10' : 'py-8 md:py-12 lg:py-14'
           }`}
         >
-          {/* Text + marquee — Login: left. Register: right (mirrored). Mobile: under form (login) or under form (register) */}
+          {/* */}
           <div
             className={`md:-translate-y-3 md:self-start lg:-translate-y-5 ${
               showRegister ? 'order-2 md:order-2' : 'order-2 md:order-1'

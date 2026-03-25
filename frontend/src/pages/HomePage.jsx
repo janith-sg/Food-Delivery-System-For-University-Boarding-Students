@@ -54,12 +54,20 @@ export default function HomePage() {
               Cart
             </a>
           </nav>
-          <Link
-            to="/login"
-            className="rounded-full bg-[#0B8E3A] px-5 py-2.5 text-sm font-semibold !text-white visited:!text-white shadow-md transition hover:bg-[#087532] hover:!text-white"
-          >
-            Order Now
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/register"
+              className="text-sm font-semibold text-black no-underline transition hover:text-black/80"
+            >
+              Register
+            </Link>
+            <Link
+              to="/login"
+              className="rounded-full bg-[#0B8E3A] px-5 py-2.5 text-sm font-semibold !text-white visited:!text-white shadow-md transition hover:bg-[#087532] hover:!text-white"
+            >
+              Order Now
+            </Link>
+          </div>
         </div>
       </header>
 
