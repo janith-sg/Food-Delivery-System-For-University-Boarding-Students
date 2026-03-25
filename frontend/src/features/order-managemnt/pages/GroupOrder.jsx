@@ -27,7 +27,7 @@ const Spinner = () => (
   </svg>
 );
 
-const GroupOrder = ({ onEnterGroup }) => {
+const GroupOrder = ({ onEnterGroup, onBack }) => {
   const [activeTab, setActiveTab] = useState("create");
   const [current, setCurrent] = useState(0);
   const [prev, setPrev] = useState(null);
@@ -146,7 +146,6 @@ const GroupOrder = ({ onEnterGroup }) => {
     boxSizing: "border-box",
   });
 
-  // Slide style — scale slightly larger to hide blur edges
   const slideBase = {
     position: "absolute", top: "-10px", left: "-10px", right: "-10px", bottom: "-10px",
     backgroundSize: "cover",
@@ -162,12 +161,11 @@ const GroupOrder = ({ onEnterGroup }) => {
         @keyframes bg-fade-out{ from { opacity: 1; } to { opacity: 0; } }
         @keyframes kb-zoom    { from { transform: scale(1); } to { transform: scale(1.07); } }
         html, body, #root { margin: 0; padding: 0; background: #000; }
+        .back-btn:hover { background: rgba(255,255,255,0.28) !important; }
       `}</style>
 
       {/* ── BACKGROUND SLIDESHOW ── */}
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: "hidden" }}>
-
-        {/* Outgoing slide */}
         {prev !== null && (
           <div style={{
             ...slideBase,
@@ -175,21 +173,15 @@ const GroupOrder = ({ onEnterGroup }) => {
             animation: "bg-fade-out 1.2s ease forwards",
           }} />
         )}
-
-        {/* Incoming slide */}
         <div style={{
           ...slideBase,
           backgroundImage: `url(${SLIDE_IMAGES[current]})`,
           animation: "bg-fade-in 1.2s ease forwards, kb-zoom 5s ease forwards",
         }} />
-
-        {/* Subtle dark overlay */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
           background: "rgba(0,0,0,0.35)",
         }} />
-
-        {/* Dot indicators */}
         <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 7, zIndex: 10 }}>
           {SLIDE_IMAGES.map((_, i) => (
             <span key={i} style={{
@@ -211,7 +203,7 @@ const GroupOrder = ({ onEnterGroup }) => {
       }}>
         <div style={{ width: "100%", maxWidth: 440 }}>
 
-          {/* Header glass card */}
+          {/* ── Header glass card ── */}
           <div style={{
             borderRadius: 20,
             background: "rgba(0,0,0,0.35)",
@@ -221,22 +213,53 @@ const GroupOrder = ({ onEnterGroup }) => {
             padding: "20px 24px",
             marginBottom: 14,
             color: "#fff",
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 12,
           }}>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(187,247,208,0.9)", margin: "0 0 6px" }}>
-              University Boarding Canteen
-            </p>
-            <h1 style={{ fontSize: 24, fontWeight: 900, margin: "0 0 12px", color: "#fff" }}>
-              Group Ordering 👥
-            </h1>
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              background: "rgba(255,255,255,0.14)", borderRadius: 999, padding: "6px 14px",
-            }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#86efac", display: "inline-block" }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(220,252,231,0.95)" }}>
-                Available: 8:00 AM – 10:00 PM
-              </span>
+            {/* Text info */}
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(187,247,208,0.9)", margin: "0 0 6px" }}>
+                University Boarding Canteen
+              </p>
+              <h1 style={{ fontSize: 24, fontWeight: 900, margin: "0 0 12px", color: "#fff" }}>
+                Group Ordering 👥
+              </h1>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: "rgba(255,255,255,0.14)", borderRadius: 999, padding: "6px 14px",
+              }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#86efac", display: "inline-block" }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(220,252,231,0.95)" }}>
+                  Available: 8:00 AM – 10:00 PM
+                </span>
+              </div>
             </div>
+
+            {/* ── Back button ── */}
+            {onBack && (
+              <button
+                className="back-btn"
+                onClick={onBack}
+                title="Back to Menu"
+                style={{
+                  flexShrink: 0,
+                  width: 40, height: 40,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(255,255,255,0.28)",
+                  color: "#fff",
+                  fontSize: 18,
+                  cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "background 0.2s",
+                  marginTop: 2,
+                }}
+              >
+                ←
+              </button>
+            )}
           </div>
 
           {/* Main card */}
