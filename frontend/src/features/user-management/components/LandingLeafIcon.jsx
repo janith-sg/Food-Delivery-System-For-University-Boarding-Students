@@ -1,6 +1,5 @@
 import React from 'react';
 
-/** Matches LandingPage branding */
 export default function LandingLeafIcon({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>

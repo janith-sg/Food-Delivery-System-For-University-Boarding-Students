@@ -16,8 +16,7 @@ export function useAdminRegistrations() {
         axios.get('/api/users/registrations/pending'),
         axios.get('/api/users/registrations/declined'),
       ]);
-      const rows = Array.isArray(pendingRes.data) ? pendingRes.data : [];
-      setRegistrationRows(rows);
+      setRegistrationRows(Array.isArray(pendingRes.data) ? pendingRes.data : []);
       setDeclinedRows(Array.isArray(declinedRes.data) ? declinedRes.data : []);
     } catch (e) {
       setRegistrationError(e.response?.data?.message || e.message || 'Failed to load registrations.');
@@ -56,10 +55,7 @@ export function useAdminRegistrations() {
   };
 
   const handleDeleteDeclinedRecord = async (id, name) => {
-    const ok = window.confirm(
-      `Permanently delete "${name}" from the database? This cannot be undone.`,
-    );
-    if (!ok) return;
+    if (!window.confirm(`Permanently delete "${name}"? This cannot be undone.`)) return;
     try {
       await axios.delete(`/api/users/${id}`);
       await fetchRegistrations();
@@ -74,11 +70,8 @@ export function useAdminRegistrations() {
   const declinedStaffRows = declinedRows.filter((r) => r.accountType === 'staff');
 
   return {
-    registrationRows,
-    declinedRows,
     registrationLoading,
     registrationError,
-    fetchRegistrations,
     handleRegistrationApprove,
     handleRegistrationDecline,
     handleDeleteDeclinedRecord,

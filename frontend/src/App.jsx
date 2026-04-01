@@ -1,16 +1,16 @@
 // frontend/src/App.jsx
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
+import HomePage from './pages/HomePage';
 import AdminLayout from './features/user-management/pages/AdminLayout';
 import AdminDashboardPage from './features/user-management/pages/admin/AdminDashboardPage';
 import CustomerRegistrationPage from './features/user-management/pages/admin/CustomerRegistrationPage';
 import StaffRegistrationPage from './features/user-management/pages/admin/StaffRegistrationPage';
 import RoleManagementPage from './features/user-management/pages/admin/RoleManagementPage';
 import CustomerManagementPage from './features/user-management/pages/admin/CustomerManagementPage';
-import SupportChatbotPage from './features/user-management/pages/admin/SupportChatbotPage';
 import AdminProfilePage from './features/user-management/pages/admin/AdminProfilePage';
 import LoginPage from './features/user-management/pages/LoginPage';
+import RegisterPage from './features/user-management/pages/RegisterPage';
 import ForgotPasswordPage from './features/user-management/pages/ForgotPasswordPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
@@ -24,12 +24,20 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<HomePage />} />
         <Route
           path="/login"
           element={
             <GuestRoute>
               <LoginPage />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <GuestRoute>
+              <RegisterPage />
             </GuestRoute>
           }
         />
@@ -50,7 +58,6 @@ function App() {
             <Route path="staff-registration" element={<StaffRegistrationPage />} />
             <Route path="role-management" element={<RoleManagementPage />} />
             <Route path="customer-management" element={<CustomerManagementPage />} />
-            <Route path="support-chatbot" element={<SupportChatbotPage />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>
         </Route>

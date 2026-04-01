@@ -1,5 +1,6 @@
 import React from 'react';
 import AdminPageShell from '../../components/AdminPageShell';
+import IdPhotoLightbox from '../../components/IdPhotoLightbox';
 import { useAdminRegistrations } from '../../hooks/useAdminRegistrations';
 
 export default function CustomerRegistrationPage() {
@@ -17,7 +18,7 @@ export default function CustomerRegistrationPage() {
     <AdminPageShell title="Customer Registration">
       <div className="mt-6 space-y-10">
         <div>
-          <h2 className="text-lg font-normal font-serif text-black">Pending customer review</h2>
+          <h2 className="text-lg font-normal font-sans text-black">Pending customer review</h2>
           <div className="mt-4 overflow-x-auto">
             {registrationLoading ? <p className="text-sm font-normal text-black">Loading…</p> : null}
             {registrationError ? <p className="text-sm text-red-600 mb-2">{registrationError}</p> : null}
@@ -44,13 +45,15 @@ export default function CustomerRegistrationPage() {
                       <td className="p-3 text-sm font-normal text-black border border-[#16a34a]/25 font-mono">{row.studentId}</td>
                       <td className="p-3 text-sm font-normal text-black border border-[#16a34a]/25">{row.phone}</td>
                       <td className="p-3 border border-[#16a34a]/25">
-                        <div className="w-16 h-16">
+                        <div className="flex h-16 w-16 items-center">
                           {row.photoUrl ? (
-                            <img
-                              src={row.photoUrl}
-                              alt={`${row.name} ID`}
-                              className="w-16 h-16 rounded-lg object-cover border border-[#16a34a]/35 transition-transform duration-200 hover:scale-[3.2] hover:z-20 relative cursor-zoom-in"
-                            />
+                            <IdPhotoLightbox src={row.photoUrl} alt={`${row.name} student ID`}>
+                              <img
+                                src={row.photoUrl}
+                                alt=""
+                                className="h-16 w-16 rounded-lg border border-[#16a34a]/35 object-cover"
+                              />
+                            </IdPhotoLightbox>
                           ) : (
                             <span className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-[#16a34a]/40 text-[10px] text-black/50 font-normal">
                               No photo
@@ -85,7 +88,7 @@ export default function CustomerRegistrationPage() {
         </div>
 
         <div className="border-t border-[#16a34a]/30 pt-8">
-          <h2 className="text-lg font-normal font-serif text-black">Declined customer registrations</h2>
+          <h2 className="text-lg font-normal font-sans text-black">Declined customer registrations</h2>
           
           <div className="mt-4 overflow-x-auto">
             {registrationLoading ? <p className="text-sm font-normal text-black">Loading…</p> : null}
@@ -113,9 +116,15 @@ export default function CustomerRegistrationPage() {
                       <td className="p-3 text-sm font-normal text-black border border-red-100 font-mono">{row.studentId}</td>
                       <td className="p-3 text-sm font-normal text-black border border-red-100">{row.phone}</td>
                       <td className="p-3 border border-red-100">
-                        <div className="w-14 h-14">
+                        <div className="flex h-14 w-14 items-center">
                           {row.photoUrl ? (
-                            <img src={row.photoUrl} alt="" className="w-14 h-14 rounded-lg object-cover border border-red-200/80" />
+                            <IdPhotoLightbox src={row.photoUrl} alt={`${row.name} student ID`}>
+                              <img
+                                src={row.photoUrl}
+                                alt=""
+                                className="h-14 w-14 rounded-lg border border-red-200/80 object-cover"
+                              />
+                            </IdPhotoLightbox>
                           ) : (
                             <span className="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed border-red-200 text-[9px] font-normal text-black/45">
                               —

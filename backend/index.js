@@ -10,6 +10,7 @@ const seedAdmin = require("./seed/seedAdmin");
 const registerRoutes = require("./routes/register");
 const loginRoutes = require("./routes/login");
 const usersRoutes = require("./routes/users");
+const passwordResetRoutes = require("./routes/passwordReset");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/register", registerRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/password-reset", passwordResetRoutes);
 
 app.get("/", (req, res) => res.send("UNI EATS API — OK"));
 

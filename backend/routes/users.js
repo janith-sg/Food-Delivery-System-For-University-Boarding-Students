@@ -1,9 +1,47 @@
 const express = require("express");
+const path = require("path");
+const fs = require("fs");
+const multer = require("multer");
 const User = require("../models/User");
 
 const router = express.Router();
 
 const STAFF_ROLES = ["Delivery Manager", "Order Manager", "Food Menu Manager"];
+
+// Basic validators (kept here for uni project simplicity)
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function digitsOnlyMax10(value) {
+  return String(value ?? "").replace(/\D/g, "").slice(0, 10);
+}
+function isValidEmail(value) {
+  return typeof value === "string" && EMAIL_REGEX.test(value.trim());
+}
+function isValidFullName(value) {
+  if (typeof value !== "string") return false;
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  return parts.length >= 2;
+}
+
+// Upload config for profile photos
+const profileUploadDir = path.join(__dirname, "..", "uploads", "profile-photos");
+fs.mkdirSync(profileUploadDir, { recursive: true });
+
+const profileUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, profileUploadDir),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname) || ".jpg";
+      cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("Only image files are allowed."));
+    }
+    cb(null, true);
+  },
+});
 
 function mapRow(u) {
   const reg = u.registrationStatus || "pending";
@@ -124,6 +162,74 @@ router.get("/registered/staff", async (req, res) => {
   }
 });
 
+/** Update basic profile fields (admin dashboard profile screen). Supports optional profile photo upload. */
+router.patch("/:id/profile", (req, res, next) => {
+  profileUpload.single("profilePhoto")(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({
+        message: err.message || "File upload error.",
+        field: "photo",
+      });
+    }
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const { fullName, email, phone } = req.body || {};
+    const name = String(fullName ?? "").trim();
+    const mail = String(email ?? "").trim().toLowerCase();
+    const phoneDigits = digitsOnlyMax10(phone);
+
+    if (!name) return res.status(400).json({ message: "Full name is required.", field: "fullName" });
+    if (!isValidFullName(name)) {
+      return res.status(400).json({
+        message: "Enter first and last name (at least two words).",
+        field: "fullName",
+      });
+    }
+    if (!mail) return res.status(400).json({ message: "Email is required.", field: "email" });
+    if (!isValidEmail(mail)) return res.status(400).json({ message: "Enter a valid email address.", field: "email" });
+    if (!phoneDigits) return res.status(400).json({ message: "Phone is required.", field: "phone" });
+    if (phoneDigits.length !== 10) {
+      return res.status(400).json({ message: "Phone must be exactly 10 digits.", field: "phone" });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    // If email changes, ensure uniqueness
+    if (user.email !== mail) {
+      const exists = await User.findOne({ email: mail });
+      if (exists) {
+        return res.status(409).json({ message: "This email is already registered.", field: "email" });
+      }
+    }
+
+    user.fullName = name;
+    user.email = mail;
+    user.phone = phoneDigits;
+    if (req.file) {
+      user.studentPhotoUrl = `/uploads/profile-photos/${req.file.filename}`;
+    }
+    await user.save();
+
+    return res.json({
+      message: "Profile updated.",
+      user: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        accountType: user.accountType,
+        phone: user.phone || "",
+        studentPhotoUrl: user.studentPhotoUrl || "",
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: err.message || "Update failed." });
+  }
+});
+
 /** Approve or decline a registration */
 router.patch("/:id/registration-status", async (req, res) => {
   try {
@@ -182,7 +288,7 @@ router.patch("/:id/staff-role", async (req, res) => {
     const user = await User.findOneAndUpdate(
       { _id: req.params.id, accountType: "staff", registrationStatus: "approved" },
       { staffRole: role },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!user) {

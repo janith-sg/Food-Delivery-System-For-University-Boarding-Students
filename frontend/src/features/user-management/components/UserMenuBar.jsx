@@ -1,16 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-
-function LeafIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z" />
-    </svg>
-  );
-}
+import { getUser } from '../../../lib/auth';
+import LandingLeafIcon from './LandingLeafIcon';
 
 const UserMenuBar = ({ onLogout, onProfileClick }) => {
-  const username = 'IndujaAdmin';
+  const user = getUser();
+  const displayName = (user?.fullName && String(user.fullName).trim()) || user?.email || 'Admin';
+  const email = user?.email ? String(user.email).trim() : '';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#bbf7d0]/60 bg-gradient-to-r from-[#f0fdf4]/95 via-white/90 to-[#eff6ff]/95 backdrop-blur-md">
@@ -18,10 +14,10 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
       <div className="mx-auto flex h-[64px] max-w-[1600px] items-center justify-between gap-4 px-4 md:px-8">
         <Link to="/" className="flex min-w-0 items-center gap-2">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#dcfce7] to-[#a7f3d0] text-black ring-2 ring-white/90 shadow-sm">
-            <LeafIcon className="h-6 w-6" />
+            <LandingLeafIcon className="h-6 w-6" />
           </div>
           <div className="flex flex-col">
-            <span className="font-serif text-xl font-bold tracking-tight text-black md:text-2xl">UNI EATS</span>
+            <span className="font-sans text-xl font-bold tracking-tight text-black md:text-2xl">UNI EATS</span>
             <span className="hidden text-[10px] font-bold uppercase tracking-[0.2em] text-black sm:block">
               Admin
             </span>
@@ -41,9 +37,16 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
             </svg>
           </button>
 
-          <div className="hidden leading-tight sm:block">
+          <div className="hidden max-w-[200px] leading-tight sm:block md:max-w-[280px]">
             <div className="text-[11px] font-bold uppercase tracking-wide text-black">Hello</div>
-            <div className="text-sm font-bold text-black">{username}</div>
+            <div className="truncate text-sm font-bold text-black" title={displayName}>
+              {displayName}
+            </div>
+            {email ? (
+              <div className="truncate text-[10px] font-normal text-black/65" title={email}>
+                {email}
+              </div>
+            ) : null}
           </div>
 
           <button

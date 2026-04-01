@@ -33,7 +33,7 @@ async function seedAdmin() {
         registrationStatus: "approved",
       },
     },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
+    { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
   );
 
   console.log("[seedAdmin] Admin user synced:", result.email, "(accountType: admin)");
