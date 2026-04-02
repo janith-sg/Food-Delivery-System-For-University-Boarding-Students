@@ -1,4 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import GroupStripePaymentForm from "./GroupStripePaymentForm";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const SLIDE_IMAGES = [
   "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1600&q=80",
@@ -15,6 +20,8 @@ const GroupSummary = ({ groupCode, memberName, onBack }) => {
   const [fetching, setFetching] = useState(true);
   const [current, setCurrent] = useState(0);
   const [prev, setPrev] = useState(null);
+  const [clientSecret, setClientSecret] = useState("");
+const [stripeReady, setStripeReady] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -157,6 +164,69 @@ const GroupSummary = ({ groupCode, memberName, onBack }) => {
       </div>
     </>
   );
+
+  const handleCreateGroupPaymentIntent = async () => {
+  if (!groupData?.items?.length) {
+    alert("Please add items before paying.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await fetch("http://localhost:5000/api/stripe/create-payment-intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amountLKR: finalTotal,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.clientSecret) {
+      setClientSecret(data.clientSecret);
+      setStripeReady(true);
+    } else {
+      alert(data.message || "Failed to start group card payment.");
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong while preparing group payment.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+const handleGroupCardPaymentSuccess = async () => {
+  setLoading(true);
+  try {
+    const response = await fetch("http://localhost:5000/api/group-orders/finalize", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        groupCode,
+        paymentMethod: "Card Payment",
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setStripeReady(false);
+      setClientSecret("");
+      fetchGroup();
+    } else {
+      alert(data.message || "Payment succeeded, but group order finalization failed.");
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Payment succeeded, but something went wrong while finalizing the group order.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (fetching) {
     return (
@@ -331,7 +401,11 @@ const GroupSummary = ({ groupCode, memberName, onBack }) => {
                         name="paymentMethod"
                         value={method}
                         checked={paymentMethod === method}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        onChange={(e) => {
+  setPaymentMethod(e.target.value);
+  setStripeReady(false);
+  setClientSecret("");
+}}
                         disabled={paymentLocked}
                         style={{ accentColor: "#16a34a" }}
                       />
@@ -345,25 +419,61 @@ const GroupSummary = ({ groupCode, memberName, onBack }) => {
 
               {/* Finalize */}
               <div style={{ ...glassCard, padding: 20 }}>
-                {isLeader && !isCompleted && (
-                  <button onClick={finalizeGroupOrder} disabled={loading} style={{
-                    width: "100%", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 800,
-                    color: "#fff", border: "none", cursor: loading ? "not-allowed" : "pointer",
-                    background: loading ? "#86efac" : "#16a34a",
-                    boxShadow: "0 4px 16px rgba(22,163,74,0.3)",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  }}>
-                    {loading ? (
-                      <>
-                        <svg style={{ animation: "go-spin 1s linear infinite", height: 16, width: 16 }} fill="none" viewBox="0 0 24 24">
-                          <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                        </svg>
-                        Processing...
-                      </>
-                    ) : "Pay & Complete Group Order 🎉"}
-                  </button>
-                )}
+               {isLeader && !isCompleted && paymentMethod === "Cash on Delivery" && (
+  <button
+    onClick={finalizeGroupOrder}
+    disabled={loading}
+    style={{
+      width: "100%",
+      borderRadius: 12,
+      padding: "14px 0",
+      fontSize: 14,
+      fontWeight: 800,
+      color: "#fff",
+      border: "none",
+      cursor: loading ? "not-allowed" : "pointer",
+      background: loading ? "#86efac" : "#16a34a",
+      boxShadow: "0 4px 16px rgba(22,163,74,0.3)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    }}
+  >
+    {loading ? "Processing..." : "Complete Group Order 🎉"}
+  </button>
+)}
+
+{isLeader && !isCompleted && paymentMethod === "Card Payment" && !stripeReady && (
+  <button
+    onClick={handleCreateGroupPaymentIntent}
+    disabled={loading}
+    style={{
+      width: "100%",
+      borderRadius: 12,
+      padding: "14px 0",
+      fontSize: 14,
+      fontWeight: 800,
+      color: "#fff",
+      border: "none",
+      cursor: loading ? "not-allowed" : "pointer",
+      background: loading ? "#86efac" : "#16a34a",
+      boxShadow: "0 4px 16px rgba(22,163,74,0.3)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    }}
+  >
+    {loading ? "Preparing Payment..." : "Continue to Group Card Payment 💳"}
+  </button>
+)}
+
+{isLeader && !isCompleted && paymentMethod === "Card Payment" && stripeReady && (
+  <Elements stripe={stripePromise} options={{ clientSecret }}>
+    <GroupStripePaymentForm onPaymentSuccess={handleGroupCardPaymentSuccess} />
+  </Elements>
+)}
                 {!isLeader && !isCompleted && (
                   <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: "12px 16px" }}>
                     <span>🔒</span>

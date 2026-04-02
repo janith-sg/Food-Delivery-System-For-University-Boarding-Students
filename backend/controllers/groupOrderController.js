@@ -189,9 +189,25 @@ const finalizeGroupOrder = async (req, res) => {
     const deliveryFee = group.deliveryFee || 400;
     const finalTotal = subTotal + deliveryFee;
 
+    const memberTotals = {};
+    group.items.forEach((item) => {
+      memberTotals[item.addedBy] = (memberTotals[item.addedBy] || 0) + item.price * item.qty;
+    });
+
+    const members = Object.keys(memberTotals);
+    const deliveryShare = members.length > 0 ? deliveryFee / members.length : 0;
+
+    group.splitDetails = members.map((member) => ({
+      memberName: member,
+      subTotal: memberTotals[member],
+      deliveryShare,
+      total: memberTotals[member] + deliveryShare,
+    }));
+
     group.status = "Completed";
-    group.paymentStatus = "Paid";
     group.paymentMethod = paymentMethod || "Cash on Delivery";
+    group.paymentStatus =
+      group.paymentMethod === "Card Payment" ? "Paid" : "Pending";
     group.finalTotal = finalTotal;
 
     await group.save();

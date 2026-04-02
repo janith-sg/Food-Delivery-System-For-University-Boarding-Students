@@ -86,10 +86,10 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
     const errs = validateCreate();
     if (Object.keys(errs).length > 0) { setCreateErrors(errs); return; }
     setCreateErrors({});
-    if (!isWithinAllowedTime()) {
-      setMessage({ text: "Group orders are only allowed between 8:00 AM – 10:00 PM.", type: "error" });
-      return;
-    }
+   // if (!isWithinAllowedTime()) {
+   //   setMessage({ text: "Group orders are only allowed between 8:00 AM – 10:00 PM.", type: "error" });
+   //   return;
+   // }
     setLoadingCreate(true);
     try {
       const response = await fetch("http://localhost:5000/api/group-orders", {
