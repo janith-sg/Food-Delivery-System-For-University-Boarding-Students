@@ -178,7 +178,7 @@ const getDeliveryById = async (req, res) => {
 // Update delivery status
 const updateDeliveryStatus = async (req, res) => {
   try {
-    const { status, currentLocation, userId } = req.body;
+    const { status, currentLocation } = req.body;
 
     const delivery = await Delivery.findById(req.params.id);
 
