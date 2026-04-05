@@ -163,6 +163,57 @@ router.get("/registered/staff", async (req, res) => {
   }
 });
 
+/** Aggregate counts for admin dashboard cards */
+router.get("/dashboard/stats", async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [
+      registeredCustomers,
+      pendingRegistrations,
+      pendingCustomers,
+      pendingStaff,
+      registeredStaff,
+      approvedThisMonth,
+    ] = await Promise.all([
+      User.countDocuments({ accountType: "customer", registrationStatus: "approved" }),
+      User.countDocuments({
+        accountType: { $in: ["customer", "staff"] },
+        registrationStatus: "pending",
+      }),
+      User.countDocuments({ accountType: "customer", registrationStatus: "pending" }),
+      User.countDocuments({ accountType: "staff", registrationStatus: "pending" }),
+      User.countDocuments({ accountType: "staff", registrationStatus: "approved" }),
+      User.countDocuments({
+        accountType: { $in: ["customer", "staff"] },
+        registrationStatus: "approved",
+        updatedAt: { $gte: startOfMonth },
+      }),
+    ]);
+
+    const monthlyTarget = Number(process.env.MONTHLY_NEW_USER_TARGET || "120") || 120;
+    const monthlyGoalPercent =
+      monthlyTarget > 0 ? Math.min(100, Math.round((approvedThisMonth / monthlyTarget) * 100)) : 0;
+    const slotsRemainingTowardGoal = Math.max(0, monthlyTarget - approvedThisMonth);
+
+    res.json({
+      registeredCustomers,
+      pendingRegistrations,
+      pendingCustomers,
+      pendingStaff,
+      registeredStaff,
+      approvedThisMonth,
+      monthlyTarget,
+      monthlyGoalPercent,
+      slotsRemainingTowardGoal,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message || "Could not load dashboard stats." });
+  }
+});
+
 /** Update basic profile fields (admin dashboard profile screen). Supports optional profile photo upload. */
 router.patch("/:id/profile", (req, res, next) => {
   profileUpload.single("profilePhoto")(req, res, (err) => {
