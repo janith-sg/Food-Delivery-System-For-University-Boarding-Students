@@ -14,6 +14,8 @@ import {
   rateFoodItem,
   updateFoodItem,
 } from "./api";
+import UserMenuBar from "../user-management/components/UserMenuBar";
+import { clearAuth, getUser } from "../../lib/auth";
 
 const BUDGET_LIMIT = 350;
 const CART_STORAGE_KEY = "food_menu_cart";
@@ -1109,7 +1111,21 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-10">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {isAdmin ? (
+        <UserMenuBar
+          onLogout={() => {
+            clearAuth();
+            navigate("/login");
+          }}
+          onProfileClick={() => {
+            const u = getUser();
+            if (u?.accountType === "admin") navigate("/admin/profile");
+            else navigate("/");
+          }}
+        />
+      ) : null}
+      <main className="pb-10">
       <section className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
         <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-50 via-white to-lime-50 p-6 shadow-lg">
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-green-300/25 blur-3xl" />
@@ -1315,5 +1331,6 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
         </div>
       </section>
     </main>
+    </div>
   );
 }
