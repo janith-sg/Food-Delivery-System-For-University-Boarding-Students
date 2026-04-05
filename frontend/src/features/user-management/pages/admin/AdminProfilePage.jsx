@@ -41,7 +41,8 @@ export default function AdminProfilePage() {
 
   const handleSave = async () => {
     const u = getUser();
-    if (!u?.id) {
+    const userId = u?.id ?? u?._id;
+    if (!userId) {
       setApiError('No signed-in user found. Please log in again.');
       return;
     }
@@ -55,12 +56,22 @@ export default function AdminProfilePage() {
       fd.append('phone', profileForm.phone);
       if (photoFile) fd.append('profilePhoto', photoFile);
 
-      const { data } = await axios.patch(`/api/users/${u.id}/profile`, fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      // Do not set Content-Type: axios must add multipart boundary automatically.
+      const { data } = await axios.patch(`/api/users/${userId}/profile`, fd);
       const updatedUser = data?.user;
       if (updatedUser) {
         setAuth(getToken(), updatedUser);
+        const saved = String(updatedUser.studentPhotoUrl || '').trim();
+        if (saved) {
+          setProfileForm((prev) => {
+            const prevSrc = prev.photo;
+            if (typeof prevSrc === 'string' && prevSrc.startsWith('blob:')) {
+              URL.revokeObjectURL(prevSrc);
+            }
+            const path = saved.startsWith('/') ? saved : `/${saved}`;
+            return { ...prev, photo: `${path}?v=${Date.now()}` };
+          });
+        }
       }
       setPhotoFile(null);
       window.alert(data?.message || 'Profile updated.');
