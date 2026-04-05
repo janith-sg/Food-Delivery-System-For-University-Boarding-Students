@@ -44,6 +44,7 @@ router.post("/", async (req, res) => {
         phone: user.phone || "",
         studentPhotoUrl: user.studentPhotoUrl || "",
         staffRole: user.staffRole || "",
+        riderId: user.riderId || "",
       },
     });
   } catch (err) {

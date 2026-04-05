@@ -9,8 +9,8 @@ export const USER_PROFILE_PATH = '/profile';
 const STAFF_ROLE_HOME = {
   'food menu manager': '/food-menu',
   'order manager': '/staff/orders',
-  'delivery driver': '/staff/delivery',
-  'delivery manager': '/',
+  'delivery driver': '/rider/dashboard',
+  'delivery manager': '/admin/deliveries',
 };
 
 function normalizedStaffRole(user) {
@@ -63,7 +63,10 @@ function isReturnPathAllowedForUser(user, path) {
       return path.startsWith('/staff/orders');
     }
     if (key === 'delivery driver') {
-      return path.startsWith('/staff/delivery');
+      return path.startsWith('/rider');
+    }
+    if (key === 'delivery manager') {
+      return path.startsWith('/admin/deliveries') || path.startsWith('/admin/notifications');
     }
   }
   return true;

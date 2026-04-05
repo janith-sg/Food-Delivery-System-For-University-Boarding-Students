@@ -16,6 +16,8 @@ const orderRoutes = require("./routes/orderRoutes");
 const groupOrderRoutes = require("./routes/groupOrderRoutes");
 const stripeRoutes = require("./routes/stripeRoutes");
 const foodMenuRoutes = require("./routes/FoodMenus");
+const deliveryRoutes = require("./routes/deliveryRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,6 +37,8 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/group-orders", groupOrderRoutes);
 app.use("/api/stripe", stripeRoutes);
 app.use("/api/foodmenus", foodMenuRoutes);
+app.use("/api/deliveries", deliveryRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => res.send("UNI EATS API — OK"));
 

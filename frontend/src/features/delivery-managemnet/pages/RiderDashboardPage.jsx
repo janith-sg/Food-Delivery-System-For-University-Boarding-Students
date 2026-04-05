@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getUser } from "../../../lib/auth";
 import {
   getDeliveriesByRider,
   getRiderStats,
@@ -9,7 +10,11 @@ import DeliveryStatusBadge from "../components/DeliveryStatusBadge";
 import { generateRiderStatsReport } from "../reports/generateRiderStatsReport";
 
 function RiderDashboardPage() {
-  const riderId = "RIDER001";
+  const riderId = useMemo(() => {
+    const id = String(getUser()?.riderId || "").trim();
+    return id || "RIDER001";
+  }, []);
+
   const [stats, setStats] = useState(null);
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +22,7 @@ function RiderDashboardPage() {
 
   const deliveriesPerPage = 5;
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -41,11 +46,11 @@ function RiderDashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [riderId]);
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
   const getNextStatus = (status) => {
     if (status === "Assigned") return "Picked Up";

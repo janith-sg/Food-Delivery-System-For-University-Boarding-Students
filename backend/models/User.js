@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema(
     studentId: { type: String, default: "" },
     studentPhotoUrl: { type: String, default: "" },
     staffRole: { type: String, default: "" },
+    /** Matches `deliveryPersonId` on deliveries (e.g. RIDER001) — used by delivery drivers. */
+    riderId: { type: String, default: "" },
     /** Shown in Admin → User Registration */
     registrationStatus: {
       type: String,
