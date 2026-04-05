@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { setAuth } from '../../../lib/auth';
+import { resolvePostLoginDestination } from '../../../lib/postLoginRedirect';
 import LandingLeafIcon from '../components/LandingLeafIcon';
 import { isValidEmail, digitsOnlyMax10, isPhone10Digits, isValidStudentId } from '../utils/formValidation';
 import food1 from '../../../assets/riceandcurry1.png';
@@ -56,9 +57,8 @@ const LoginPage = () => {
       if (data.token && data.user) {
         setAuth(data.token, data.user);
       }
-      const fallbackPath = data.user?.accountType === 'admin' ? '/admin/dashboard' : '/';
-      const from = location.state?.from?.pathname || fallbackPath;
-      navigate(from, { replace: true });
+      const dest = resolvePostLoginDestination(data.user, location.state?.from?.pathname);
+      navigate(dest, { replace: true });
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Login failed.';
       setLoginApiError(msg);
@@ -319,6 +319,7 @@ const LoginPage = () => {
                           <option value="Delivery Manager">Delivery Manager</option>
                           <option value="Order Manager">Order Manager</option>
                           <option value="Food Menu Manager">Food Menu Manager</option>
+                          <option value="Delivery Driver">Delivery driver</option>
                         </select>
                         {regErrors.staffRole ? <p className="mt-1 text-xs text-red-600">{regErrors.staffRole}</p> : null}
                       </div>

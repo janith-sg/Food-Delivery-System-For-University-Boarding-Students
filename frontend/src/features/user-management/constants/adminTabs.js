@@ -13,4 +13,9 @@ export const pathToTab = Object.fromEntries(
 );
 
 /** Must match backend STAFF_ROLES */
-export const STAFF_ROLES = ['Delivery Manager', 'Order Manager', 'Food Menu Manager'];
+export const STAFF_ROLES = [
+  'Delivery Manager',
+  'Order Manager',
+  'Food Menu Manager',
+  'Delivery Driver',
+];

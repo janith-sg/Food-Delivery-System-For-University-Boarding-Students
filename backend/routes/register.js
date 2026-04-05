@@ -4,6 +4,7 @@ const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
 const User = require("../models/User");
+const STAFF_ROLES = require("../constants/staffRoles");
 
 const router = express.Router();
 
@@ -111,6 +112,19 @@ router.post("/", (req, res, next) => {
     }
     if (!["customer", "staff"].includes(accountType)) {
       return res.status(400).json({ message: "Invalid account type." });
+    }
+
+    if (accountType === "staff") {
+      const role = String(staffRole ?? "").trim();
+      if (!role) {
+        return res.status(400).json({ message: "Staff role is required.", field: "staffRole" });
+      }
+      if (!STAFF_ROLES.includes(role)) {
+        return res.status(400).json({
+          message: `Choose a valid staff role: ${STAFF_ROLES.join(", ")}.`,
+          field: "staffRole",
+        });
+      }
     }
 
     const exists = await User.findOne({ email: email.trim().toLowerCase() });

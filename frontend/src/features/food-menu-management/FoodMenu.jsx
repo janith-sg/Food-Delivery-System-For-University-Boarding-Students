@@ -14,6 +14,9 @@ import {
   rateFoodItem,
   updateFoodItem,
 } from "./api";
+import UserMenuBar from "../user-management/components/UserMenuBar";
+import { clearAuth, getToken, getUser } from "../../lib/auth";
+import { USER_PROFILE_PATH } from "../../lib/postLoginRedirect";
 
 const BUDGET_LIMIT = 350;
 const CART_STORAGE_KEY = "food_menu_cart";
@@ -258,7 +261,7 @@ function GlowingCard({ children, className = "" }) {
   );
 }
 
-function FeaturedCategories({ isAdmin, categoryCounts = {} }) {
+function FeaturedCategories({ isAdmin, categoryCounts = {}, adminBasePath = '/admin/menu' }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
@@ -285,7 +288,7 @@ function FeaturedCategories({ isAdmin, categoryCounts = {} }) {
         {FEATURED_CATEGORIES.map((category, index) => {
           const itemCount = Number(categoryCounts[category.name] || 0);
           const path = isAdmin
-            ? `/admin/menu/category/${category.slug}`
+            ? `${adminBasePath}/category/${category.slug}`
             : `/menu/category/${category.slug}`;
 
           return (
@@ -775,9 +778,11 @@ function OfferForm({ form, errors, isEditing, onChange, onSubmit, onCancel }) {
   );
 }
 
-export default function FoodMenu({ isAdmin = false }) {
+export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu' }) {
   const { categorySlug } = useParams();
   const navigate = useNavigate();
+  const showUserMenuBar =
+    isAdmin || (Boolean(getToken()) && getUser()?.accountType === 'customer');
   const selectedFeaturedCategory = useMemo(
     () => getFeaturedCategoryBySlug(categorySlug),
     [categorySlug],
@@ -816,11 +821,6 @@ export default function FoodMenu({ isAdmin = false }) {
       ...FEATURED_CATEGORIES.map((category) => category.name),
     ])),
     [],
-  );
-
-  const cartCount = useMemo(
-    () => cart.reduce((sum, entry) => sum + Number(entry.quantity || 0), 0),
-    [cart],
   );
 
   const fetchItems = async () => {
@@ -1109,7 +1109,17 @@ export default function FoodMenu({ isAdmin = false }) {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-10">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {showUserMenuBar ? (
+        <UserMenuBar
+          onLogout={() => {
+            clearAuth();
+            navigate("/login");
+          }}
+          onProfileClick={() => navigate(USER_PROFILE_PATH)}
+        />
+      ) : null}
+      <main className="pb-10">
       <section className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
         <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-50 via-white to-lime-50 p-6 shadow-lg">
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-green-300/25 blur-3xl" />
@@ -1132,30 +1142,6 @@ export default function FoodMenu({ isAdmin = false }) {
                 <p className="mt-2 text-sm font-semibold text-green-700">
                   Category Page: {selectedFeaturedCategory.name}
                 </p>
-              )}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {!isAdmin && (
-                <Link
-                  to="/menu"
-                  className="rounded-full border border-green-200 bg-white px-4 py-2 text-xs font-semibold text-green-700 transition hover:bg-green-50"
-                >
-                  User View
-                </Link>
-              )}
-              {isAdmin && (
-                <Link
-                  to="/admin/menu"
-                  className="rounded-full bg-green-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-green-800"
-                >
-                  Admin Panel
-                </Link>
-              )}
-              {!isAdmin && (
-                <span className="rounded-full border border-lime-200 bg-lime-50 px-4 py-2 text-xs font-semibold text-lime-800">
-                  Cart Items: {cartCount}
-                </span>
               )}
             </div>
           </div>
@@ -1193,7 +1179,13 @@ export default function FoodMenu({ isAdmin = false }) {
           </>
         )}
 
-        {isAdmin && !isCategoryPage && <FeaturedCategories isAdmin categoryCounts={featuredCategoryCounts} />}
+        {isAdmin && !isCategoryPage && (
+          <FeaturedCategories
+            isAdmin
+            categoryCounts={featuredCategoryCounts}
+            adminBasePath={adminBasePath}
+          />
+        )}
 
         <div className="mt-6 space-y-6">
           {error && (
@@ -1309,5 +1301,6 @@ export default function FoodMenu({ isAdmin = false }) {
         </div>
       </section>
     </main>
+    </div>
   );
 }

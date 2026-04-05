@@ -5,6 +5,7 @@ import UserMenuBar from '../components/UserMenuBar';
 import AdminSidebar from '../components/AdminSidebar';
 import LandingLeafIcon from '../components/LandingLeafIcon';
 import { TAB_PATHS, pathToTab } from '../constants/adminTabs';
+import { USER_PROFILE_PATH } from '../../../lib/postLoginRedirect';
 
 function getSlugFromPath(pathname) {
   const parts = pathname.replace(/^\//, '').split('/').filter(Boolean);
@@ -26,6 +27,10 @@ export default function AdminLayout() {
 
   const goToTab = useCallback(
     (tabLabel) => {
+      if (tabLabel === 'User Profile') {
+        navigate(USER_PROFILE_PATH);
+        return;
+      }
       const path = TAB_PATHS[tabLabel];
       if (path) navigate(`/admin/${path}`);
     },
@@ -53,7 +58,7 @@ export default function AdminLayout() {
           clearAuth();
           navigate('/login');
         }}
-        onProfileClick={() => goToTab('User Profile')}
+        onProfileClick={() => navigate(USER_PROFILE_PATH)}
       />
 
       <main className="relative mx-auto max-w-[1600px] p-4 md:p-6">

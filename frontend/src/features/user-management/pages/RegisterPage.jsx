@@ -250,6 +250,7 @@ const RegisterPage = () => {
                           <option value="Delivery Manager">Delivery Manager</option>
                           <option value="Order Manager">Order Manager</option>
                           <option value="Food Menu Manager">Food Menu Manager</option>
+                          <option value="Delivery Driver">Delivery driver</option>
                         </select>
                   </div>
                 )}

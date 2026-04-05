@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import AdminPageShell from '../../components/AdminPageShell';
-
-const STAFF_ROLES = ['Delivery Manager', 'Order Manager', 'Food Menu Manager'];
+import { STAFF_ROLES } from '../../constants/adminTabs';
 
 export default function RoleManagementPage() {
   const [q, setQ] = useState('');

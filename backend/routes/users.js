@@ -7,7 +7,7 @@ const { sendRegistrationApprovedEmail } = require("../lib/email");
 
 const router = express.Router();
 
-const STAFF_ROLES = ["Delivery Manager", "Order Manager", "Food Menu Manager"];
+const STAFF_ROLES = require("../constants/staffRoles");
 
 // Basic validators (kept here for uni project simplicity)
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
