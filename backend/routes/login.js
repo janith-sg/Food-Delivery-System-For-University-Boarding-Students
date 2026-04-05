@@ -37,12 +37,13 @@ router.post("/", async (req, res) => {
       message: "Login successful.",
       token,
       user: {
-        id: user._id,
+        id: user._id.toString(),
         email: user.email,
         fullName: user.fullName,
         accountType: user.accountType,
         phone: user.phone || "",
         studentPhotoUrl: user.studentPhotoUrl || "",
+        staffRole: user.staffRole || "",
       },
     });
   } catch (err) {

@@ -1,12 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getUser } from '../../../lib/auth';
 import LandingLeafIcon from './LandingLeafIcon';
 
+function profilePhotoSrc(user) {
+  const raw = user?.studentPhotoUrl || user?.photoUrl;
+  if (typeof raw !== 'string' || !raw.trim()) return '';
+  const t = raw.trim();
+  if (t.startsWith('http://') || t.startsWith('https://') || t.startsWith('blob:')) return t;
+  return t.startsWith('/') ? t : `/${t}`;
+}
+
+/** Subtitle under the logo: reflects account type (and staff job title when available). */
+function roleSubtitle(user) {
+  const type = String(user?.accountType || '').toLowerCase();
+  if (type === 'admin') return 'Admin';
+  if (type === 'staff') {
+    const role = String(user?.staffRole || '').trim();
+    return role || 'Staff';
+  }
+  if (type === 'customer') return 'Student';
+  if (type) return type.charAt(0).toUpperCase() + type.slice(1);
+  return 'User';
+}
+
 const UserMenuBar = ({ onLogout, onProfileClick }) => {
   const user = getUser();
-  const displayName = (user?.fullName && String(user.fullName).trim()) || user?.email || 'Admin';
+  const roleLine = roleSubtitle(user);
+  const displayName = (user?.fullName && String(user.fullName).trim()) || user?.email || roleLine;
   const email = user?.email ? String(user.email).trim() : '';
+  const photoSrc = profilePhotoSrc(user);
+  const [photoFailed, setPhotoFailed] = useState(false);
+
+  useEffect(() => {
+    setPhotoFailed(false);
+  }, [photoSrc]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#bbf7d0]/60 bg-gradient-to-r from-[#f0fdf4]/95 via-white/90 to-[#eff6ff]/95 backdrop-blur-md">
@@ -18,8 +46,8 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
           </div>
           <div className="flex flex-col">
             <span className="font-sans text-xl font-bold tracking-tight text-black md:text-2xl">UNI EATS</span>
-            <span className="hidden text-[10px] font-bold uppercase tracking-[0.2em] text-black sm:block">
-              Admin
+            <span className="hidden max-w-[200px] truncate text-[10px] font-bold uppercase tracking-[0.2em] text-black sm:block" title={roleLine}>
+              {roleLine}
             </span>
           </div>
         </Link>
@@ -28,13 +56,22 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
           <button
             type="button"
             onClick={onProfileClick}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#93c5fd]/50 bg-gradient-to-br from-[#dbeafe] to-[#dcfce7] text-black shadow-sm transition hover:from-[#bfdbfe] hover:to-[#bbf7d0]"
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#93c5fd]/50 bg-gradient-to-br from-[#dbeafe] to-[#dcfce7] text-black shadow-sm transition hover:from-[#bfdbfe] hover:to-[#bbf7d0]"
             aria-label="Open user profile"
           >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="3" />
-            </svg>
+            {photoSrc && !photoFailed ? (
+              <img
+                src={photoSrc}
+                alt=""
+                className="h-full w-full object-cover"
+                onError={() => setPhotoFailed(true)}
+              />
+            ) : (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="3" />
+              </svg>
+            )}
           </button>
 
           <div className="hidden max-w-[200px] leading-tight sm:block md:max-w-[280px]">

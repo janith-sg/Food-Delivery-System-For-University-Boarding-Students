@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
 const User = require("../models/User");
+const { sendRegistrationApprovedEmail } = require("../lib/email");
 
 const router = express.Router();
 
@@ -216,12 +217,13 @@ router.patch("/:id/profile", (req, res, next) => {
     return res.json({
       message: "Profile updated.",
       user: {
-        id: user._id,
+        id: user._id.toString(),
         email: user.email,
         fullName: user.fullName,
         accountType: user.accountType,
         phone: user.phone || "",
         studentPhotoUrl: user.studentPhotoUrl || "",
+        staffRole: user.staffRole || "",
       },
     });
   } catch (err) {
@@ -264,11 +266,24 @@ router.patch("/:id/registration-status", async (req, res) => {
 
     await user.save();
 
+    let registrationApprovedEmailSent = null;
+    if (status === "approved") {
+      const emailResult = await sendRegistrationApprovedEmail({
+        to: user.email,
+        fullName: user.fullName,
+        accountType: user.accountType,
+      });
+      registrationApprovedEmailSent = emailResult.sent;
+    }
+
     res.json({
       message: "Updated.",
       id: user._id,
       registrationStatus: user.registrationStatus,
       staffRole: user.staffRole,
+      ...(registrationApprovedEmailSent !== null && {
+        registrationApprovedEmailSent,
+      }),
     });
   } catch (err) {
     console.error(err);

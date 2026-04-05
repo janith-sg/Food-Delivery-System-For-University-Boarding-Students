@@ -1,9 +1,9 @@
 const express = require("express");
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
-const nodemailer = require("nodemailer");
 const User = require("../models/User");
 const PasswordResetCode = require("../models/PasswordResetCode");
+const { getSmtpTransport } = require("../lib/email");
 
 const router = express.Router();
 
@@ -15,22 +15,6 @@ function isValidEmail(value) {
 
 function make6DigitCode() {
   return String(crypto.randomInt(0, 1000000)).padStart(6, "0");
-}
-
-async function getTransport() {
-  const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT || "0");
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-
-  if (!host || !port || !user || !pass) return null;
-
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-  });
 }
 
 /** Step 1: Request a code */
@@ -59,7 +43,7 @@ router.post("/request", async (req, res) => {
       expiresAt,
     });
 
-    const transport = await getTransport();
+    const transport = await getSmtpTransport();
     if (!transport) {
       // If SMTP isn't configured, fail clearly (so you can set env vars)
       return res.status(500).json({
