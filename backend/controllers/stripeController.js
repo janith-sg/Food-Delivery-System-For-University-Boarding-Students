@@ -1,8 +1,20 @@
 const Stripe = require("stripe");
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || !String(key).trim()) return null;
+  return new Stripe(key);
+}
 
 const createPaymentIntent = async (req, res) => {
   try {
+    const stripe = getStripe();
+    if (!stripe) {
+      return res.status(503).json({
+        message: "Payment is not configured. Set STRIPE_SECRET_KEY in backend/.env.",
+      });
+    }
+
     const { amountLKR } = req.body;
 
     if (!amountLKR || amountLKR <= 0) {
