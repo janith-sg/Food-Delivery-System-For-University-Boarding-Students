@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { clearAuth, getToken, getUser, setAuth } from '../../../../lib/auth';
+import { getPostLoginPath } from '../../../../lib/postLoginRedirect';
 import LandingLeafIcon from '../../components/LandingLeafIcon';
 import idPhoto1 from '../../mock/r1.png';
 
@@ -27,8 +28,18 @@ function initialProfileForm() {
   };
 }
 
+function workspaceHomeLabel(user) {
+  const t = user?.accountType;
+  if (t === 'admin') return 'Admin dashboard';
+  if (t === 'staff') return 'Back to workspace';
+  return 'Back to menu';
+}
+
 export default function AdminProfilePage() {
   const navigate = useNavigate();
+  const user = getUser();
+  const appHomePath = getPostLoginPath(user);
+  const appHomeLabel = workspaceHomeLabel(user);
   const [profileForm, setProfileForm] = useState(initialProfileForm);
   const [profileErrors, setProfileErrors] = useState({});
   const [apiError, setApiError] = useState('');
@@ -103,10 +114,10 @@ export default function AdminProfilePage() {
 
           <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
             <Link
-              to="/admin/dashboard"
+              to={appHomePath}
               className="hidden text-xs font-normal text-black/90 underline-offset-4 transition hover:text-black hover:underline sm:inline"
             >
-              Admin dashboard
+              {appHomeLabel}
             </Link>
             <button
               type="button"
@@ -135,10 +146,10 @@ export default function AdminProfilePage() {
 
         <main className="relative mx-auto max-w-lg px-4 pb-10 pt-5 md:px-6 md:pt-7">
           <Link
-            to="/admin/dashboard"
+            to={appHomePath}
             className="mb-3 inline-flex text-xs font-normal text-black/90 underline-offset-4 transition hover:text-black hover:underline sm:hidden"
           >
-            ← Admin dashboard
+            ← {appHomeLabel}
           </Link>
 
           <section className="rounded-xl border border-[#bbf7d0]/60 bg-gradient-to-br from-white/98 to-[#eff6ff]/30 p-4 shadow-lg backdrop-blur md:p-5">

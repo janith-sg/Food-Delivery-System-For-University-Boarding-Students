@@ -18,7 +18,9 @@ import AdminOrders from './features/order-managemnt/pages/AdminOrders';
 import AdminGroupOrders from './features/order-managemnt/pages/AdminGroupOrders';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
+import StaffPageShell from './components/StaffPageShell';
 import { syncAxiosAuth } from './lib/auth';
+import { USER_PROFILE_PATH } from './lib/postLoginRedirect';
 
 function App() {
   useEffect(() => {
@@ -46,6 +48,16 @@ function App() {
           }
         />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/menu" element={<FoodMenu />} />
+        <Route path="/menu/category/:categorySlug" element={<FoodMenu />} />
+        <Route
+          path={USER_PROFILE_PATH}
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff', 'customer']}>
+              <AdminProfilePage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin"
           element={
@@ -55,7 +67,7 @@ function App() {
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="profile" element={<AdminProfilePage />} />
+          <Route path="profile" element={<Navigate to={USER_PROFILE_PATH} replace />} />
           <Route element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboardPage />} />
             <Route path="customer-registration" element={<CustomerRegistrationPage />} />
@@ -87,7 +99,9 @@ function App() {
           path="/staff/orders"
           element={
             <ProtectedRoute allowedRoles={['admin', 'staff']} allowedStaffRoles={['Order Manager']}>
-              <AdminOrders />
+              <StaffPageShell>
+                <AdminOrders />
+              </StaffPageShell>
             </ProtectedRoute>
           }
         />
@@ -95,7 +109,9 @@ function App() {
           path="/staff/orders/group"
           element={
             <ProtectedRoute allowedRoles={['admin', 'staff']} allowedStaffRoles={['Order Manager']}>
-              <AdminGroupOrders />
+              <StaffPageShell>
+                <AdminGroupOrders />
+              </StaffPageShell>
             </ProtectedRoute>
           }
         />

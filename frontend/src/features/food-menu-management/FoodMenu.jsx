@@ -15,7 +15,8 @@ import {
   updateFoodItem,
 } from "./api";
 import UserMenuBar from "../user-management/components/UserMenuBar";
-import { clearAuth, getUser } from "../../lib/auth";
+import { clearAuth, getToken, getUser } from "../../lib/auth";
+import { USER_PROFILE_PATH } from "../../lib/postLoginRedirect";
 
 const BUDGET_LIMIT = 350;
 const CART_STORAGE_KEY = "food_menu_cart";
@@ -780,6 +781,8 @@ function OfferForm({ form, errors, isEditing, onChange, onSubmit, onCancel }) {
 export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu' }) {
   const { categorySlug } = useParams();
   const navigate = useNavigate();
+  const showUserMenuBar =
+    isAdmin || (Boolean(getToken()) && getUser()?.accountType === 'customer');
   const selectedFeaturedCategory = useMemo(
     () => getFeaturedCategoryBySlug(categorySlug),
     [categorySlug],
@@ -818,11 +821,6 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
       ...FEATURED_CATEGORIES.map((category) => category.name),
     ])),
     [],
-  );
-
-  const cartCount = useMemo(
-    () => cart.reduce((sum, entry) => sum + Number(entry.quantity || 0), 0),
-    [cart],
   );
 
   const fetchItems = async () => {
@@ -1112,17 +1110,13 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {isAdmin ? (
+      {showUserMenuBar ? (
         <UserMenuBar
           onLogout={() => {
             clearAuth();
             navigate("/login");
           }}
-          onProfileClick={() => {
-            const u = getUser();
-            if (u?.accountType === "admin") navigate("/admin/profile");
-            else navigate("/");
-          }}
+          onProfileClick={() => navigate(USER_PROFILE_PATH)}
         />
       ) : null}
       <main className="pb-10">
@@ -1148,30 +1142,6 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
                 <p className="mt-2 text-sm font-semibold text-green-700">
                   Category Page: {selectedFeaturedCategory.name}
                 </p>
-              )}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {!isAdmin && (
-                <Link
-                  to="/menu"
-                  className="rounded-full border border-green-200 bg-white px-4 py-2 text-xs font-semibold text-green-700 transition hover:bg-green-50"
-                >
-                  User View
-                </Link>
-              )}
-              {isAdmin && (
-                <Link
-                  to={adminBasePath}
-                  className="rounded-full bg-green-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-green-800"
-                >
-                  Admin Panel
-                </Link>
-              )}
-              {!isAdmin && (
-                <span className="rounded-full border border-lime-200 bg-lime-50 px-4 py-2 text-xs font-semibold text-lime-800">
-                  Cart Items: {cartCount}
-                </span>
               )}
             </div>
           </div>
