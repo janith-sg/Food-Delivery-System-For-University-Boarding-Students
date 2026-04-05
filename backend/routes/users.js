@@ -275,6 +275,7 @@ router.patch("/:id/profile", (req, res, next) => {
         phone: user.phone || "",
         studentPhotoUrl: user.studentPhotoUrl || "",
         staffRole: user.staffRole || "",
+        riderId: user.riderId || "",
       },
     });
   } catch (err) {
@@ -309,6 +310,9 @@ router.patch("/:id/registration-status", async (req, res) => {
           });
         }
         user.staffRole = role;
+        if (role === "Delivery Driver" && !String(user.riderId || "").trim()) {
+          user.riderId = "RIDER001";
+        }
       }
       user.registrationStatus = "approved";
     } else {
@@ -351,17 +355,23 @@ router.patch("/:id/staff-role", async (req, res) => {
       return res.status(400).json({ message: `staffRole must be one of: ${STAFF_ROLES.join(", ")}.` });
     }
 
-    const user = await User.findOneAndUpdate(
-      { _id: req.params.id, accountType: "staff", registrationStatus: "approved" },
-      { staffRole: role },
-      { returnDocument: "after" }
-    );
+    const user = await User.findOne({
+      _id: req.params.id,
+      accountType: "staff",
+      registrationStatus: "approved",
+    });
 
     if (!user) {
       return res.status(404).json({ message: "Staff user not found or not approved." });
     }
 
-    res.json({ message: "Role updated.", id: user._id, staffRole: user.staffRole });
+    user.staffRole = role;
+    if (role === "Delivery Driver" && !String(user.riderId || "").trim()) {
+      user.riderId = "RIDER001";
+    }
+    await user.save();
+
+    res.json({ message: "Role updated.", id: user._id, staffRole: user.staffRole, riderId: user.riderId || "" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message || "Update failed." });

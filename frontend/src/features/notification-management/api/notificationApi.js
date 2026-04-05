@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const notificationApi = axios.create({
-  baseURL: "http://localhost:5000/api/notifications",
+  baseURL: "/api/notifications",
 });
 
 export const getAllNotifications = async () => {

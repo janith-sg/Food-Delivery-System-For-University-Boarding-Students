@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const deliveryApi = axios.create({
-  baseURL: "http://localhost:5000/api/deliveries",
+  baseURL: "/api/deliveries",
 });
 
 export const getAllDeliveries = async () => {
@@ -17,7 +17,7 @@ export const updateDeliveryStatus = async (id, updatedData) => {
 };
 
 export const getDeliveryStats = async () => {
-  return await deliveryApi.get("/stats/summary");
+  return await deliveryApi.get("/stats");
 };
 
 export const getDeliveriesByRider = async (riderId) => {

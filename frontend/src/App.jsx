@@ -12,8 +12,11 @@ import AdminProfilePage from './features/user-management/pages/admin/AdminProfil
 import LoginPage from './features/user-management/pages/LoginPage';
 import RegisterPage from './features/user-management/pages/RegisterPage';
 import ForgotPasswordPage from './features/user-management/pages/ForgotPasswordPage';
-import DeliveryDriverPage from './features/user-management/pages/staff/DeliveryDriverPage';
+import RiderDashboardPage from './features/delivery-managemnet/pages/RiderDashboardPage';
+import AdminDeliveryPage from './features/delivery-managemnet/pages/AdminDeliveryPage';
 import FoodMenu from './features/food-menu-management/FoodMenu';
+import DeliveryAdminShell from './components/DeliveryAdminShell';
+import AdminNotificationPage from './features/notification-management/pages/AdminNotificationPage';
 import AdminOrders from './features/order-managemnt/pages/AdminOrders';
 import AdminGroupOrders from './features/order-managemnt/pages/AdminGroupOrders';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -55,6 +58,26 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin', 'staff', 'customer']}>
               <AdminProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/deliveries"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']} allowedStaffRoles={['Delivery Manager']}>
+              <DeliveryAdminShell>
+                <AdminDeliveryPage />
+              </DeliveryAdminShell>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/notifications"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']} allowedStaffRoles={['Delivery Manager']}>
+              <DeliveryAdminShell>
+                <AdminNotificationPage />
+              </DeliveryAdminShell>
             </ProtectedRoute>
           }
         />
@@ -115,11 +138,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/staff/delivery" element={<Navigate to="/rider/dashboard" replace />} />
         <Route
-          path="/staff/delivery"
+          path="/rider/dashboard"
           element={
             <ProtectedRoute allowedRoles={['admin', 'staff']} allowedStaffRoles={['Delivery Driver']}>
-              <DeliveryDriverPage />
+              <StaffPageShell>
+                <RiderDashboardPage />
+              </StaffPageShell>
             </ProtectedRoute>
           }
         />
