@@ -28,7 +28,7 @@ export default function FilterBar({
           value={searchTerm}
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder="Search by food name"
-          className={`w-full rounded-2xl border py-2.5 pl-10 pr-4 text-sm outline-none transition ${isDarkMode ? "border-slate-700 bg-slate-950 text-slate-100 placeholder:text-slate-500 focus:border-green-500 focus:ring-2 focus:ring-green-500/20" : "border-green-200 bg-white text-slate-700 focus:border-green-500 focus:ring-2 focus:ring-green-100"}`}
+          className={`w-full rounded-2xl border py-2.5 pl-10 pr-4 text-sm outline-none transition ${isDarkMode ? "border-slate-700 bg-slate-950 text-slate-100 placeholder:text-slate-500 focus:border-green-500" : "border-green-200 bg-white text-slate-700 focus:border-green-500"}`}
         />
       </div>
 
@@ -54,7 +54,7 @@ export default function FilterBar({
             key={category}
             type="button"
             onClick={() => onCategoryChange(category)}
-            className={`rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition ${
+            className={`rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition outline-none border-0 ${
               selectedCategory === category
                 ? "bg-green-700 text-white shadow"
                 : isDarkMode
@@ -76,7 +76,7 @@ export default function FilterBar({
         <button
           type="button"
           onClick={onBudgetToggle}
-          className={`rounded-full px-3 py-2 font-medium transition ${
+          className={`rounded-full px-3 py-2 font-medium transition outline-none border-0 ${
             budgetOnly ? "bg-green-600 text-white" : "bg-green-100 text-green-800 hover:bg-green-200"
           }`}
         >
@@ -86,7 +86,7 @@ export default function FilterBar({
         <button
           type="button"
           onClick={onOutOfStockToggle}
-          className={`rounded-full px-3 py-2 font-medium transition ${
+          className={`rounded-full px-3 py-2 font-medium transition outline-none border-0 ${
             hideOutOfStock ? "bg-lime-600 text-white" : "bg-lime-100 text-lime-800 hover:bg-lime-200"
           }`}
         >
@@ -96,7 +96,7 @@ export default function FilterBar({
         <button
           type="button"
           onClick={onScheduleToggle}
-          className={`rounded-full px-3 py-2 font-medium transition ${
+          className={`rounded-full px-3 py-2 font-medium transition outline-none border-0 ${
             scheduleOnly ? "bg-teal-600 text-white" : "bg-teal-100 text-teal-800 hover:bg-teal-200"
           }`}
         >

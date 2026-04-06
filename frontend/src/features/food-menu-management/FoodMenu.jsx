@@ -15,6 +15,9 @@ import {
   updateFoodItem,
 } from "./api";
 import UserMenuBar from "../user-management/components/UserMenuBar";
+import { clearAuth, getToken, getUser } from "../../lib/auth";
+import { USER_PROFILE_PATH } from "../../lib/postLoginRedirect";
+import "./FoodMenu.css";
 import { clearAuthWithAudit, getToken, getUser } from "../../lib/auth";
 import { getProfilePath } from "../../lib/postLoginRedirect";
 
@@ -22,6 +25,7 @@ const BUDGET_LIMIT = 350;
 const CART_STORAGE_KEY = "food_menu_cart";
 const OFFERS_STORAGE_KEY = "food_menu_limited_time_offers";
 const STUDENT_RATINGS_STORAGE_KEY = "food_menu_student_ratings";
+const PURCHASED_ITEMS_KEY = "food_menu_purchased_items";
 const SORT_OPTIONS = {
   PRICE_ASC: "PRICE_ASC",
   PRICE_DESC: "PRICE_DESC",
@@ -40,11 +44,11 @@ const DEFAULT_OFFERS = [
   },
   {
     id: "budget-meals-2",
-    icon: "💰",
-    title: "Student Budget Meals",
-    subtitle: "Save More on Your Daily Meals",
-    description: "Get up to 40% OFF on budget-friendly meals. Perfect for university students.",
-    buttonLabel: "Order Now",
+    icon: "🍱",
+    title: "Daily Lunch Deals",
+    subtitle: "Fresh Meals at Student Prices",
+    description: "Affordable combos designed for boarding students.",
+    buttonLabel: "View Meals",
     image: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80",
   },
   {
@@ -58,12 +62,12 @@ const DEFAULT_OFFERS = [
   },
   {
     id: "combo-offers",
-    icon: "🍱",
+    icon: "🍽️",
     title: "Combo Meal Offers",
-    subtitle: "More Food, Less Price",
-    description: "Get Rice + Drink + Snack combo deals. Save more with combos.",
-    buttonLabel: "View Combos",
-    image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80",
+    subtitle: "Best Value Meals",
+    description: "Bundle your favorites and save more with combo pricing.",
+    buttonLabel: "Explore Combos",
+    image: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=900&q=80",
   },
 ];
 
@@ -77,71 +81,39 @@ const EMPTY_OFFER_FORM = {
 };
 
 const FEATURED_CATEGORIES = [
-  { name: "Soft Drinks", icon: <Droplet className="w-6 h-6" />, slug: "soft-drinks", gradient: "from-cyan-500 to-blue-500" },
-  { name: "Coffee", icon: <CoffeeIcon className="w-6 h-6" />, slug: "coffee", gradient: "from-amber-700 to-amber-500" },
-  { name: "Milk & Dairy", icon: <Milk className="w-6 h-6" />, slug: "milk-dairy", gradient: "from-blue-300 to-blue-100" },
-  { name: "Water & Juice", icon: <Droplet className="w-6 h-6" />, slug: "water-juice", gradient: "from-sky-400 to-cyan-300" },
-  { name: "Snacks", icon: <Sandwich className="w-6 h-6" />, slug: "snacks", gradient: "from-orange-400 to-amber-300" },
-  { name: "Sandwiches", icon: <Sandwich className="w-6 h-6" />, slug: "sandwiches", gradient: "from-yellow-500 to-orange-400" },
-  { name: "Burgers", icon: <Sandwich className="w-6 h-6" />, slug: "burgers", gradient: "from-red-600 to-orange-500" },
-  { name: "Short Eats", icon: <Pizza className="w-6 h-6" />, slug: "short-eats", gradient: "from-rose-500 to-pink-400" },
-  { name: "Pizza", icon: <Pizza className="w-6 h-6" />, slug: "pizza", gradient: "from-red-500 to-rose-400" },
-  { name: "Cakes", icon: <Cake className="w-6 h-6" />, slug: "cakes", gradient: "from-pink-400 to-rose-300" },
-  { name: "Ice Cream", icon: <IceCream className="w-6 h-6" />, slug: "ice-cream", gradient: "from-purple-400 to-pink-300" },
-  { name: "Fresh Fruits", icon: <Apple className="w-6 h-6" />, slug: "fresh-fruits", gradient: "from-green-400 to-emerald-300" },
-  { name: "Healthy", icon: <Leaf className="w-6 h-6" />, slug: "healthy", gradient: "from-emerald-500 to-green-400" },
-  { name: "Soups", icon: <Soup className="w-6 h-6" />, slug: "soups", gradient: "from-amber-400 to-yellow-300" },
+  { name: "Soft Drinks", slug: "soft-drinks", icon: Droplet, gradient: "from-sky-500 to-blue-500" },
+  { name: "Coffee", slug: "coffee", icon: CoffeeIcon, gradient: "from-amber-700 to-orange-500" },
+  { name: "Milk & Dairy", slug: "milk-dairy", icon: Milk, gradient: "from-sky-300 to-blue-200" },
+  { name: "Water & Juice", slug: "water-juice", icon: Droplet, gradient: "from-cyan-500 to-sky-400" },
+  { name: "Snacks", slug: "snacks", icon: ShoppingBag, gradient: "from-amber-400 to-yellow-400" },
+  { name: "Sandwiches", slug: "sandwiches", icon: Sandwich, gradient: "from-amber-500 to-orange-500" },
+  { name: "Burgers", slug: "burgers", icon: ShoppingBag, gradient: "from-red-600 to-orange-500" },
+  { name: "Short Eats", slug: "short-eats", icon: Pizza, gradient: "from-pink-500 to-rose-500" },
+  { name: "Pizza", slug: "pizza", icon: Pizza, gradient: "from-rose-500 to-red-500" },
+  { name: "Cakes", slug: "cakes", icon: Cake, gradient: "from-pink-400 to-rose-300" },
+  { name: "Ice Cream", slug: "ice-cream", icon: IceCream, gradient: "from-fuchsia-400 to-pink-300" },
+  { name: "Fresh Fruits", slug: "fresh-fruits", icon: Apple, gradient: "from-green-400 to-emerald-300" },
+  { name: "Healthy", slug: "healthy", icon: Leaf, gradient: "from-emerald-500 to-green-500" },
+  { name: "Soups", slug: "soups", icon: Soup, gradient: "from-yellow-400 to-amber-300" },
 ];
-
-const iconMap = {
-  "🧃": <Droplet className="w-5 h-5" />,
-  "☕": <CoffeeIcon className="w-5 h-5" />,
-  "🥛": <Milk className="w-5 h-5" />,
-  "💧": <Droplet className="w-5 h-5" />,
-  "🍟": <Sandwich className="w-5 h-5" />,
-  "🥪": <Sandwich className="w-5 h-5" />,
-  "🍔": <Sandwich className="w-5 h-5" />, 
-  "🌭": <Pizza className="w-5 h-5" />,
-  "🍕": <Pizza className="w-5 h-5" />,
-  "🍰": <Cake className="w-5 h-5" />,
-  "🍨": <IceCream className="w-5 h-5" />,
-  "🍎": <Apple className="w-5 h-5" />,
-  "🥗": <Salad className="w-5 h-5" />,
-  "🍲": <Soup className="w-5 h-5" />,
-};
 
 function getCurrentMealLabel() {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 11) return "Breakfast";
-  if (hour >= 11 && hour < 17) return "Lunch";
+  if (hour < 11) return "Breakfast";
+  if (hour < 17) return "Lunch";
   return "Dinner";
 }
 
-function normalizeCategory(category = "") {
-  if (/budget/i.test(category)) return "Budget Meals";
-  if (/veg/i.test(category)) return "Vegetarian";
-  if (/breakfast/i.test(category)) return "Breakfast";
-  if (/lunch/i.test(category)) return "Lunch";
-  if (/dinner/i.test(category)) return "Dinner";
-  return category;
-}
-
 function normalizeItem(item) {
-  const normalizedFoodId = item.foodID || item.FoodID || "";
-  const stockText = String(item.stock || "").trim();
-  const stockNumber = Number(stockText);
-  const hasNumericStock = !Number.isNaN(stockNumber);
-
-  const isOutOfStock = hasNumericStock
-    ? stockNumber <= 0
-    : /out|unavailable|false|sold/i.test(stockText);
-
-  const lowStock = hasNumericStock
-    ? stockNumber > 0 && stockNumber <= 5
-    : /low/i.test(stockText);
-
-  const normalizedCategory = normalizeCategory(item.category || "");
+  const normalizedFoodId = item.foodID || item._id || item.id || item.name;
+  const normalizedCategory = String(item.category || "").trim() || "Lunch";
   const price = Number(item.price || 0);
+  const stockText = String(item.stock || "").trim();
+  const numericStock = Number(stockText);
+  const isOutOfStock =
+    (!Number.isNaN(numericStock) && numericStock <= 0) ||
+    /out|unavailable|sold|false/i.test(stockText);
+  const lowStock = !isOutOfStock && !Number.isNaN(numericStock) && numericStock > 0 && numericStock <= 5;
 
   return {
     ...item,
@@ -160,13 +132,38 @@ function normalizeItem(item) {
   };
 }
 
+function applyPurchasedStockReduction(items) {
+  try {
+    const purchasedItemsJson = localStorage.getItem(PURCHASED_ITEMS_KEY);
+    if (!purchasedItemsJson) return items;
+    
+    const purchasedItems = JSON.parse(purchasedItemsJson);
+    if (!Array.isArray(purchasedItems)) return items;
+    
+    const updatedItems = items.map((item) => {
+      const purchased = purchasedItems.find((p) => p._id === (item._id || item.foodID));
+      if (!purchased) return item;
+      
+      const stockText = String(item.stock || "").trim();
+      const numericStock = Number(stockText);
+      if (Number.isNaN(numericStock)) return item;
+      
+      const newStock = Math.max(0, numericStock - Number(purchased.quantity || 1));
+      return { ...item, stock: newStock };
+    });
+    
+    localStorage.removeItem(PURCHASED_ITEMS_KEY);
+    return updatedItems;
+  } catch (error) {
+    console.error("Error applying purchased stock reduction:", error);
+    return items;
+  }
+}
+
 function matchesCategory(item, selectedCategory) {
   if (selectedCategory === "All") return true;
   if (selectedCategory === "Vegetarian") {
-    return (
-      /veg/i.test(item.category || "") ||
-      /veg/i.test(item.type || "")
-    );
+    return /veg/i.test(item.category || "") || /veg/i.test(item.type || "");
   }
   if (selectedCategory === "Budget Meals") {
     return /budget/i.test(item.category || "") || item.isBudgetFriendly;
@@ -209,13 +206,13 @@ function LoadingSkeleton() {
           transition={{ delay: index * 0.1 }}
           className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-xl"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer" />
+          <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300" />
-          <div className="p-5 space-y-3">
-            <div className="h-4 bg-gray-200 rounded-full w-2/3" />
-            <div className="h-3 bg-gray-200 rounded-full w-1/3" />
-            <div className="h-3 bg-gray-200 rounded-full w-full" />
-            <div className="h-10 bg-gray-200 rounded-full w-full mt-4" />
+          <div className="space-y-3 p-5">
+            <div className="h-4 w-2/3 rounded-full bg-gray-200" />
+            <div className="h-3 w-1/3 rounded-full bg-gray-200" />
+            <div className="h-3 w-full rounded-full bg-gray-200" />
+            <div className="mt-4 h-10 w-full rounded-full bg-gray-200" />
           </div>
         </motion.div>
       ))}
@@ -226,109 +223,24 @@ function LoadingSkeleton() {
 function FloatingParticles() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      {[...Array(20)].map((_, i) => (
+      {Array.from({ length: 20 }).map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 bg-green-400 rounded-full"
-          initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-            opacity: 0,
-          }}
-          animate={{
-            y: [null, -100, -200],
-            opacity: [0, 0.5, 0],
-          }}
-          transition={{
-            duration: Math.random() * 5 + 3,
-            repeat: Infinity,
-            delay: Math.random() * 5,
-          }}
+          className="absolute h-1 w-1 rounded-full bg-green-400"
+          initial={{ opacity: 0, x: (i * 67) % 1200, y: (i * 41) % 800 }}
+          animate={{ y: [null, -100, -200], opacity: [0, 0.4, 0] }}
+          transition={{ duration: 4 + (i % 5), repeat: Infinity, delay: i * 0.18 }}
         />
       ))}
     </div>
   );
 }
 
-function GlowingCard({ children, className = "" }) {
-  return (
-    <div className={`relative group ${className}`}>
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl blur opacity-0 group-hover:opacity-75 transition duration-500" />
-      <div className="relative bg-white rounded-2xl">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function FeaturedCategories({ isAdmin, categoryCounts = {}, adminBasePath = '/admin/menu' }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="mt-16"
-    >
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-            Featured Categories
-          </h2>
-          <p className="text-gray-500 mt-2">Explore our delicious categories</p>
-        </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-sm font-semibold shadow-lg"
-        >
-          View All
-        </motion.button>
-      </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7">
-        {FEATURED_CATEGORIES.map((category, index) => {
-          const itemCount = Number(categoryCounts[category.name] || 0);
-          const path = isAdmin
-            ? `${adminBasePath}/category/${category.slug}`
-            : `/menu/category/${category.slug}`;
-
-          return (
-            <motion.div
-              key={category.slug}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.05 }}
-              whileHover={{ y: -5 }}
-            >
-              <Link
-                to={path}
-                className="block group"
-              >
-                <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${category.gradient} p-4 text-center shadow-lg transition-all duration-300 group-hover:shadow-xl`}>
-                  <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                  <div className="relative z-10">
-                    <div className="mb-2 text-white flex justify-center">
-                      {category.icon}
-                    </div>
-                    <h3 className="text-sm font-semibold text-white">
-                      {category.name}
-                    </h3>
-                    <p className="mt-1 text-xs text-white/80">{itemCount} {itemCount === 1 ? "item" : "items"}</p>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
-}
-
-function HeroSlideshow() {
+function HeroSlider() {
   const slides = [
     {
       image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80",
-      title: "Fresh Meals Daily",
+      title: "Combo Meal Offers",
       subtitle: "Hot breakfast, lunch, and dinner ready for campus",
     },
     {
@@ -349,7 +261,6 @@ function HeroSlideshow() {
     const timerId = window.setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % slides.length);
     }, 3500);
-
     return () => window.clearInterval(timerId);
   }, [slides.length]);
 
@@ -370,18 +281,10 @@ function HeroSlideshow() {
             transition={{ duration: 0.7 }}
             className="absolute inset-0"
           >
-            <img
-              src={slides[activeIndex].image}
-              alt={slides[activeIndex].title}
-              className="h-full w-full object-cover"
-            />
+            <img src={slides[activeIndex].image} alt={slides[activeIndex].title} className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
             <div className="absolute bottom-8 left-8 right-8 text-white">
-              <motion.h2
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-2xl font-bold sm:text-4xl"
-              >
+              <motion.h2 initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="text-2xl font-bold sm:text-4xl">
                 {slides[activeIndex].title}
               </motion.h2>
               <motion.p
@@ -401,14 +304,14 @@ function HeroSlideshow() {
           onClick={() => setActiveIndex((prev) => (prev - 1 + slides.length) % slides.length)}
           className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white backdrop-blur-md transition hover:bg-white/40"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="h-5 w-5" />
         </button>
         <button
           type="button"
           onClick={() => setActiveIndex((prev) => (prev + 1) % slides.length)}
           className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white backdrop-blur-md transition hover:bg-white/40"
         >
-          <ChevronLeft className="w-5 h-5 rotate-180" />
+          <ChevronLeft className="h-5 w-5 rotate-180" />
         </button>
 
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
@@ -425,6 +328,49 @@ function HeroSlideshow() {
         </div>
       </div>
     </motion.section>
+  );
+}
+
+function FeaturedCategories({ isAdmin, categoryCounts = {}, adminBasePath = '/admin/menu' }) {
+  return (
+    <section className="mt-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-5xl font-extrabold text-slate-900">Featured Categories</h2>
+          <p className="mt-1 text-lg text-slate-500">Explore our delicious categories</p>
+        </div>
+        <Link
+          to={isAdmin ? `${adminBasePath}` : "/menu"}
+          className="rounded-full bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-2 text-sm font-bold text-white no-underline shadow-md transition hover:brightness-95"
+        >
+          View All
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
+        {FEATURED_CATEGORIES.map((category) => {
+          const Icon = category.icon;
+          const path = isAdmin
+            ? `${adminBasePath}/category/${category.slug}`
+            : `/menu/category/${category.slug}`;
+
+          return (
+            <Link key={category.slug} to={path} className="group block no-underline">
+              <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${category.gradient} px-3 py-4 text-white shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-xl`}>
+                <div className="absolute inset-0 bg-white/0 transition-colors duration-300 group-hover:bg-white/10" />
+                <div className="relative z-10 flex flex-col items-center text-center">
+                  {Icon ? <Icon className="mb-2 h-4 w-4" /> : null}
+                  <span className="text-xs font-extrabold leading-tight">{category.name}</span>
+                  <p className="mt-1.5 text-[10px] font-semibold text-white/90">
+                    {Number(categoryCounts[category.name] || 0)} items
+                  </p>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -801,6 +747,7 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [cart, setCart] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedFoodForModal, setSelectedFoodForModal] = useState(null);
   const [offers, setOffers] = useState(DEFAULT_OFFERS);
   const [showOfferForm, setShowOfferForm] = useState(false);
@@ -829,7 +776,8 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
       setError("");
       const data = await getFoodItems();
       const normalized = Array.isArray(data) ? data.map(normalizeItem) : [];
-      setItems(normalized);
+      const withReducedStock = applyPurchasedStockReduction(normalized);
+      setItems(withReducedStock);
     } catch (requestError) {
       setError(requestError.response?.data?.msg || "Could not load food items.");
     } finally {
@@ -989,6 +937,47 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
         quantity: 1,
       }];
     });
+
+    setIsCartOpen(true);
+  };
+
+  const handleIncreaseCartItem = (id) => {
+    setCart((prev) => prev.map((entry) => (
+      entry._id === id
+        ? { ...entry, quantity: entry.quantity + 1 }
+        : entry
+    )));
+  };
+
+  const handleDecreaseCartItem = (id) => {
+    setCart((prev) => prev
+      .map((entry) => (
+        entry._id === id
+          ? { ...entry, quantity: Math.max(0, entry.quantity - 1) }
+          : entry
+      ))
+      .filter((entry) => entry.quantity > 0));
+  };
+
+  const handleRemoveCartItem = (id) => {
+    setCart((prev) => prev.filter((entry) => entry._id !== id));
+  };
+
+  const cartItemsCount = useMemo(
+    () => cart.reduce((sum, entry) => sum + Number(entry.quantity || 0), 0),
+    [cart],
+  );
+
+  const cartSubTotal = useMemo(
+    () => cart.reduce((sum, entry) => sum + (Number(entry.price || 0) * Number(entry.quantity || 0)), 0),
+    [cart],
+  );
+
+  const cartDeliveryFee = cart.length > 0 ? 400 : 0;
+  const cartTotal = cartSubTotal + cartDeliveryFee;
+
+  const handleCheckoutClick = () => {
+    navigate("/checkout");
   };
 
   const handleViewFoodDetails = (item) => {
@@ -1109,7 +1098,7 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="food-menu-feature-font min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {showUserMenuBar ? (
         <UserMenuBar
           onLogout={async () => {
@@ -1120,60 +1109,58 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
         />
       ) : null}
       <main className="pb-10">
-      <section className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
-        <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-50 via-white to-lime-50 p-6 shadow-lg">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-green-300/25 blur-3xl" />
-          <div className="pointer-events-none absolute -left-20 bottom-0 h-44 w-44 rounded-full bg-lime-300/20 blur-3xl" />
+      {!isAdmin && (
+        <header className="sticky top-0 z-40 border-b border-[#0B8E3A]/10 bg-white/95 backdrop-blur-sm">
+          <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+            <Link to="/" className="text-2xl font-semibold tracking-tight text-[#0B8E3A] no-underline">
+              UNI EATS
+            </Link>
 
-          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-green-700">
-                UNI EATS
-              </p>
-              <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-                {isAdmin ? "Admin Menu Control" : "Fast & Easy Food Ordering"}
-              </h1>
-              <p className="mt-2 text-sm text-slate-600 sm:text-base">
-                {isAdmin
-                  ? "Modern menu experience with smart filters, live stock state, and meal scheduling."
-                  : "Get your meals quickly, anytime on campus or Boardinghouse in just a few taps."}
-              </p>
-              {selectedFeaturedCategory && (
-                <p className="mt-2 text-sm font-semibold text-green-700">
-                  Category Page: {selectedFeaturedCategory.name}
-                </p>
-              )}
+            <nav className="hidden items-center gap-8 text-sm font-medium text-black md:flex">
+              <Link to="/" className="text-black no-underline transition hover:text-black/80">Home</Link>
+              <a href="#our-menu" className="text-black no-underline transition hover:text-black/80">Our Menu</a>
+              <a href="/#team" className="text-black no-underline transition hover:text-black/80">Team</a>
+              <Link to="/group-order" className="text-black no-underline transition hover:text-black/80">Group Order</Link>
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(true)}
+                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-green-50 text-green-700 transition hover:bg-green-100 outline-none border-0"
+                aria-label={`Open cart (${cartItemsCount} items)`}
+              >
+                <span className="text-base leading-none" aria-hidden>
+                  🛒
+                </span>
+                <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-green-600 px-1.5 text-[10px] font-bold text-white">
+                  {cartItemsCount}
+                </span>
+              </button>
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <Link
+                to="/register"
+                className="text-sm font-semibold text-black no-underline transition hover:text-black/80"
+              >
+                Register
+              </Link>
+              <Link
+                to="/login"
+                className="rounded-full bg-[#0B8E3A] px-5 py-2.5 text-sm font-semibold !text-white visited:!text-white shadow-md transition hover:bg-[#087532] hover:!text-white"
+              >
+                Order Now
+              </Link>
             </div>
           </div>
         </header>
+      )}
 
-        {!isAdmin && <HeroSlideshow />}
+      <section className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
 
         {!isCategoryPage && (
           <>
-            <PromoBanner
-              notices={offers}
-              isAdmin={isAdmin}
-              onAddOffer={handleAddOffer}
-              onEditOffer={handleEditOffer}
-              onDeleteOffer={handleDeleteOffer}
-            />
-
-            {isAdmin && showOfferForm && (
-              <OfferForm
-                form={offerForm}
-                errors={offerErrors}
-                isEditing={Boolean(editingOfferId)}
-                onChange={handleOfferFieldChange}
-                onSubmit={handleOfferSubmit}
-                onCancel={resetOfferForm}
-              />
-            )}
-
             {!isAdmin && (
               <>
                 <FeaturedCategories isAdmin={false} categoryCounts={featuredCategoryCounts} />
-                <FeatureCards />
               </>
             )}
           </>
@@ -1187,118 +1174,219 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
           />
         )}
 
-        <div className="mt-6 space-y-6">
-          {error && (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {error}
-            </div>
-          )}
-
-          {!isAdmin && !isCategoryPage && (
-            <FilterBar
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              budgetOnly={budgetOnly}
-              onBudgetToggle={() => setBudgetOnly((prev) => !prev)}
-              hideOutOfStock={hideOutOfStock}
-              onOutOfStockToggle={() => setHideOutOfStock((prev) => !prev)}
-              scheduleOnly={scheduleOnly}
-              onScheduleToggle={() => setScheduleOnly((prev) => !prev)}
-              currentMealLabel={currentMealLabel}
-            />
-          )}
-
-          {isCategoryPage && !isAdmin && (
-            <div className="space-y-4">
-              <button
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Back to Menu
-              </button>
-              <div className="rounded-2xl border border-green-100 bg-white p-4 shadow-sm">
-                <label className="mb-2 block text-sm font-medium text-slate-700">Search in {selectedFeaturedCategory.name}</label>
-                <input
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder={`Search ${selectedFeaturedCategory.name}...`}
-                  className="w-full rounded-xl border border-green-200 px-3 py-2 text-sm outline-none focus:border-green-500"
-                />
+        <div className="mt-6">
+          <div className="space-y-6">
+            {error && (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {error}
               </div>
-            </div>
-          )}
+            )}
 
-          {loading ? (
-            <LoadingSkeleton />
-          ) : isAdmin ? (
-            <AdminPanel
-              items={isCategoryPage ? featuredItems : items}
-              isSaving={isSaving}
-              onCreate={handleCreate}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-              onRefresh={fetchItems}
-              onGeneratePdf={handleGenerateReport}
-              initialCategory={selectedFeaturedCategory?.name || "Breakfast"}
-              categoryLocked={isCategoryPage}
-              categoryOptions={availableCategories}
-            />
-          ) : (
-            <>
-              {!isCategoryPage && <PopularProducts items={items} onAddToCart={handleAddToCart} />}
+            {!isAdmin && !isCategoryPage && (
+              <FilterBar
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                budgetOnly={budgetOnly}
+                onBudgetToggle={() => setBudgetOnly((prev) => !prev)}
+                hideOutOfStock={hideOutOfStock}
+                onOutOfStockToggle={() => setHideOutOfStock((prev) => !prev)}
+                scheduleOnly={scheduleOnly}
+                onScheduleToggle={() => setScheduleOnly((prev) => !prev)}
+                currentMealLabel={currentMealLabel}
+              />
+            )}
 
-              <div className="mt-8">
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    {isCategoryPage ? selectedFeaturedCategory.name : "All Products"}
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    {filteredItems.length} items found
-                  </p>
+            {isCategoryPage && !isAdmin && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Back to Menu
+                </button>
+                <div className="rounded-2xl border border-green-100 bg-white p-4 shadow-sm">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Search in {selectedFeaturedCategory.name}</label>
+                  <input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder={`Search ${selectedFeaturedCategory.name}...`}
+                    className="w-full rounded-xl border border-green-200 px-3 py-2 text-sm outline-none focus:border-green-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            {loading ? (
+              <LoadingSkeleton />
+            ) : isAdmin ? (
+              <AdminPanel
+                items={isCategoryPage ? featuredItems : items}
+                allItems={items}
+                isSaving={isSaving}
+                onCreate={handleCreate}
+                onUpdate={handleUpdate}
+                onDelete={handleDelete}
+                onRefresh={fetchItems}
+                onGeneratePdf={handleGenerateReport}
+                initialCategory={selectedFeaturedCategory?.name || "Breakfast"}
+                categoryLocked={isCategoryPage}
+                categoryOptions={availableCategories}
+              />
+            ) : (
+              <>
+                {!isCategoryPage && <PopularProducts items={items} onAddToCart={handleAddToCart} />}
+
+                <div id="our-menu" className="mt-8">
+                  <div className="mb-6 flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {isCategoryPage ? selectedFeaturedCategory.name : "All Products"}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {filteredItems.length} items found
+                    </p>
+                  </div>
+
+                  {filteredItems.length ? (
+                    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {filteredItems.map((item) => (
+                        <FoodCard
+                          key={item._id || item.foodID || item.name}
+                          item={item}
+                          disabledOutOfStock={item.isOutOfStock && !hideOutOfStock}
+                          showAddToCart
+                          onAddToCart={() => handleAddToCart(item)}
+                          onImageClick={() => handleViewFoodDetails(item)}
+                          studentRating={Number(studentRatings[item._id] || 0)}
+                          onRate={(stars) => handleRateItem(item, stars)}
+                        />
+                      ))}
+                    </section>
+                  ) : (
+                    <section className="rounded-3xl border border-dashed border-green-200 bg-white px-6 py-14 text-center">
+                      <h3 className="text-lg font-semibold text-slate-900">No food items found</h3>
+                      <p className="mt-2 text-sm text-slate-600">
+                        {isCategoryPage
+                          ? `No items are available in ${selectedFeaturedCategory.name} yet.`
+                          : "Try changing search, category, or schedule filters."}
+                      </p>
+                    </section>
+                  )}
+
+                  {selectedFoodForModal && (
+                    <FoodDetailsModal
+                      item={selectedFoodForModal}
+                      onClose={handleCloseModal}
+                      onBack={handleBackFromModal}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          <AnimatePresence>
+            {!isAdmin && isCartOpen && (
+              <motion.aside
+                initial={{ opacity: 0, x: 42 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 42 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                className="fixed bottom-24 right-4 z-50 w-[calc(100vw-2rem)] max-w-sm sm:bottom-24 sm:right-6"
+              >
+                <div className="max-h-[72vh] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+                <div className="flex items-center justify-between bg-green-600 px-4 py-3 text-white">
+                  <h3 className="text-base font-bold">My Cart</h3>
+                  <button
+                    type="button"
+                    onClick={() => setIsCartOpen(false)}
+                    className="rounded-md bg-white/20 px-2 py-1 text-xs font-semibold transition hover:bg-white/30"
+                  >
+                    Close
+                  </button>
                 </div>
 
-                {filteredItems.length ? (
-                  <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredItems.map((item) => (
-                      <FoodCard
-                        key={item._id || item.foodID || item.name}
-                        item={item}
-                        disabledOutOfStock={item.isOutOfStock && !hideOutOfStock}
-                        showAddToCart
-                        onAddToCart={() => handleAddToCart(item)}
-                        onImageClick={() => handleViewFoodDetails(item)}
-                        studentRating={Number(studentRatings[item._id] || 0)}
-                        onRate={(stars) => handleRateItem(item, stars)}
-                      />
-                    ))}
-                  </section>
-                ) : (
-                  <section className="rounded-3xl border border-dashed border-green-200 bg-white px-6 py-14 text-center">
-                    <h3 className="text-lg font-semibold text-slate-900">No food items found</h3>
-                    <p className="mt-2 text-sm text-slate-600">
-                      {isCategoryPage
-                        ? `No items are available in ${selectedFeaturedCategory.name} yet.`
-                        : "Try changing search, category, or schedule filters."}
-                    </p>
-                  </section>
-                )}
+                <div className="max-h-[46vh] overflow-y-auto p-4">
+                  {cart.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-gray-500">Your cart is empty.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {cart.map((entry) => (
+                        <div key={entry._id} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-semibold text-slate-800">{entry.name}</p>
+                            <p className="text-sm font-bold text-green-700">
+                              Rs. {(Number(entry.price || 0) * Number(entry.quantity || 0)).toLocaleString()}
+                            </p>
+                          </div>
 
-                {selectedFoodForModal && (
-                  <FoodDetailsModal
-                    item={selectedFoodForModal}
-                    onClose={handleCloseModal}
-                    onBack={handleBackFromModal}
-                  />
-                )}
+                          <div className="mt-3 flex items-center justify-between">
+                            <div className="inline-flex items-center overflow-hidden rounded-lg border border-gray-200 bg-white">
+                              <button
+                                type="button"
+                                onClick={() => handleDecreaseCartItem(entry._id)}
+                                className="h-8 w-8 text-gray-700 transition hover:bg-gray-100"
+                              >
+                                -
+                              </button>
+                              <span className="w-8 text-center text-sm font-semibold">{entry.quantity}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleIncreaseCartItem(entry._id)}
+                                className="h-8 w-8 text-gray-700 transition hover:bg-gray-100"
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCartItem(entry._id)}
+                              className="text-xs font-semibold text-rose-600 hover:text-rose-700"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-gray-100 bg-white p-4">
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <div className="flex items-center justify-between">
+                      <span>Subtotal</span>
+                      <span className="font-semibold">Rs. {cartSubTotal.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Delivery</span>
+                      <span className="font-semibold">Rs. {cartDeliveryFee.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-gray-200 pt-2 text-base font-bold text-slate-900">
+                      <span>Total</span>
+                      <span>Rs. {cartTotal.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCheckoutClick}
+                    className="mt-3 w-full rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-green-700"
+                  >
+                    Go to Checkout
+                  </button>
+                </div>
               </div>
-            </>
-          )}
+              </motion.aside>
+            )}
+          </AnimatePresence>
         </div>
+
       </section>
     </main>
     </div>

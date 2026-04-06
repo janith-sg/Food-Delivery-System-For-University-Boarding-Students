@@ -4,6 +4,9 @@ import { Elements } from "@stripe/react-stripe-js";
 import GroupStripePaymentForm from "./GroupStripePaymentForm";
 import generateGroupOrderInvoice from "../utils/generateGroupOrderInvoice";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const apiUrl = (path) => `${API_BASE_URL}${path}`;
+
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const SLIDE_IMAGES = [
@@ -37,7 +40,7 @@ const [stripeReady, setStripeReady] = useState(false);
   const fetchGroup = async () => {
     setFetching(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/group-orders/${groupCode}`);
+      const res = await fetch(apiUrl(`/api/group-orders/${groupCode}`));
       const data = await res.json();
       if (res.ok) {
         setGroupData(data);
@@ -91,7 +94,7 @@ const [stripeReady, setStripeReady] = useState(false);
     }
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/group-orders/finalize", {
+      const response = await fetch(apiUrl("/api/group-orders/finalize"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groupCode, paymentMethod }),
@@ -180,7 +183,7 @@ const [stripeReady, setStripeReady] = useState(false);
   setLoading(true);
 
   try {
-    const response = await fetch("http://localhost:5000/api/stripe/create-payment-intent", {
+    const response = await fetch(apiUrl("/api/stripe/create-payment-intent"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -208,7 +211,7 @@ const [stripeReady, setStripeReady] = useState(false);
 const handleGroupCardPaymentSuccess = async () => {
   setLoading(true);
   try {
-    const response = await fetch("http://localhost:5000/api/group-orders/finalize", {
+    const response = await fetch(apiUrl("/api/group-orders/finalize"), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

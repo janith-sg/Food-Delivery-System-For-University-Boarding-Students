@@ -195,25 +195,92 @@ function FormField({ icon, label, required, children, error }) {
   );
 }
 
-function StatsCard({ icon, title, value, color, gradient }) {
+function StatsCard({ icon, title, value, hint, accentClass = "border-emerald-500", iconWrapClass = "bg-emerald-50 text-emerald-600" }) {
   return (
     <motion.div
-      whileHover={{ y: -5, scale: 1.02 }}
-      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-4 shadow-lg`}
+      whileHover={{ y: -2 }}
+      className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${accentClass} border-l-[3px]`}
     >
-      <div className="absolute top-0 right-0 opacity-10">
-        {icon}
-      </div>
-      <div className="relative z-10">
-        <p className="text-white/80 text-xs uppercase tracking-wider">{title}</p>
-        <p className="text-white text-2xl font-bold mt-1">{value}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-slate-500">{title}</p>
+          <p className="mt-2 text-5xl font-bold tracking-tight text-slate-900">{value}</p>
+          {hint ? <p className="mt-1 text-sm text-slate-500">{hint}</p> : null}
+        </div>
+        <div className={`inline-flex h-11 w-11 items-center justify-center rounded-full ${iconWrapClass}`}>
+          {icon}
+        </div>
       </div>
     </motion.div>
   );
 }
 
+function SidebarNavButton({ label, active, onClick, icon }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        active
+          ? "flex w-full items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left text-sm font-semibold text-emerald-800"
+          : "flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-left text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+      }
+    >
+      <span className={active ? "text-emerald-600" : "text-slate-400"}>{icon}</span>
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function SemiGauge({ title, percent, tone = "emerald" }) {
+  const clamped = Math.max(0, Math.min(100, Number(percent) || 0));
+  const radius = 62;
+  const circumference = Math.PI * radius;
+  const dashOffset = circumference - (clamped / 100) * circumference;
+
+  const toneConfig = {
+    emerald: { stroke: "#22c55e", dot: "bg-emerald-500" },
+    blue: { stroke: "#2563eb", dot: "bg-blue-600" },
+    orange: { stroke: "#f97316", dot: "bg-orange-500" },
+  };
+
+  const palette = toneConfig[tone] || toneConfig.emerald;
+
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h3 className="text-[28px] font-semibold text-slate-800">{title}</h3>
+      <div className="mt-5 flex flex-col items-center">
+        <svg viewBox="0 0 160 90" className="h-40 w-full max-w-[260px]">
+          <path
+            d="M 20 80 A 60 60 0 0 1 140 80"
+            fill="none"
+            stroke="#e2e8f0"
+            strokeWidth="12"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 20 80 A 60 60 0 0 1 140 80"
+            fill="none"
+            stroke={palette.stroke}
+            strokeWidth="12"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+          />
+        </svg>
+        <p className="-mt-7 text-5xl font-bold text-slate-900">{clamped}%</p>
+        <p className="mt-2 flex items-center gap-2 text-base text-slate-600">
+          <span className={`h-2.5 w-2.5 rounded-full ${palette.dot}`} />
+          Active
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export default function AdminPanel({
   items,
+  allItems,
   onCreate,
   onUpdate,
   onDelete,
@@ -224,7 +291,8 @@ export default function AdminPanel({
   categoryLocked = false,
   categoryOptions = ["Breakfast", "Lunch", "Dinner", "Vegetarian", "Budget Meals"],
 }) {
-  const nextFoodId = useMemo(() => getNextFoodId(items), [items]);
+  const idSourceItems = useMemo(() => (Array.isArray(allItems) && allItems.length ? allItems : items), [allItems, items]);
+  const nextFoodId = useMemo(() => getNextFoodId(idSourceItems), [idSourceItems]);
   const [form, setForm] = useState(() => getDefaultForm(initialCategory, nextFoodId));
   const [editingId, setEditingId] = useState(null);
   const [imageFile, setImageFile] = useState(null);
@@ -232,7 +300,7 @@ export default function AdminPanel({
   const [validationErrors, setValidationErrors] = useState([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
+  const [activeSection, setActiveSection] = useState("overview");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const title = useMemo(() => (editingId ? "Update Food Item" : "Add New Food Item"), [editingId]);
@@ -269,8 +337,8 @@ export default function AdminPanel({
     }));
   }, [initialCategory, nextFoodId, editingId]);
 
-  const resetForm = () => {
-    setForm(getDefaultForm(initialCategory, nextFoodId));
+  const resetForm = (categoryName = initialCategory) => {
+    setForm(getDefaultForm(categoryName, nextFoodId));
     setEditingId(null);
     setImageFile(null);
     setImagePreview(null);
@@ -278,9 +346,15 @@ export default function AdminPanel({
     setShowAdvanced(false);
   };
 
+  const openAddFormForCategory = (categoryName) => {
+    resetForm(categoryName || initialCategory);
+    setSelectedCategory(categoryName || "all");
+    setActiveSection("add");
+  };
+
   const onSubmit = async (event) => {
     event.preventDefault();
-    const errors = validateForm(form, items, editingId, imageFile);
+    const errors = validateForm(form, idSourceItems, editingId, imageFile);
 
     if (errors.length > 0) {
       setValidationErrors(errors);
@@ -343,471 +417,635 @@ export default function AdminPanel({
   };
 
   const uniqueCategories = useMemo(() => {
-    const cats = new Set(items.map(item => item.category).filter(Boolean));
+    const cats = new Set([
+      ...items.map((item) => item.category).filter(Boolean),
+      ...categoryOptions,
+    ]);
     return ["all", ...Array.from(cats)];
-  }, [items]);
+  }, [items, categoryOptions]);
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-6"
-    >
-      {/* Stats Dashboard */}
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
-      >
-        <StatsCard
-          icon={<Package className="w-12 h-12" />}
-          title="Total Items"
-          value={stats.totalItems}
-          gradient="from-blue-500 to-cyan-500"
-        />
-        <StatsCard
-          icon={<AlertCircle className="w-12 h-12" />}
-          title="Low Stock"
-          value={stats.lowStock}
-          gradient="from-yellow-500 to-orange-500"
-        />
-        <StatsCard
-          icon={<X className="w-12 h-12" />}
-          title="Out of Stock"
-          value={stats.outOfStock}
-          gradient="from-red-500 to-rose-500"
-        />
-        <StatsCard
-          icon={<Flame className="w-12 h-12" />}
-          title="Popular Items"
-          value={stats.popularItems}
-          gradient="from-purple-500 to-pink-500"
-        />
-        <StatsCard
-          icon={<DollarSign className="w-12 h-12" />}
-          title="Avg Price"
-          value={`LKR ${stats.avgPrice}`}
-          gradient="from-green-500 to-emerald-500"
-        />
-      </motion.div>
+  const featuredCounts = useMemo(() => {
+    return categoryOptions.reduce((acc, categoryName) => {
+      acc[categoryName] = idSourceItems.filter((item) => String(item.category || "").trim() === categoryName).length;
+      return acc;
+    }, {});
+  }, [categoryOptions, idSourceItems]);
 
-      {/* Form Section */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="relative"
-      >
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-3xl blur opacity-20" />
-        <div className="relative rounded-3xl bg-white shadow-2xl overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-500/5 to-emerald-500/5 rounded-full blur-3xl" />
-          
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                  {title}
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  {editingId ? "Update existing menu item" : "Add a new delicious item to your menu"}
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={onRefresh}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold shadow-md"
-                >
-                  <RefreshCw size={18} />
-                  Refresh
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={onGeneratePdf}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-xl font-semibold shadow-md"
-                >
-                  <Download size={18} />
-                  PDF Report
-                </motion.button>
-                {editingId && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={resetForm}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold"
-                  >
-                    Cancel Edit
-                  </motion.button>
-                )}
-              </div>
-            </div>
+  const availableCount = items.filter((item) => Number(item.stock) > 0).length;
+  const lowStockPercent = items.length ? Math.round((stats.lowStock / items.length) * 100) : 0;
+  const availablePercent = items.length ? Math.round((availableCount / items.length) * 100) : 0;
+  const featuredPercent = idSourceItems.length
+    ? Math.round((Object.values(featuredCounts).filter((count) => Number(count) > 0).length / Math.max(categoryOptions.length, 1)) * 100)
+    : 0;
+
+  const menuSections = [
+    { id: "overview", label: "Dashboard", icon: <BarChart3 className="h-4 w-4" /> },
+    { id: "featured", label: "Featured Categories", icon: <Sparkles className="h-4 w-4" /> },
+    { id: "add", label: editingId ? "Update Food Item" : "Add New Food Item", icon: <Plus className="h-4 w-4" /> },
+    { id: "manage", label: "Manage Existing Items", icon: <List className="h-4 w-4" /> },
+  ];
+
+  const renderFoodForm = () => (
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="border-b border-slate-200 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900">{title}</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {editingId ? "Update an existing food menu item" : "Add a new item to the food menu"}
+            </p>
           </div>
-
-          {validationErrors.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="m-6 p-4 bg-red-50 border border-red-200 rounded-2xl"
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-                <p className="font-semibold text-red-700">Validation Errors:</p>
-              </div>
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                {validationErrors.map((error, idx) => (
-                  <li key={idx} className="text-sm text-red-600 flex items-center gap-2">
-                    <span className="w-1 h-1 bg-red-400 rounded-full" />
-                    {error}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          )}
+              <RefreshCw size={16} />
+              Refresh
+            </button>
+            <button
+              type="button"
+              onClick={onGeneratePdf}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+            >
+              <Download size={16} />
+              PDF Report
+            </button>
+            {editingId ? (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
+              >
+                Cancel
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
 
-          <form onSubmit={onSubmit} className="p-6 space-y-6">
-            {/* Image Upload */}
-            <div className="flex items-start gap-6">
-              <div className="flex-1">
-                <FormField icon={<Image className="w-4 h-4" />} label="Food Image" required>
-                  <div className="mt-1">
-                    <label className="relative cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        required={!editingId && !form.image}
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                      <div className="flex items-center gap-3 p-3 border-2 border-dashed border-green-300 rounded-xl hover:border-green-500 transition-colors">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <Image className="w-5 h-5 text-green-600" />
-                        </div>
-                        <span className="text-sm text-gray-600">
-                          {imageFile ? imageFile.name : form.image ? "Click to change image" : "Click to upload image"}
-                        </span>
-                      </div>
-                    </label>
+      {validationErrors.length > 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="m-6 rounded-2xl border border-rose-200 bg-rose-50 p-4"
+        >
+          <div className="mb-2 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-rose-600" />
+            <p className="font-semibold text-rose-700">Validation Errors</p>
+          </div>
+          <ul className="grid grid-cols-1 gap-1 md:grid-cols-2">
+            {validationErrors.map((error, idx) => (
+              <li key={idx} className="flex items-center gap-2 text-sm text-rose-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                {error}
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      ) : null}
+
+      <form onSubmit={onSubmit} className="space-y-6 p-6">
+        <div className="flex items-start gap-6">
+          <div className="flex-1">
+            <FormField icon={<Image className="w-4 h-4" />} label="Food Image" required>
+              <div className="mt-1">
+                <label className="relative cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    required={!editingId && !form.image}
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <div className="flex items-center gap-3 rounded-xl border-2 border-dashed border-emerald-300 p-3 transition-colors hover:border-emerald-500">
+                    <div className="rounded-lg bg-emerald-100 p-2">
+                      <Image className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <span className="text-sm text-slate-600">
+                      {imageFile ? imageFile.name : form.image ? "Click to change image" : "Click to upload image"}
+                    </span>
                   </div>
-                </FormField>
+                </label>
               </div>
-              {imagePreview && (
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="w-20 h-20 rounded-xl overflow-hidden shadow-lg"
+            </FormField>
+          </div>
+          {imagePreview ? (
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="h-20 w-20 overflow-hidden rounded-xl shadow-lg"
+            >
+              <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
+            </motion.div>
+          ) : null}
+        </div>
+
+        <div>
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-800">
+            <Sparkles className="h-5 w-5 text-emerald-600" />
+            Basic Information
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField icon={<Tag className="w-4 h-4" />} label="Food ID" required>
+              <input
+                required
+                value={form.foodID}
+                readOnly
+                className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none"
+              />
+            </FormField>
+            <FormField icon={<Utensils className="w-4 h-4" />} label="Food Name" required>
+              <input
+                required
+                value={form.name}
+                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                placeholder="Enter food name"
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              />
+            </FormField>
+
+            {categoryLocked ? (
+              <FormField icon={<Layers className="w-4 h-4" />} label="Category" required>
+                <input
+                  value={form.category}
+                  disabled
+                  className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-600 outline-none"
+                />
+              </FormField>
+            ) : (
+              <FormField icon={<Layers className="w-4 h-4" />} label="Category" required>
+                <select
+                  value={form.category}
+                  onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 >
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                </motion.div>
-              )}
-            </div>
+                  {categoryOptions.map((categoryName) => (
+                    <option key={categoryName}>{categoryName}</option>
+                  ))}
+                </select>
+              </FormField>
+            )}
 
-            {/* Basic Information */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-green-500" />
-                Basic Information
-              </h3>
+            <FormField icon={<DollarSign className="w-4 h-4" />} label="Price (LKR)" required>
+              <input
+                required
+                type="text"
+                value={form.price}
+                onChange={(event) => setForm((prev) => ({ ...prev, price: event.target.value }))}
+                onBlur={(event) => {
+                  const parsedPrice = parseRsPrice(event.target.value);
+                  if (parsedPrice !== null) {
+                    setForm((prev) => ({ ...prev, price: formatRsPrice(parsedPrice) }));
+                  }
+                }}
+                placeholder="Rs100.00"
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              />
+            </FormField>
+
+            <FormField icon={<Package className="w-4 h-4" />} label="Stock Quantity" required>
+              <input
+                required
+                value={form.stock}
+                onChange={(event) => setForm((prev) => ({ ...prev, stock: event.target.value }))}
+                placeholder="Enter stock quantity"
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              />
+            </FormField>
+
+            <FormField icon={<Layers className="w-4 h-4" />} label="Portion Size" required>
+              <input
+                required
+                value={form.portion}
+                onChange={(event) => setForm((prev) => ({ ...prev, portion: event.target.value }))}
+                placeholder="e.g., Regular, Large, Small"
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              />
+            </FormField>
+
+            <FormField icon={<Tag className="w-4 h-4" />} label="Food Type" required>
+              <input
+                required
+                value={form.type}
+                onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value }))}
+                placeholder="e.g., Main Course, Appetizer"
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              />
+            </FormField>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-800">
+            <FileText className="w-5 h-5 text-emerald-600" />
+            Description
+          </h3>
+          <textarea
+            required
+            value={form.description}
+            onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+            placeholder="Detailed description of the food item..."
+            rows="4"
+            className="w-full resize-none rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          />
+        </div>
+
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex w-full items-center justify-between rounded-xl bg-slate-50 p-4 transition-all hover:bg-slate-100"
+        >
+          <span className="flex items-center gap-2 font-semibold text-slate-700">
+            <Activity className="w-5 h-5 text-emerald-600" />
+            Nutritional and Preparation Details
+          </span>
+          {showAdvanced ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </motion.button>
+
+        <AnimatePresence>
+          {showAdvanced ? (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="space-y-4"
+            >
               <div className="grid gap-4 md:grid-cols-2">
-                <FormField icon={<Tag className="w-4 h-4" />} label="Food ID" required>
+                <FormField icon={<Activity className="w-4 h-4" />} label="Protein Content" required>
                   <input
                     required
-                    value={form.foodID}
-                    readOnly
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 outline-none cursor-not-allowed"
-                  />
-                </FormField>
-                <FormField icon={<Utensils className="w-4 h-4" />} label="Food Name" required>
-                  <input
-                    required
-                    value={form.name}
-                    onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-                    placeholder="Enter food name"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                    value={form.protein}
+                    onChange={(event) => setForm((prev) => ({ ...prev, protein: event.target.value }))}
+                    placeholder="e.g., High protein, 20g"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                   />
                 </FormField>
 
-                {categoryLocked ? (
-                  <FormField icon={<Layers className="w-4 h-4" />} label="Category" required>
-                    <input
-                      value={form.category}
-                      disabled
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 outline-none cursor-not-allowed"
+                <FormField icon={<Flame className="w-4 h-4" />} label="Calories" required>
+                  <input
+                    required
+                    value={form.calories}
+                    onChange={(event) => setForm((prev) => ({ ...prev, calories: event.target.value }))}
+                    placeholder="e.g., 450-550 kcal"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  />
+                </FormField>
+
+                <div className="md:col-span-2">
+                  <FormField icon={<Info className="w-4 h-4" />} label="Ingredients" required>
+                    <textarea
+                      required
+                      value={form.ingredients}
+                      onChange={(event) => setForm((prev) => ({ ...prev, ingredients: event.target.value }))}
+                      placeholder="List all ingredients separated by commas"
+                      rows="3"
+                      className="w-full resize-none rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
                   </FormField>
-                ) : (
-                  <FormField icon={<Layers className="w-4 h-4" />} label="Category" required>
-                    <select
-                      value={form.category}
-                      onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))}
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                    >
-                      {categoryOptions.map((categoryName) => (
-                        <option key={categoryName}>{categoryName}</option>
-                      ))}
-                    </select>
-                  </FormField>
-                )}
+                </div>
 
-                <FormField icon={<DollarSign className="w-4 h-4" />} label="Price (LKR)" required>
+                <FormField icon={<Flame className="w-4 h-4" />} label="Spice Level" required>
+                  <select
+                    required
+                    value={form.spiceLevel}
+                    onChange={(event) => setForm((prev) => ({ ...prev, spiceLevel: event.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  >
+                    <option>Mild</option>
+                    <option>Medium</option>
+                    <option>Hot</option>
+                    <option>Very Hot</option>
+                  </select>
+                </FormField>
+
+                <FormField icon={<Layers className="w-4 h-4" />} label="Portion Size Detail" required>
                   <input
                     required
-                    type="text"
-                    value={form.price}
-                    onChange={(event) => setForm((prev) => ({ ...prev, price: event.target.value }))}
-                    onBlur={(event) => {
-                      const parsedPrice = parseRsPrice(event.target.value);
-                      if (parsedPrice !== null) {
-                        setForm((prev) => ({ ...prev, price: formatRsPrice(parsedPrice) }));
-                      }
-                    }}
-                    placeholder="Rs100.00"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                    value={form.portionSize}
+                    onChange={(event) => setForm((prev) => ({ ...prev, portionSize: event.target.value }))}
+                    placeholder="e.g., Full/Medium"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                   />
                 </FormField>
 
-                <FormField icon={<Package className="w-4 h-4" />} label="Stock Quantity" required>
+                <FormField icon={<Clock className="w-4 h-4" />} label="Best Before" required>
                   <input
                     required
-                    value={form.stock}
-                    onChange={(event) => setForm((prev) => ({ ...prev, stock: event.target.value }))}
-                    placeholder="Enter stock quantity"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                    value={form.bestBefore}
+                    onChange={(event) => setForm((prev) => ({ ...prev, bestBefore: event.target.value }))}
+                    placeholder="e.g., 4-6 hours"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                   />
                 </FormField>
 
-                <FormField icon={<Layers className="w-4 h-4" />} label="Portion Size" required>
+                <FormField icon={<Clock className="w-4 h-4" />} label="Preparation Time" required>
                   <input
                     required
-                    value={form.portion}
-                    onChange={(event) => setForm((prev) => ({ ...prev, portion: event.target.value }))}
-                    placeholder="e.g., Regular, Large, Small"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                    value={form.preparationTime}
+                    onChange={(event) => setForm((prev) => ({ ...prev, preparationTime: event.target.value }))}
+                    placeholder="e.g., 20-30 minutes"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                   />
                 </FormField>
 
-                <FormField icon={<Tag className="w-4 h-4" />} label="Food Type" required>
-                  <input
+                <FormField icon={<Leaf className="w-4 h-4" />} label="Diet Type" required>
+                  <select
                     required
-                    value={form.type}
-                    onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value }))}
-                    placeholder="e.g., Main Course, Appetizer"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                  />
+                    value={form.dietType}
+                    onChange={(event) => setForm((prev) => ({ ...prev, dietType: event.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  >
+                    <option>Vegetarian</option>
+                    <option>Non-Vegetarian</option>
+                    <option>Vegan</option>
+                  </select>
+                </FormField>
+
+                <FormField icon={<Utensils className="w-4 h-4" />} label="Serving Type" required>
+                  <select
+                    required
+                    value={form.servingType}
+                    onChange={(event) => setForm((prev) => ({ ...prev, servingType: event.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  >
+                    <option>Hot meal</option>
+                    <option>Cold meal</option>
+                    <option>Beverage</option>
+                    <option>Snack</option>
+                  </select>
                 </FormField>
               </div>
-            </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
 
-            {/* Description */}
+        <motion.button
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          disabled={isSaving}
+          type="submit"
+          className="w-full rounded-xl bg-emerald-600 py-3.5 font-semibold text-white transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {editingId ? (
+            <span className="flex items-center justify-center gap-2">
+              <Pencil size={18} />
+              Save Changes
+            </span>
+          ) : (
+            <span className="flex items-center justify-center gap-2">
+              <Plus size={18} />
+              Add Food Item
+            </span>
+          )}
+        </motion.button>
+      </form>
+    </div>
+  );
+
+  const renderManageItems = () => (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-2xl font-bold text-slate-900">Manage Existing Items</h3>
+        <input
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Search by name or category"
+          className="w-full max-w-sm rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+        />
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {uniqueCategories.map((categoryName) => (
+          <button
+            key={categoryName}
+            type="button"
+            onClick={() => setSelectedCategory(categoryName)}
+            className={
+              selectedCategory === categoryName
+                ? "rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"
+                : "rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50"
+            }
+          >
+            {categoryName === "all" ? "All" : categoryName}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        {filteredItems.map((item) => (
+          <div
+            key={item._id}
+            className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-4 md:flex-row md:items-center md:justify-between"
+          >
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-green-500" />
-                Description
-              </h3>
-              <textarea
-                required
-                value={form.description}
-                onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-                placeholder="Detailed description of the food item..."
-                rows="4"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all resize-none"
+              <p className="text-sm font-semibold text-slate-900">{item.name}</p>
+              <p className="text-xs text-slate-500">
+                {item.category} | {item.portion} | LKR {Number(item.price || 0).toFixed(2)}
+              </p>
+              <p className="text-xs text-slate-500">Stock: {item.stock}</p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  startEdit(item);
+                  setActiveSection("add");
+                }}
+                className="inline-flex items-center gap-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-700"
+              >
+                <Pencil size={14} />
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(item._id)}
+                className="inline-flex items-center gap-1 rounded-lg bg-rose-100 px-3 py-1.5 text-xs font-semibold text-rose-700"
+              >
+                <Trash2 size={14} />
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+        {filteredItems.length === 0 ? (
+          <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-5 text-center text-sm text-slate-500">
+            No food items found for this filter.
+          </p>
+        ) : null}
+      </div>
+
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => openAddFormForCategory(selectedCategory === "all" ? initialCategory : selectedCategory)}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+          >
+            <Plus size={16} />
+            Add Item to Selected Category
+          </button>
+          <button
+            type="button"
+            onClick={() => openAddFormForCategory(initialCategory)}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            Reset to Default Category
+          </button>
+        </div>
+    </div>
+  );
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-[70vh] rounded-3xl border border-slate-200 bg-[#f8fafc] p-3 shadow-sm md:p-4">
+      <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
+        <aside className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+          <h2 className="px-2 py-3 text-2xl font-bold text-slate-900">Food Dashboard</h2>
+          <nav className="space-y-1.5" aria-label="Food admin navigation">
+            {menuSections.map((section) => (
+              <SidebarNavButton
+                key={section.id}
+                label={section.label}
+                icon={section.icon}
+                active={activeSection === section.id}
+                onClick={() => setActiveSection(section.id)}
               />
+            ))}
+          </nav>
+        </aside>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+          <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-5xl font-bold tracking-tight text-slate-900">Overview</h1>
+              <p className="mt-2 text-sm text-slate-500">Food Menu Management control panel</p>
             </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onRefresh}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </button>
+              <button
+                type="button"
+                onClick={onGeneratePdf}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+              >
+                <Download className="h-4 w-4" />
+                Report
+              </button>
+            </div>
+          </header>
 
-            {/* Advanced Details Toggle */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all"
-            >
-              <span className="flex items-center gap-2 font-semibold text-gray-700">
-                <Activity className="w-5 h-5 text-green-500" />
-                Nutritional & Preparation Details
-              </span>
-              {showAdvanced ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-            </motion.button>
-
-            <AnimatePresence>
-              {showAdvanced && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="space-y-4"
-                >
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormField icon={<Activity className="w-4 h-4" />} label="Protein Content" required>
-                      <input
-                        required
-                        value={form.protein}
-                        onChange={(event) => setForm((prev) => ({ ...prev, protein: event.target.value }))}
-                        placeholder="e.g., High protein, 20g"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                      />
-                    </FormField>
-
-                    <FormField icon={<Flame className="w-4 h-4" />} label="Calories" required>
-                      <input
-                        required
-                        value={form.calories}
-                        onChange={(event) => setForm((prev) => ({ ...prev, calories: event.target.value }))}
-                        placeholder="e.g., 450-550 kcal"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                      />
-                    </FormField>
-
-                    <div className="md:col-span-2">
-                      <FormField icon={<Info className="w-4 h-4" />} label="Ingredients" required>
-                        <textarea
-                          required
-                          value={form.ingredients}
-                          onChange={(event) => setForm((prev) => ({ ...prev, ingredients: event.target.value }))}
-                          placeholder="List all ingredients separated by commas"
-                          rows="3"
-                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all resize-none"
-                        />
-                      </FormField>
-                    </div>
-
-                    <FormField icon={<Flame className="w-4 h-4" />} label="Spice Level" required>
-                      <select
-                        required
-                        value={form.spiceLevel}
-                        onChange={(event) => setForm((prev) => ({ ...prev, spiceLevel: event.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                      >
-                        <option>Mild</option>
-                        <option>Medium</option>
-                        <option>Hot</option>
-                        <option>Very Hot</option>
-                      </select>
-                    </FormField>
-
-                    <FormField icon={<Layers className="w-4 h-4" />} label="Portion Size Detail" required>
-                      <input
-                        required
-                        value={form.portionSize}
-                        onChange={(event) => setForm((prev) => ({ ...prev, portionSize: event.target.value }))}
-                        placeholder="e.g., Full/Medium"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                      />
-                    </FormField>
-
-                    <FormField icon={<Clock className="w-4 h-4" />} label="Best Before" required>
-                      <input
-                        required
-                        value={form.bestBefore}
-                        onChange={(event) => setForm((prev) => ({ ...prev, bestBefore: event.target.value }))}
-                        placeholder="e.g., 4-6 hours"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                      />
-                    </FormField>
-
-                    <FormField icon={<Clock className="w-4 h-4" />} label="Preparation Time" required>
-                      <input
-                        required
-                        value={form.preparationTime}
-                        onChange={(event) => setForm((prev) => ({ ...prev, preparationTime: event.target.value }))}
-                        placeholder="e.g., 20-30 minutes"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                      />
-                    </FormField>
-
-                    <FormField icon={<Leaf className="w-4 h-4" />} label="Diet Type" required>
-                      <select
-                        required
-                        value={form.dietType}
-                        onChange={(event) => setForm((prev) => ({ ...prev, dietType: event.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                      >
-                        <option>Vegetarian</option>
-                        <option>Non-Vegetarian</option>
-                        <option>Vegan</option>
-                      </select>
-                    </FormField>
-
-                    <FormField icon={<Utensils className="w-4 h-4" />} label="Serving Type" required>
-                      <select
-                        required
-                        value={form.servingType}
-                        onChange={(event) => setForm((prev) => ({ ...prev, servingType: event.target.value }))}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                      >
-                        <option>Hot meal</option>
-                        <option>Cold meal</option>
-                        <option>Beverage</option>
-                        <option>Snack</option>
-                      </select>
-                    </FormField>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              disabled={isSaving}
-              type="submit"
-              className="w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {editingId ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Pencil size={18} />
-                  Save Changes
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  <Plus size={18} />
-                  Add Food Item
-                </span>
-              )}
-            </motion.button>
-          </form>
-        </div>
-      </motion.div>
-
-      <div className="rounded-3xl border border-green-100 bg-white p-5 shadow-lg shadow-green-900/5">
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">Manage Existing Items</h3>
-        <div className="space-y-3">
-          {items.map((item) => (
-            <div
-              key={item._id}
-              className="flex flex-col gap-3 rounded-2xl border border-green-100 bg-green-50/30 p-4 md:flex-row md:items-center md:justify-between"
-            >
-              <div>
-                <p className="text-sm font-semibold text-slate-900">{item.name}</p>
-                <p className="text-xs text-slate-500">
-                  {item.category} | {item.portion} | LKR {Number(item.price || 0).toFixed(2)}
-                </p>
-                <p className="text-xs text-slate-500">Stock: {item.stock}</p>
+          {activeSection === "overview" ? (
+            <>
+              <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-4">
+                <StatsCard
+                  icon={<Package className="h-5 w-5" />}
+                  title="Total Menu Items"
+                  value={stats.totalItems}
+                  hint="Across all categories"
+                  accentClass="border-blue-500"
+                  iconWrapClass="bg-blue-50 text-blue-600"
+                />
+                <StatsCard
+                  icon={<CheckCircle className="h-5 w-5" />}
+                  title="Available Items"
+                  value={availableCount}
+                  hint="Ready for orders"
+                  accentClass="border-emerald-500"
+                  iconWrapClass="bg-emerald-50 text-emerald-600"
+                />
+                <StatsCard
+                  icon={<AlertCircle className="h-5 w-5" />}
+                  title="Low Stock"
+                  value={stats.lowStock}
+                  hint="Needs restocking"
+                  accentClass="border-violet-500"
+                  iconWrapClass="bg-violet-50 text-violet-600"
+                />
+                <StatsCard
+                  icon={<DollarSign className="h-5 w-5" />}
+                  title="Average Price"
+                  value={`LKR ${stats.avgPrice}`}
+                  hint="Menu price average"
+                  accentClass="border-orange-500"
+                  iconWrapClass="bg-orange-50 text-orange-600"
+                />
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => startEdit(item)}
-                  className="inline-flex items-center gap-1 rounded-lg bg-green-100 px-3 py-1.5 text-xs font-semibold text-green-700"
-                >
-                  <Pencil size={14} />
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(item._id)}
-                  className="inline-flex items-center gap-1 rounded-lg bg-rose-100 px-3 py-1.5 text-xs font-semibold text-rose-700"
-                >
-                  <Trash2 size={14} />
-                  Delete
-                </button>
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <SemiGauge title="Menu Availability Status" percent={availablePercent} tone="emerald" />
+                <SemiGauge title="Low Stock Status" percent={lowStockPercent} tone="blue" />
               </div>
+            </>
+          ) : null}
+
+          {activeSection === "featured" ? (
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {categoryOptions.map((categoryName, index) => {
+                  const count = featuredCounts[categoryName] || 0;
+                  const palette = [
+                    "border-emerald-500 text-emerald-700 bg-emerald-50",
+                    "border-blue-500 text-blue-700 bg-blue-50",
+                    "border-violet-500 text-violet-700 bg-violet-50",
+                    "border-orange-500 text-orange-700 bg-orange-50",
+                  ][index % 4];
+
+                  return (
+                    <motion.button
+                      key={categoryName}
+                      type="button"
+                      whileHover={{ y: -3 }}
+                      onClick={() => openAddFormForCategory(categoryName)}
+                      className={`rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition ${palette}`}
+                    >
+                      <p className="text-sm font-semibold text-slate-500">Featured Category</p>
+                      <p className="mt-2 text-3xl font-bold text-slate-900">{count}</p>
+                      <p className="mt-1 text-sm text-slate-600">{categoryName}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openAddFormForCategory(categoryName);
+                          }}
+                          className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white"
+                        >
+                          Add Food
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedCategory(categoryName);
+                            setActiveSection("manage");
+                          }}
+                          className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
+                        >
+                          View Items
+                        </button>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              <SemiGauge title="Featured Category Coverage" percent={featuredPercent} tone="orange" />
             </div>
-          ))}
-        </div>
+          ) : null}
+
+          {activeSection === "add" ? renderFoodForm() : null}
+          {activeSection === "manage" ? renderManageItems() : null}
+        </section>
       </div>
     </motion.div>
   );

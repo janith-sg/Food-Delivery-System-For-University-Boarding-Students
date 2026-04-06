@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const apiUrl = (path) => `${API_BASE_URL}${path}`;
+
 const SLIDE_IMAGES = [
   "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1600&q=80",
   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=80",
@@ -92,7 +95,7 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
    // }
     setLoadingCreate(true);
     try {
-      const response = await fetch("http://localhost:5000/api/group-orders", {
+      const response = await fetch(apiUrl("/api/group-orders"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: title.trim(), createdBy: createdBy.trim(), deadline }),
@@ -117,7 +120,7 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
     setJoinErrors({});
     setLoadingJoin(true);
     try {
-      const response = await fetch("http://localhost:5000/api/group-orders/join", {
+      const response = await fetch(apiUrl("/api/group-orders/join"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groupCode: joinCode.trim(), name: joinName.trim() }),

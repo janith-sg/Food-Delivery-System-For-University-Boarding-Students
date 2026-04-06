@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FloatingSupportChat from '../components/FloatingSupportChat';
 import riceAndCurry1 from '../assets/riceandcurry1.png';
@@ -6,6 +6,75 @@ import lunchbox from '../assets/lunchbox.png';
 
 const HERO_IMG = riceAndCurry1;
 const MENU_IMG = lunchbox;
+
+const HOME_SLIDES = [
+  {
+    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80',
+    title: 'Fresh Meals Daily',
+    subtitle: 'Hot breakfast, lunch, and dinner ready for campus',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1600&q=80',
+    title: 'Healthy Choices',
+    subtitle: 'Balanced food options for every student',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1600&q=80',
+    title: 'Quick Snacks and Drinks',
+    subtitle: 'Order fast and enjoy between lectures',
+  },
+];
+
+const LIMITED_OFFERS = [
+  {
+    id: 'offer-1',
+    icon: '💰',
+    title: 'Student Budget Meals',
+    subtitle: 'Save More on Your Daily Meals',
+    description: 'Get up to 40% OFF on budget-friendly meals. Perfect for university students.',
+    buttonLabel: 'Shop now →',
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'offer-2',
+    icon: '⚡',
+    title: 'Flash Food Deals',
+    subtitle: 'Hurry Up! Limited Offers',
+    description: "Get exclusive discounts for a short time. Don't miss out!",
+    buttonLabel: 'Shop now →',
+    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'offer-3',
+    icon: '🍱',
+    title: 'Combo Meal Offers',
+    subtitle: 'More Food, Less Price',
+    description: 'Get Rice + Drink + Snack combo deals. Save more with combos.',
+    buttonLabel: 'Shop now →',
+    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80',
+  },
+];
+
+const HOME_FEATURE_CARDS = [
+  {
+    title: 'Everyday Fresh & Clean',
+    description: 'Premium quality ingredients',
+    emoji: '🥗',
+    gradient: 'from-orange-400 to-red-500',
+  },
+  {
+    title: 'Healthy Breakfast',
+    description: 'Start your day right',
+    emoji: '🍳',
+    gradient: 'from-blue-400 to-cyan-500',
+  },
+  {
+    title: 'Affordable Meals',
+    description: 'Student budget friendly',
+    emoji: '💰',
+    gradient: 'from-green-400 to-emerald-500',
+  },
+];
 
 function LeafIcon({ className }) {
   return (
@@ -16,6 +85,16 @@ function LeafIcon({ className }) {
 }
 
 export default function HomePage() {
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setActiveSlideIndex((prev) => (prev + 1) % HOME_SLIDES.length);
+    }, 3500);
+
+    return () => window.clearInterval(timerId);
+  }, []);
+
   return (
     <div className="min-h-screen bg-white text-[#2B2B2B]">
       {/* Header */}
@@ -35,6 +114,12 @@ export default function HomePage() {
             >
               Home
             </a>
+            <Link
+              to="/menu"
+              className="text-black no-underline transition hover:text-black/80 visited:text-black"
+            >
+              Food Menu
+            </Link>
             <a
               href="#menu"
               className="text-black no-underline transition hover:text-black/80 visited:text-black"
@@ -160,6 +245,109 @@ export default function HomePage() {
               </svg>
             </button>
           </div>
+        </div>
+      </section>
+
+      <section className="mx-auto mt-8 w-full max-w-7xl px-5 md:px-8">
+        <div className="overflow-hidden rounded-3xl shadow-2xl">
+          <div className="relative h-64 w-full sm:h-80 lg:h-96">
+            {HOME_SLIDES.map((slide, idx) => (
+              <div
+                key={slide.title}
+                className={`absolute inset-0 transition-opacity duration-700 ${idx === activeSlideIndex ? 'opacity-100' : 'opacity-0'}`}
+              >
+                <img src={slide.image} alt={slide.title} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+                <div className="absolute bottom-8 left-8 right-8 text-white">
+                  <h2 className="text-2xl font-bold sm:text-4xl">{slide.title}</h2>
+                  <p className="mt-2 text-sm text-white/90 sm:text-base">{slide.subtitle}</p>
+                </div>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => setActiveSlideIndex((prev) => (prev - 1 + HOME_SLIDES.length) % HOME_SLIDES.length)}
+              className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white backdrop-blur-md transition hover:bg-white/40"
+              aria-label="Previous slide"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSlideIndex((prev) => (prev + 1) % HOME_SLIDES.length)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white backdrop-blur-md transition hover:bg-white/40"
+              aria-label="Next slide"
+            >
+              →
+            </button>
+
+            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+              {HOME_SLIDES.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveSlideIndex(idx)}
+                  className={`h-2 w-2 rounded-full transition-all duration-300 ${idx === activeSlideIndex ? 'w-6 bg-white' : 'bg-white/50'}`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto mt-12 w-full max-w-7xl px-5 md:px-8">
+        <div className="mb-6">
+          <h2 className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-3xl font-bold text-transparent">
+            🔥 Limited Time Offers
+          </h2>
+          <p className="mt-1 text-gray-500">Grab these deals before they're gone!</p>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {LIMITED_OFFERS.map((offer) => (
+            <div key={offer.id} className="group relative overflow-hidden rounded-2xl bg-white shadow-xl transition hover:-translate-y-1">
+              <div className="relative h-48 overflow-hidden">
+                <img src={offer.image} alt={offer.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                <div className="absolute left-3 top-3">
+                  <span className="rounded-full bg-gradient-to-r from-green-500 to-emerald-500 px-3 py-1 text-xs font-bold text-white">
+                    Limited Time
+                  </span>
+                </div>
+                <div className="absolute right-3 top-3 text-2xl">{offer.icon}</div>
+              </div>
+              <div className="p-5">
+                <h3 className="mb-1 text-xl font-bold text-gray-800">{offer.title}</h3>
+                <p className="mb-3 text-sm text-gray-600">{offer.subtitle}</p>
+                <p className="mb-4 text-sm text-gray-500">{offer.description}</p>
+                <Link
+                  to="/menu"
+                  className="block w-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 py-2.5 text-center font-semibold text-white no-underline shadow-md"
+                >
+                  {offer.buttonLabel}
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto mt-12 w-full max-w-7xl px-5 md:px-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {HOME_FEATURE_CARDS.map((card) => (
+            <div
+              key={card.title}
+              className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.gradient} p-6 text-white shadow-xl`}
+            >
+              <div className="mb-3 text-5xl">{card.emoji}</div>
+              <h3 className="mb-2 text-xl font-bold">{card.title}</h3>
+              <p className="mb-4 text-sm text-white/85">{card.description}</p>
+              <Link to="/menu" className="text-sm font-semibold text-white no-underline hover:underline">
+                Shop now →
+              </Link>
+            </div>
+          ))}
         </div>
       </section>
 

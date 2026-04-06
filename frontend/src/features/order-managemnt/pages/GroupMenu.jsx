@@ -1,39 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { getImageUrl } from "../../food-menu-management/api";
 
-const menuItems = [
-  {
-    id: 1,
-    name: "Bucket / 6PC",
-    price: 3750,
-    image: "https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=800&q=80",
-    description: "Hot and crispy chicken bucket for sharing.",
-    tag: "Popular",
-  },
-  {
-    id: 2,
-    name: "Quarter / 2Pc",
-    price: 1400,
-    image: "https://images.unsplash.com/photo-1518492104633-130d0cc84637?auto=format&fit=crop&w=800&q=80",
-    description: "2 pieces of signature crispy chicken.",
-    tag: "Budget Pick",
-  },
-  {
-    id: 3,
-    name: "Half / 4Pc",
-    price: 2600,
-    image: "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=800&q=80",
-    description: "4 pieces of crispy chicken for a small meal.",
-    tag: "Best Value",
-  },
-  {
-    id: 4,
-    name: "Full / 8Pc",
-    price: 4950,
-    image: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80",
-    description: "8 pieces of signature crispy chicken.",
-    tag: "Family Size",
-  },
-];
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
 const tagColors = {
   Popular: "bg-amber-100 text-amber-700",
@@ -42,14 +11,59 @@ const tagColors = {
   "Family Size": "bg-purple-100 text-purple-700",
 };
 
+const parseItemId = (item, fallback) => {
+  const idFromFoodId = Number(String(item.foodID || item.FoodID || "").replace(/[^0-9]/g, ""));
+  if (Number.isFinite(idFromFoodId) && idFromFoodId > 0) return idFromFoodId;
+
+  const idFromMongo = Number(String(item._id || "").slice(-6).replace(/[^0-9]/g, ""));
+  if (Number.isFinite(idFromMongo) && idFromMongo > 0) return idFromMongo;
+
+  return fallback + 1;
+};
+
+const getTagForItem = (item) => {
+  if ((item.ordersCount || 0) >= 20 || item.popular) return "Popular";
+  if (Number(item.price || 0) <= 1500) return "Budget Pick";
+  if (Number(item.ratingAverage || 0) >= 4.5) return "Best Value";
+  return "Family Size";
+};
+
 const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => {
   const [groupData, setGroupData] = useState(null);
+  const [menuItems, setMenuItems] = useState([]);
+  const [loadingMenu, setLoadingMenu] = useState(true);
   const [addedMap, setAddedMap] = useState({});
   const [loadingRemove, setLoadingRemove] = useState({});
 
+  const fetchMenuItems = async () => {
+    setLoadingMenu(true);
+    try {
+      const response = await fetch(apiUrl("/api/foodmenus"));
+      const data = await response.json().catch(() => []);
+      const sourceItems = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
+
+      const mapped = sourceItems.map((item, index) => ({
+        id: parseItemId(item, index),
+        name: item.name || `Food Item ${index + 1}`,
+        price: Number(item.price || 0),
+        image: getImageUrl(item.image),
+        description: item.description || "Fresh menu item",
+        tag: getTagForItem(item),
+        isOutOfStock: Number(item.stock || 0) <= 0 || /out|unavailable|false|sold/i.test(String(item.stock || "")),
+      }));
+
+      setMenuItems(mapped);
+    } catch (error) {
+      console.error(error);
+      setMenuItems([]);
+    } finally {
+      setLoadingMenu(false);
+    }
+  };
+
   const fetchGroup = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/group-orders/${groupCode}`);
+      const res = await fetch(apiUrl(`/api/group-orders/${groupCode}`));
       const data = await res.json();
       if (res.ok) setGroupData(data);
     } catch (error) {
@@ -61,9 +75,13 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
     if (groupCode) fetchGroup();
   }, [groupCode]);
 
+  useEffect(() => {
+    fetchMenuItems();
+  }, []);
+
   const addToGroupCart = async (item) => {
     try {
-      const response = await fetch("http://localhost:5000/api/group-orders/add-item", {
+      const response = await fetch(apiUrl("/api/group-orders/add-item"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -83,7 +101,7 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
 
   const updateItemQty = async (itemId, action) => {
     try {
-      const response = await fetch("http://localhost:5000/api/group-orders/update-item", {
+      const response = await fetch(apiUrl("/api/group-orders/update-item"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groupCode, itemId, action }),
@@ -97,7 +115,7 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
   const removeItem = async (itemId) => {
     setLoadingRemove((p) => ({ ...p, [itemId]: true }));
     try {
-      const response = await fetch("http://localhost:5000/api/group-orders/remove-item", {
+      const response = await fetch(apiUrl("/api/group-orders/remove-item"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groupCode, itemId }),
@@ -168,7 +186,15 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
 
         {/* Menu Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4">
-          {menuItems.map((item) => {
+          {loadingMenu ? (
+            <div className="col-span-full rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+              Loading food menu...
+            </div>
+          ) : menuItems.length === 0 ? (
+            <div className="col-span-full rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+              No food menu items available.
+            </div>
+          ) : menuItems.map((item) => {
             const isAdded = addedMap[item.id];
             return (
               <div
@@ -193,13 +219,16 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
                   </p>
                   <button
                     onClick={() => addToGroupCart(item)}
+                    disabled={item.isOutOfStock}
                     className={`w-full rounded-xl py-2.5 text-sm font-bold transition-all duration-300 border-none cursor-pointer
                       ${isAdded
                         ? "bg-green-100 text-green-700 scale-95"
-                        : "bg-green-600 text-white hover:bg-green-700 active:scale-95"
+                        : item.isOutOfStock
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-green-600 text-white hover:bg-green-700 active:scale-95"
                       }`}
                   >
-                    {isAdded ? "✓ Added to Group!" : "+ Add to Group Cart"}
+                    {item.isOutOfStock ? "Out of Stock" : isAdded ? "✓ Added to Group!" : "+ Add to Group Cart"}
                   </button>
                 </div>
               </div>

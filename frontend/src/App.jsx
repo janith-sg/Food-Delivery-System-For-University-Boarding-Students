@@ -22,6 +22,10 @@ import DeliveryAdminShell from './components/DeliveryAdminShell';
 import AdminNotificationPage from './features/notification-management/pages/AdminNotificationPage';
 import AdminOrders from './features/order-managemnt/pages/AdminOrders';
 import AdminGroupOrders from './features/order-managemnt/pages/AdminGroupOrders';
+import Checkout from './features/order-managemnt/pages/Checkout';
+import OrderManagement from './features/order-managemnt/pages/OrderManagement';
+import GroupOrderFlow from './features/order-managemnt/pages/GroupOrderFlow';
+import { CartProvider } from './features/order-managemnt/context/CartContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
 import StaffPageShell from './components/StaffPageShell';
@@ -64,6 +68,16 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/menu" element={<FoodMenu />} />
         <Route path="/menu/category/:categorySlug" element={<FoodMenu />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/group-order" element={<GroupOrderFlow />} />
+        <Route
+          path="/order-management"
+          element={
+            <CartProvider>
+              <OrderManagement />
+            </CartProvider>
+          }
+        />
         <Route
           path={USER_PROFILE_PATH}
           element={
@@ -141,7 +155,10 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin', 'staff']} allowedStaffRoles={['Order Manager']}>
               <StaffPageShell>
-                <AdminOrders />
+                <div className="space-y-6">
+                  <AdminOrders />
+                  <AdminGroupOrders />
+                </div>
               </StaffPageShell>
             </ProtectedRoute>
           }
