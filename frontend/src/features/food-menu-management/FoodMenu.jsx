@@ -15,8 +15,8 @@ import {
   updateFoodItem,
 } from "./api";
 import UserMenuBar from "../user-management/components/UserMenuBar";
-import { clearAuth, getToken, getUser } from "../../lib/auth";
-import { USER_PROFILE_PATH } from "../../lib/postLoginRedirect";
+import { clearAuthWithAudit, getToken, getUser } from "../../lib/auth";
+import { getProfilePath } from "../../lib/postLoginRedirect";
 
 const BUDGET_LIMIT = 350;
 const CART_STORAGE_KEY = "food_menu_cart";
@@ -1112,11 +1112,11 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {showUserMenuBar ? (
         <UserMenuBar
-          onLogout={() => {
-            clearAuth();
+          onLogout={async () => {
+            await clearAuthWithAudit();
             navigate("/login");
           }}
-          onProfileClick={() => navigate(USER_PROFILE_PATH)}
+          onProfileClick={() => navigate(getProfilePath(getUser()))}
         />
       ) : null}
       <main className="pb-10">

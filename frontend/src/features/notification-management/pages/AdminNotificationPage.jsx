@@ -85,9 +85,6 @@ function AdminNotificationPage() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 rounded-3xl bg-gradient-to-r from-slate-800 to-slate-900 p-6 text-white shadow-lg">
           <h1 className="text-3xl font-bold">Admin Notifications</h1>
-          <p className="mt-2 text-sm text-slate-200">
-            Monitor all system notifications including delivery updates.
-          </p>
         </div>
 
         <div className="mb-6 rounded-2xl bg-white p-5 shadow">
@@ -96,9 +93,6 @@ function AdminNotificationPage() {
               <h2 className="text-xl font-semibold text-gray-900">
                 All Notifications
               </h2>
-              <p className="text-sm text-gray-500">
-                Overview of all notifications generated in the system.
-              </p>
             </div>
 
             <button

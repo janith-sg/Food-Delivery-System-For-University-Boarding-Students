@@ -7,6 +7,8 @@ const fs = require("fs");
 
 const dbConnection = require("./config/connectDB");
 const seedAdmin = require("./seed/seedAdmin");
+const migrateVerificationFields = require("./seed/migrateVerificationFields");
+const seedStaffRoles = require("./seed/seedStaffRoles");
 
 const registerRoutes = require("./routes/register");
 const loginRoutes = require("./routes/login");
@@ -18,6 +20,8 @@ const stripeRoutes = require("./routes/stripeRoutes");
 const foodMenuRoutes = require("./routes/FoodMenus");
 const deliveryRoutes = require("./routes/deliveryRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const staffRolesRoutes = require("./routes/staffRoles");
+const auditLogsRoutes = require("./routes/auditLogs");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -39,12 +43,16 @@ app.use("/api/stripe", stripeRoutes);
 app.use("/api/foodmenus", foodMenuRoutes);
 app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/staff-roles", staffRolesRoutes);
+app.use("/api/audit-logs", auditLogsRoutes);
 
 app.get("/", (req, res) => res.send("UNI EATS API — OK"));
 
 async function start() {
   await dbConnection();
+  await migrateVerificationFields();
   await seedAdmin();
+  await seedStaffRoles();
   app.listen(PORT, () => console.log(`Server running on PORT ${PORT}`));
 }
 

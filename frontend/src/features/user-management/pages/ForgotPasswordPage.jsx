@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import LandingLeafIcon from '../components/LandingLeafIcon';
+import FeedbackModal from '../components/FeedbackModal';
+import { useFeedbackModal } from '../hooks/useFeedbackModal';
 
 const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const inputErrorClass = 'border-red-400 focus:ring-red-100';
-const inputOkClass = 'border-black/15 focus:border-[#0B8E3A] focus:ring-2 focus:ring-[#0B8E3A]/20';
-const labelClass = 'text-sm font-semibold text-black';
-const linkClass = 'font-semibold text-black underline-offset-2 hover:underline';
+const inputErrorClass = 'border-red-400 focus:border-red-400 focus:ring-red-100';
+const inputOkClass =
+  'border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20';
+const labelClass = 'text-sm font-semibold text-slate-700';
+const linkClass = 'font-semibold text-emerald-700 underline-offset-2 hover:underline';
 const btnPrimary =
-  'w-full rounded-full bg-[#0B8E3A] py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#087532] hover:shadow-lg';
+  'w-full rounded-full bg-emerald-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600/50';
 
 function ForgotPasswordPage() {
+  const navigate = useNavigate();
+  const { feedback, dismissFeedback, showFeedback } = useFeedbackModal();
   const [step, setStep] = useState('email'); // 'email' | 'code' | 'reset'
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -121,7 +126,7 @@ function ForgotPasswordPage() {
         code,
         newPassword,
       });
-      window.alert('Password updated. Please log in.');
+      showFeedback('success', 'Success', 'Password updated. Please log in.');
     } catch (err) {
       const data = err.response?.data;
       const msg = data?.message || err.message || 'Reset failed.';
@@ -136,38 +141,48 @@ function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black">
-      <header className="border-b border-black/10 bg-white">
+    <div className="min-h-screen bg-admin-surface font-sans text-slate-900 antialiased">
+      <FeedbackModal
+        open={Boolean(feedback)}
+        variant={feedback?.variant ?? 'success'}
+        title={feedback?.title ?? ''}
+        message={feedback?.message ?? ''}
+        onClose={() => {
+          dismissFeedback();
+          navigate('/login');
+        }}
+      />
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 md:px-8">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/5 text-black">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700">
               <LandingLeafIcon className="h-5 w-5" />
             </div>
-            <span className="font-sans text-xl font-bold tracking-tight text-black">UNI EATS</span>
+            <span className="text-xl font-bold tracking-tight text-slate-900">UNI EATS</span>
           </Link>
-          <Link to="/" className="text-base font-semibold text-black transition hover:opacity-80">
+          <Link to="/" className="text-sm font-semibold text-slate-600 transition hover:text-slate-900">
             ← Back to home
           </Link>
         </div>
       </header>
 
-      <div className="relative overflow-hidden bg-white">
-        <div className="pointer-events-none absolute left-4 top-24 text-black/[0.06] md:left-12">
+      <div className="relative overflow-hidden bg-admin-surface">
+        <div className="pointer-events-none absolute left-4 top-24 text-slate-200/80 md:left-12">
           <LandingLeafIcon className="h-24 w-24" />
         </div>
-        <div className="pointer-events-none absolute bottom-20 right-8 rotate-12 text-black/[0.06]">
+        <div className="pointer-events-none absolute bottom-20 right-8 rotate-12 text-slate-200/80">
           <LandingLeafIcon className="h-20 w-20" />
         </div>
 
         <div className="mx-auto flex min-h-[calc(100vh-73px)] max-w-6xl items-center justify-center px-5 py-10 md:px-8 md:py-14">
           <div className="w-full max-w-md">
-            <div className="rounded-[24px] border border-black/10 bg-white p-8 shadow-xl shadow-black/10 md:p-10">
+            <div className="rounded-xl border border-slate-200/90 bg-white p-8 shadow-sm md:p-10">
               {step === 'email' ? (
                 <>
-                  <h1 className="text-center font-serif text-2xl font-semibold text-black md:text-3xl">
+                  <h1 className="text-center text-2xl font-semibold text-slate-900 md:text-3xl">
                     Forgot your password?
                   </h1>
-                  <p className="mt-3 text-center text-sm leading-relaxed text-black">
+                  <p className="mt-3 text-center text-sm leading-relaxed text-slate-600">
                     Enter the email for your account. We&apos;ll send you a verification code to reset your password.
                   </p>
 
@@ -186,7 +201,7 @@ function ForgotPasswordPage() {
                           if (emailError) setEmailError('');
                         }}
                         placeholder="name@example.com"
-                        className={`mt-1.5 w-full rounded-2xl border bg-[#FAFAF8] px-4 py-2.5 text-black outline-none transition placeholder:text-black/40 ${emailError ? inputErrorClass : inputOkClass}`}
+                        className={`mt-1.5 w-full rounded-lg border bg-white px-4 py-2.5 text-slate-900 outline-none transition placeholder:text-slate-400 ${emailError ? inputErrorClass : inputOkClass}`}
                       />
                       {emailError ? <p className="mt-1 text-xs text-red-600">{emailError}</p> : null}
                     </div>
@@ -197,7 +212,7 @@ function ForgotPasswordPage() {
                     </button>
                   </form>
 
-                  <p className="mt-8 text-center text-sm text-black">
+                  <p className="mt-8 text-center text-sm text-slate-600">
                     Remember your password?{' '}
                     <Link to="/login" className={linkClass}>
                       Back to login
@@ -206,12 +221,12 @@ function ForgotPasswordPage() {
                 </>
               ) : step === 'code' ? (
                 <>
-                  <h1 className="text-center font-serif text-2xl font-semibold text-black md:text-3xl">
+                  <h1 className="text-center text-2xl font-semibold text-slate-900 md:text-3xl">
                     Enter verification code
                   </h1>
-                  <p className="mt-3 text-center text-sm leading-relaxed text-black">
+                  <p className="mt-3 text-center text-sm leading-relaxed text-slate-600">
                     We sent a 6-digit code to{' '}
-                    <span className="font-medium text-black">{submittedEmail}</span>. Check your inbox (and spam
+                    <span className="font-medium text-slate-900">{submittedEmail}</span>. Check your inbox (and spam
                     folder).
                   </p>
 
@@ -233,7 +248,7 @@ function ForgotPasswordPage() {
                           if (codeError) setCodeError('');
                         }}
                         placeholder="000000"
-                        className={`mt-1.5 w-full rounded-2xl border bg-[#FAFAF8] px-4 py-2.5 text-center font-mono text-lg tracking-[0.35em] text-black outline-none transition placeholder:text-black/30 ${codeError ? inputErrorClass : inputOkClass}`}
+                        className={`mt-1.5 w-full rounded-lg border bg-white px-4 py-2.5 text-center font-mono text-lg tracking-[0.35em] text-slate-900 outline-none transition placeholder:text-slate-400 ${codeError ? inputErrorClass : inputOkClass}`}
                       />
                       {codeError ? <p className="mt-1 text-xs text-red-600">{codeError}</p> : null}
                     </div>
@@ -249,7 +264,7 @@ function ForgotPasswordPage() {
                       type="button"
                       onClick={handleResend}
                       disabled={sending}
-                      className="font-medium text-black hover:underline disabled:opacity-60"
+                      className="font-medium text-slate-600 hover:text-emerald-700 hover:underline disabled:opacity-60"
                     >
                       {sending ? 'Resending…' : 'Resend code'}
                     </button>
@@ -263,13 +278,13 @@ function ForgotPasswordPage() {
                         setPasswordError('');
                         setApiError('');
                       }}
-                      className="font-medium text-black hover:underline"
+                      className="font-medium text-slate-600 hover:text-emerald-700 hover:underline"
                     >
                       Use a different email
                     </button>
                   </div>
 
-                  <p className="mt-8 text-center text-sm text-black">
+                  <p className="mt-8 text-center text-sm text-slate-600">
                     <Link to="/login" className={linkClass}>
                       Back to login
                     </Link>
@@ -277,11 +292,11 @@ function ForgotPasswordPage() {
                 </>
               ) : (
                 <>
-                  <h1 className="text-center font-serif text-2xl font-semibold text-black md:text-3xl">
+                  <h1 className="text-center text-2xl font-semibold text-slate-900 md:text-3xl">
                     Set a new password
                   </h1>
-                  <p className="mt-3 text-center text-sm leading-relaxed text-black">
-                    Enter a new password for <span className="font-medium">{submittedEmail}</span>.
+                  <p className="mt-3 text-center text-sm leading-relaxed text-slate-600">
+                    Enter a new password for <span className="font-medium text-slate-900">{submittedEmail}</span>.
                   </p>
 
                   <form className="mt-8 space-y-5" onSubmit={handleResetPassword} noValidate>
@@ -298,7 +313,7 @@ function ForgotPasswordPage() {
                           if (passwordError) setPasswordError('');
                         }}
                         placeholder="Enter new password"
-                        className={`mt-1.5 w-full rounded-2xl border bg-[#FAFAF8] px-4 py-2.5 text-black outline-none transition placeholder:text-black/40 ${passwordError ? inputErrorClass : inputOkClass}`}
+                        className={`mt-1.5 w-full rounded-lg border bg-white px-4 py-2.5 text-slate-900 outline-none transition placeholder:text-slate-400 ${passwordError ? inputErrorClass : inputOkClass}`}
                       />
                       {passwordError ? <p className="mt-1 text-xs text-red-600">{passwordError}</p> : null}
                     </div>
@@ -309,7 +324,7 @@ function ForgotPasswordPage() {
                     </button>
                   </form>
 
-                  <p className="mt-8 text-center text-sm text-black">
+                  <p className="mt-8 text-center text-sm text-slate-600">
                     <Link to="/login" className={linkClass}>
                       Back to login
                     </Link>

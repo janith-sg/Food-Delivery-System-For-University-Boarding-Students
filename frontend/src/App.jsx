@@ -4,10 +4,13 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import HomePage from './pages/HomePage';
 import AdminLayout from './features/user-management/pages/AdminLayout';
 import AdminDashboardPage from './features/user-management/pages/admin/AdminDashboardPage';
-import CustomerRegistrationPage from './features/user-management/pages/admin/CustomerRegistrationPage';
-import StaffRegistrationPage from './features/user-management/pages/admin/StaffRegistrationPage';
+import UserRegistrationPage from './features/user-management/pages/admin/UserRegistrationPage';
 import RoleManagementPage from './features/user-management/pages/admin/RoleManagementPage';
+import StaffDetailPage from './features/user-management/pages/admin/StaffDetailPage';
 import CustomerManagementPage from './features/user-management/pages/admin/CustomerManagementPage';
+import CustomerDetailPage from './features/user-management/pages/admin/CustomerDetailPage';
+import UserRolesPermissionsPage from './features/user-management/pages/admin/UserRolesPermissionsPage';
+import AuditLogsPage from './features/user-management/pages/admin/AuditLogsPage';
 import AdminProfilePage from './features/user-management/pages/admin/AdminProfilePage';
 import LoginPage from './features/user-management/pages/LoginPage';
 import RegisterPage from './features/user-management/pages/RegisterPage';
@@ -22,8 +25,16 @@ import AdminGroupOrders from './features/order-managemnt/pages/AdminGroupOrders'
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
 import StaffPageShell from './components/StaffPageShell';
-import { syncAxiosAuth } from './lib/auth';
+import { syncAxiosAuth, getUser } from './lib/auth';
 import { USER_PROFILE_PATH } from './lib/postLoginRedirect';
+
+function StandaloneProfileRoute() {
+  const user = getUser();
+  if (user?.accountType === 'admin') {
+    return <Navigate to="/admin/profile" replace />;
+  }
+  return <AdminProfilePage />;
+}
 
 function App() {
   useEffect(() => {
@@ -57,7 +68,7 @@ function App() {
           path={USER_PROFILE_PATH}
           element={
             <ProtectedRoute allowedRoles={['admin', 'staff', 'customer']}>
-              <AdminProfilePage />
+              <StandaloneProfileRoute />
             </ProtectedRoute>
           }
         />
@@ -90,12 +101,19 @@ function App() {
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="profile" element={<Navigate to={USER_PROFILE_PATH} replace />} />
+          <Route path="profile" element={<AdminProfilePage />} />
           <Route element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboardPage />} />
-            <Route path="customer-registration" element={<CustomerRegistrationPage />} />
-            <Route path="staff-registration" element={<StaffRegistrationPage />} />
-            <Route path="role-management" element={<RoleManagementPage />} />
+            <Route path="user-registration" element={<UserRegistrationPage />} />
+            <Route path="customer-registration" element={<Navigate to="/admin/user-registration" replace />} />
+            <Route path="staff-registration" element={<Navigate to="/admin/user-registration" replace />} />
+            <Route path="staff-management/:staffId" element={<StaffDetailPage />} />
+            <Route path="staff-management" element={<RoleManagementPage />} />
+            <Route path="staff-user-roles" element={<UserRolesPermissionsPage />} />
+            <Route path="logs-monitoring" element={<AuditLogsPage />} />
+            <Route path="chat" element={<div className="min-h-[200px]" aria-hidden />} />
+            <Route path="role-management" element={<Navigate to="/admin/staff-management" replace />} />
+            <Route path="customer-management/:customerId" element={<CustomerDetailPage />} />
             <Route path="customer-management" element={<CustomerManagementPage />} />
             <Route path="menu" element={<FoodMenu isAdmin />} />
             <Route path="menu/category/:categorySlug" element={<FoodMenu isAdmin />} />
