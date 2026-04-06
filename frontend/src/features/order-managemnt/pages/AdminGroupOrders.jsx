@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "../orderFont.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
@@ -128,7 +129,7 @@ const AdminGroupOrders = () => {
   };
 
   return (
-    <div className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+    <div className="order-feature-font rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
       {deleteTarget && (
         <ConfirmModal
           message="This will permanently remove the group order."

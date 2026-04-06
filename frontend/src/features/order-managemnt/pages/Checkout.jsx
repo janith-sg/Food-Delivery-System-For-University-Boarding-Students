@@ -2,8 +2,10 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import { CartContext } from "../context/CartContext";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import { Search, MapPin } from "lucide-react";
 import StripePaymentForm from "./StripePaymentForm";
 import generateOrderInvoice from "../utils/generateOrderInvoice";
+import "../orderFont.css";
 
 const CART_STORAGE_KEY = "food_menu_cart";
 const PURCHASED_ITEMS_KEY = "food_menu_purchased_items";
@@ -17,6 +19,7 @@ const Checkout = ({ onBack }) => {
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
+    searchLocation: "",
     address: "",
     paymentMethod: "Cash on Delivery",
     note: "",
@@ -29,6 +32,96 @@ const Checkout = ({ onBack }) => {
   const [stripeReady, setStripeReady] = useState(false);
   const [cardPaymentUnavailable, setCardPaymentUnavailable] = useState(false);
   const [paymentNotice, setPaymentNotice] = useState("");
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+
+  const mockLocations = [
+    "🏢 SLIIT New Kandy Road, Malabe",
+    "🏢 New Faculty Building SLIIT Malabe",
+    "🏫 SLIIT Northern Campus",
+    "🏥 SLIIT Nursing Building",
+    "📚 Faculty of Humanities & Sciences Sri Lanka",
+    "🏛️ SLIIT Colombo Campus",
+    "🏢 SLIIT Matara Campus",
+    "🛏️ SLIIT Hostel 1 Malabe",
+    "🛏️ SLIIT Hostel 2 Malabe",
+    "🛏️ SLIIT Hostel 3 Malabe",    "🛏️ SLIIT Hostel 4 Malabe",
+    "🛏️ SLIIT Hostel 5 Malabe",
+    "🛏️ SLIIT Hostel 6 Malabe",
+    "🛏️ SLIIT Hostel 7 Malabe",
+    "🛏️ SLIIT Hostel 8 Malabe",
+    "🏫 SLIIT Library Malabe",
+    "🏫 SLIIT IT Building Malabe",
+    "🏫 SLIIT Engineering Building Malabe",
+    "🍽️ SLIIT Cafeteria Main Malabe",
+    "🍽️ SLIIT Cafeteria Annex Malabe",
+    "🏪 SLIIT Bookshop Malabe",
+    "⚽ SLIIT Sports Complex Malabe",
+    "🏥 SLIIT Health Center Malabe",
+    "🅿️ SLIIT Parking A Malabe",
+    "🅿️ SLIIT Parking B Malabe",
+    "🚗 Malabe Junction",
+    "🛣️ New Kandy Road",
+    "🛣️ Colombo Kandy Road",
+    "🛣️ High Level Road Malabe",
+    "🏘️ Malabe Town",
+    "🏘️ Malabe Central",
+    "🏘️ Malabe North",
+    "🏘️ Malabe South",
+    "🏘️ Malabe East",
+    "🏘️ Malabe West",
+    "🏘️ Peradeniya Road Malabe",
+    "🏘️ Colombo District",
+    "🏘️ Kandy District",
+    "🏘️ Central Province",
+    "📫 Malabe Post Office",
+    "🏦 Malabe Bank",
+    "🏥 Malabe Hospital",
+    "🏥 General Hospital Colombo",
+    "🏥 Teaching Hospital Peradeniya",
+    "🚌 Malabe Bus Station",
+    "🚌 Colombo Fort Railway Station",
+    "🏫 University of Peradeniya",
+    "🏢 Sri Lanka Institute of Information Technology",
+    "🏘️ Maharagama",
+    "🏘️ Nugegoda",
+    "🏘️ Colombo 7",
+    "🏘️ Colombo 5",
+    "🏘️ Colombo 3",
+    "🏘️ Colombo 1",
+    "🏘️ Galle Road",
+    "🏘️ Braybrooke Place",
+    "🏘️ Mullaitivu",
+    "🏘️ Kiribathgoda",
+    "🏘️ Yakkala",
+    "🏘️ Aswathama",
+    "🏘️ Kesbewa",
+    "🏘️ Dehiwala",
+    "🏘️ Mount Lavinia",
+    "🏘️ Moratuwa",
+    "🏘️ Ratmalana",
+    "🏘️ Kalutara",
+    "🏘️ Galle",
+    "🏘️ Matara",
+    "🏘️ Dambulla",
+    "🏘️ Kandy City",
+    "🏘️ Anuradhapura",
+    "🏘️ Jaffna",
+    "📍 Gate A SLIIT",
+    "📍 Gate B SLIIT",
+    "📍 Main Entrance SLIIT",
+    "📍 Back Entrance SLIIT",
+    "🏫 Computer Laboratory Building SLIIT",
+    "🏫 Electronics Laboratory SLIIT",
+    "🏫 Workshop Building SLIIT",
+    "🏫 Conference Hall SLIIT",
+    "🏫 Auditorium SLIIT",
+    "🧬 Research Center SLIIT",
+    "💼 Business Incubator SLIIT",
+    "🏋️ Fitness Center SLIIT",
+    "🎾 Tennis Courts SLIIT",
+    "🏊 Swimming Pool SLIIT",
+    "🎭 Cultural Center SLIIT",  ];
 
   const stripePromise = useMemo(
     () => loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY),
@@ -103,30 +196,65 @@ const Checkout = ({ onBack }) => {
 
   const validate = () => {
     const nextErrors = {};
+    const fullName = formData.fullName.trim();
+    const phone = formData.phone.trim();
+    const address = formData.address.trim();
+    const note = formData.note.trim();
 
-    if (!formData.fullName.trim()) {
+    if (!fullName) {
       nextErrors.fullName = "Full name is required.";
-    } else if (formData.fullName.trim().length < 3) {
+    } else if (fullName.length < 3) {
       nextErrors.fullName = "Name must be at least 3 characters.";
+    } else if (fullName.length > 60) {
+      nextErrors.fullName = "Name must be 60 characters or less.";
+    } else if (!/^[A-Za-z][A-Za-z\s.'-]*$/.test(fullName)) {
+      nextErrors.fullName = "Name can contain letters, spaces, apostrophes, dots, and hyphens only.";
     }
 
-    if (!formData.phone.trim()) {
+    if (!phone) {
       nextErrors.phone = "Phone number is required.";
-    } else if (!/^0[0-9]{9}$/.test(formData.phone.trim())) {
-      nextErrors.phone = "Enter a valid 10-digit Sri Lankan phone number (e.g. 0771234567).";
+    } else if (!/^\d{10}$/.test(phone)) {
+      nextErrors.phone = "Phone number must contain exactly 10 digits.";
     }
 
-    if (!formData.address.trim()) {
+    if (!address) {
       nextErrors.address = "Delivery address is required.";
-    } else if (formData.address.trim().length < 10) {
+    } else if (address.length < 10) {
       nextErrors.address = "Please enter a more detailed address (min. 10 characters).";
+    } else if (address.length > 200) {
+      nextErrors.address = "Address must be 200 characters or less.";
+    }
+
+    if (note.length > 250) {
+      nextErrors.note = "Note must be 250 characters or less.";
     }
 
     return nextErrors;
   };
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
+    const { name } = event.target;
+    let { value } = event.target;
+
+    if (name === "phone") {
+      value = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    if (name === "searchLocation") {
+      const searchTerm = value.trim().toLowerCase();
+      if (searchTerm.length > 0) {
+        const filtered = mockLocations.filter((loc) =>
+          loc.toLowerCase().includes(searchTerm)
+        );
+        setLocationSuggestions(filtered);
+        setShowLocationDropdown(true);
+      } else {
+        setLocationSuggestions([]);
+        setShowLocationDropdown(false);
+      }
+    } else {
+      setShowLocationDropdown(false);
+    }
 
     if (name === "paymentMethod") {
       setStripeReady(false);
@@ -134,7 +262,17 @@ const Checkout = ({ onBack }) => {
       setPaymentNotice("");
     }
 
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleLocationSelect = (location) => {
+    setFormData((prev) => ({ ...prev, searchLocation: location }));
+    setShowLocationDropdown(false);
+    setLocationSuggestions([]);
   };
 
   const createOrder = async (paymentMethod, paymentStatus) => {
@@ -276,7 +414,7 @@ const Checkout = ({ onBack }) => {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-md">
+    <div className="order-feature-font overflow-hidden rounded-2xl bg-white shadow-md">
       <div className="flex items-center gap-4 bg-green-600 px-6 py-5">
         <button
           onClick={() => (onBack ? onBack() : window.history.back())}
@@ -298,6 +436,7 @@ const Checkout = ({ onBack }) => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
+                  maxLength={60}
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm"
                 />
                 {errors.fullName && <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>}
@@ -309,9 +448,45 @@ const Checkout = ({ onBack }) => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
+                  inputMode="numeric"
+                  pattern="[0-9]{10}"
+                  maxLength={10}
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm"
                 />
                 {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-bold text-gray-700">Search Location</label>
+              <div className="relative">
+                <div className="relative flex items-center">
+                  <Search className="absolute left-3 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    name="searchLocation"
+                    value={formData.searchLocation}
+                    onChange={handleChange}
+                    onFocus={() => formData.searchLocation.length > 0 && setShowLocationDropdown(true)}
+                    placeholder="Search location (optional)"
+                    className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                {showLocationDropdown && locationSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-lg border border-gray-300 bg-white shadow-xl">
+                    {locationSuggestions.map((location, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleLocationSelect(location)}
+                        className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-sm text-gray-800 transition hover:bg-blue-50 last:border-b-0"
+                      >
+                        <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
+                        <span>{location}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -322,6 +497,7 @@ const Checkout = ({ onBack }) => {
                 value={formData.address}
                 onChange={handleChange}
                 rows={3}
+                maxLength={200}
                 className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm"
               />
               {errors.address && <p className="mt-1 text-xs text-red-500">{errors.address}</p>}
@@ -379,8 +555,10 @@ const Checkout = ({ onBack }) => {
                 value={formData.note}
                 onChange={handleChange}
                 rows={3}
+                maxLength={250}
                 className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm"
               />
+              {errors.note && <p className="mt-1 text-xs text-red-500">{errors.note}</p>}
             </div>
           </div>
 

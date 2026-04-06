@@ -17,6 +17,7 @@ import {
 import UserMenuBar from "../user-management/components/UserMenuBar";
 import { clearAuth, getToken, getUser } from "../../lib/auth";
 import { USER_PROFILE_PATH } from "../../lib/postLoginRedirect";
+import "./FoodMenu.css";
 
 const BUDGET_LIMIT = 350;
 const CART_STORAGE_KEY = "food_menu_cart";
@@ -1095,7 +1096,7 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="food-menu-feature-font min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {showUserMenuBar ? (
         <UserMenuBar
           onLogout={() => {
@@ -1223,6 +1224,7 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
             ) : isAdmin ? (
               <AdminPanel
                 items={isCategoryPage ? featuredItems : items}
+                allItems={items}
                 isSaving={isSaving}
                 onCreate={handleCreate}
                 onUpdate={handleUpdate}
