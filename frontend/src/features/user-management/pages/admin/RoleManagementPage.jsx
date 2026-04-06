@@ -383,6 +383,7 @@ export default function RoleManagementPage() {
                   ) : null}
                   {rows.map((row) => {
                     const roleLabel = row.currentRole || 'Staff';
+                    const isStaffActive = row.accountActive !== false;
                     return (
                       <tr
                         key={row.id}
@@ -414,10 +415,17 @@ export default function RoleManagementPage() {
                           </span>
                         </td>
                         <td className="px-5 py-5">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
-                            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
-                            {row.status || 'Active'}
-                          </span>
+                          {isStaffActive ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+                              <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                              Active
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700">
+                              <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" aria-hidden />
+                              Deactive
+                            </span>
+                          )}
                         </td>
                       </tr>
                     );

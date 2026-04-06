@@ -50,7 +50,7 @@ export default function FeedbackModal({ open, variant, title, message, onClose }
               onClick={onClose}
               className={
                 isSuccess
-                  ? 'mt-6 w-full rounded-xl bg-violet-600 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-md transition hover:bg-violet-700'
+                  ? 'mt-6 w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-md transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600/50'
                   : 'mt-6 w-full rounded-xl bg-red-600 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-md transition hover:bg-red-700'
               }
             >

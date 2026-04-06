@@ -16,6 +16,7 @@ function toAuthUserPayload(user) {
     updatedAt: user.updatedAt ? user.updatedAt.toISOString() : "",
     emailVerified: Boolean(user.emailVerified),
     phoneVerified: Boolean(user.phoneVerified),
+    accountActive: user.accountActive !== false,
   };
 }
 

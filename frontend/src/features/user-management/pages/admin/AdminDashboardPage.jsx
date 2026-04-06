@@ -35,7 +35,7 @@ function StatCard({ accent, label, value, icon: Icon, footer, footerClassName = 
       className={`relative rounded-xl border border-slate-200/90 border-l-4 ${a.bar} bg-white p-5 shadow-sm`}
     >
       <div className="flex items-start justify-between gap-3">
-        <span className="text-sm font-medium text-slate-500">{label}</span>
+        <span className="text-base font-bold leading-snug text-slate-800 sm:text-lg">{label}</span>
         <div
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${a.iconBg} ${a.icon}`}
         >
@@ -163,7 +163,6 @@ export default function AdminDashboardPage() {
             label="User Roles"
             value={fmt(stats.userRolesCount)}
             icon={Shield}
-            footer="Active roles configured"
           />
           <StatCard
             accent="orange"

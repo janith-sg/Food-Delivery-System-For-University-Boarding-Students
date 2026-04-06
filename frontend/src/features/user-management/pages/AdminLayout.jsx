@@ -37,7 +37,7 @@ export default function AdminLayout() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-admin-surface font-admin text-slate-900 antialiased">
+    <div className="flex min-h-screen flex-col bg-slate-100 font-admin text-slate-900 antialiased">
       <UserMenuBar
         onLogout={async () => {
           await clearAuthWithAudit();
@@ -47,16 +47,16 @@ export default function AdminLayout() {
       />
 
       <div
-        className="flex min-h-0 w-full flex-1 flex-col md:flex-row"
+        className="flex min-h-0 w-full flex-1 flex-col bg-slate-100 md:flex-row"
         style={{ minHeight: `calc(100vh - ${HEADER_H_PX}px)` }}
       >
-        {/* height in calc must match HEADER_H_PX */}
-        <div className="flex w-full shrink-0 flex-col border-b border-slate-200 bg-white md:h-[calc(100vh-96px)] md:min-h-0 md:w-[260px] md:border-b-0 md:border-r lg:w-[280px]">
+        {/* height in calc must match HEADER_H_PX — white sidebar; ash gap shows in main section padding */}
+        <div className="flex w-full shrink-0 flex-col border-b border-slate-200 bg-white md:h-[calc(100vh-96px)] md:min-h-0 md:w-[260px] md:border-b-0 lg:w-[280px]">
           <AdminSidebar activeTab={activeTab} onTabClick={goToTab} />
         </div>
 
-        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-admin-surface px-4 pb-4 pt-4 md:px-0 md:pb-6 md:pl-0 md:pr-6 md:pt-6">
-          <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm md:rounded-l-none md:border-l-0 md:p-8">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-slate-100 px-4 pb-4 pt-4 md:px-6 md:pb-6 md:pt-6">
+          <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm md:p-8">
             <Outlet />
           </div>
         </section>

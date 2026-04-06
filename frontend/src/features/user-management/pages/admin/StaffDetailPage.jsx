@@ -49,6 +49,7 @@ export default function StaffDetailPage() {
   const [showRoleEditor, setShowRoleEditor] = useState(false);
   const [deactivationPeriod, setDeactivationPeriod] = useState('');
   const [activeToggle, setActiveToggle] = useState(true);
+  const [savingAccountActive, setSavingAccountActive] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
@@ -102,10 +103,47 @@ export default function StaffDetailPage() {
   useEffect(() => {
     if (!row) return;
     setShowRoleEditor(false);
-    setDeactivationPeriod('');
-    setActiveToggle(true);
+    setActiveToggle(row.accountActive !== false);
+    setDeactivationPeriod(
+      row.accountActive === false && row.deactivationPeriod ? String(row.deactivationPeriod) : '',
+    );
     setEditOpen(false);
-  }, [row?.id]);
+  }, [row?.id, row?.accountActive, row?.deactivationPeriod]);
+
+  const handleAccountActiveToggle = async () => {
+    if (!row || savingAccountActive) return;
+    const goingInactive = activeToggle === true;
+    if (goingInactive && !deactivationPeriod) {
+      showFeedback(
+        'error',
+        'Deactivation period required',
+        'Choose a deactivation period before disabling this account.',
+      );
+      return;
+    }
+    const next = !activeToggle;
+    setSavingAccountActive(true);
+    try {
+      await axios.patch(`/api/users/${row.id}/account-active`, {
+        accountActive: next,
+        ...(next ? {} : { deactivationPeriod }),
+      });
+      await fetchStaff();
+      showFeedback(
+        'success',
+        'Success',
+        next ? 'Staff account is active.' : 'Staff account has been deactivated. Login is disabled for this user.',
+      );
+    } catch (e) {
+      showFeedback(
+        'error',
+        'Could not update',
+        e.response?.data?.message || e.message || 'Update failed.',
+      );
+    } finally {
+      setSavingAccountActive(false);
+    }
+  };
 
   const openEditDetails = () => {
     if (!row) return;
@@ -424,7 +462,13 @@ export default function StaffDetailPage() {
                   id="staff-deactivation-period"
                   value={deactivationPeriod}
                   onChange={(e) => setDeactivationPeriod(e.target.value)}
-                  className="min-w-0 flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-300 focus:ring-2 focus:ring-slate-200/80"
+                  disabled={!activeToggle || savingAccountActive}
+                  title={
+                    !activeToggle
+                      ? 'Reactivate the account to change the period'
+                      : 'Required before turning Active off'
+                  }
+                  className="min-w-0 flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-300 focus:ring-2 focus:ring-slate-200/80 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-600"
                 >
                   <option value="">Deactivation period…</option>
                   <option value="7">7 days</option>
@@ -437,8 +481,14 @@ export default function StaffDetailPage() {
                     type="button"
                     role="switch"
                     aria-checked={activeToggle}
-                    onClick={() => setActiveToggle((v) => !v)}
-                    className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+                    disabled={savingAccountActive}
+                    title={
+                      activeToggle && !deactivationPeriod
+                        ? 'Select a deactivation period before disabling this account'
+                        : undefined
+                    }
+                    onClick={handleAccountActiveToggle}
+                    className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-60 ${
                       activeToggle ? 'bg-emerald-500' : 'bg-slate-300'
                     }`}
                   >

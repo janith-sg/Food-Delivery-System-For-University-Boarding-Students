@@ -1,6 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { LogOut, UserCircle } from 'lucide-react';
 import { AUTH_CHANGE_EVENT, getUser } from '../../../lib/auth';
+
+/** Resolve profile image URL from session user (same rules as profile card). */
+function profilePhotoSrc(user) {
+  const raw = user?.studentPhotoUrl || user?.photoUrl;
+  if (typeof raw !== 'string' || !raw.trim()) return '';
+  const t = raw.trim();
+  if (t.startsWith('http://') || t.startsWith('https://') || t.startsWith('blob:')) return t;
+  return t.startsWith('/') ? t : `/${t}`;
+}
 
 /** First name for greeting (from fullName or email local-part). */
 function firstNameFromUser(user) {
@@ -25,8 +34,10 @@ function roleLabelFromUser(user) {
 
 const UserMenuBar = ({ onLogout, onProfileClick }) => {
   const [user, setUser] = useState(() => getUser());
+  const [avatarError, setAvatarError] = useState(false);
   const firstName = firstNameFromUser(user);
   const roleLabel = roleLabelFromUser(user);
+  const photoSrc = useMemo(() => profilePhotoSrc(user), [user]);
 
   useEffect(() => {
     const sync = () => {
@@ -36,6 +47,10 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
     window.addEventListener(AUTH_CHANGE_EVENT, sync);
     return () => window.removeEventListener(AUTH_CHANGE_EVENT, sync);
   }, []);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [photoSrc]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
@@ -74,11 +89,22 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
             className="inline-flex min-w-0 items-center gap-2 rounded-md border-0 bg-transparent px-1.5 py-1 text-left text-slate-700 shadow-none outline-none ring-0 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent/35 focus-visible:ring-offset-0"
             aria-label="Open user profile"
           >
-            <UserCircle
-              className="h-5 w-5 shrink-0 text-slate-500 sm:h-6 sm:w-6"
-              strokeWidth={2}
-              aria-hidden
-            />
+            {photoSrc && !avatarError ? (
+              <img
+                src={photoSrc}
+                alt=""
+                width={36}
+                height={36}
+                className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-slate-200 sm:h-9 sm:w-9"
+                onError={() => setAvatarError(true)}
+              />
+            ) : (
+              <UserCircle
+                className="h-5 w-5 shrink-0 text-slate-500 sm:h-6 sm:w-6"
+                strokeWidth={2}
+                aria-hidden
+              />
+            )}
             <span className="hidden min-w-0 text-sm sm:inline" title={firstName}>
               Hello,{' '}
               <span className="font-semibold text-admin-accent">{firstName}</span>

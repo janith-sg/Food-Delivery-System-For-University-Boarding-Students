@@ -33,6 +33,8 @@ async function seedAdmin() {
         registrationStatus: "approved",
         emailVerified: true,
         phoneVerified: false,
+        accountActive: true,
+        deactivationPeriod: "",
       },
     },
     { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }

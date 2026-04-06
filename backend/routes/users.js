@@ -159,7 +159,7 @@ router.get("/registered/staff", async (req, res) => {
       registrationStatus: "approved",
     })
       .select(
-        "fullName email phone staffRole registrationStatus createdAt updatedAt riderId emailVerified phoneVerified studentPhotoUrl"
+        "fullName email phone staffRole registrationStatus createdAt updatedAt riderId emailVerified phoneVerified studentPhotoUrl accountActive deactivationPeriod"
       )
       .sort({ createdAt: -1 })
       .lean();
@@ -168,6 +168,7 @@ router.get("/registered/staff", async (req, res) => {
       const rider = String(u.riderId || "").trim();
       const fallbackNum = (parseInt(u._id.toString().slice(-6), 16) % 998) + 1;
       const staffId = rider || `STF${String(fallbackNum).padStart(3, "0")}`;
+      const isActive = u.accountActive !== false;
       return {
         id: u._id.toString(),
         staffId,
@@ -176,7 +177,9 @@ router.get("/registered/staff", async (req, res) => {
         phone: u.phone,
         currentRole: u.staffRole || "Staff",
         assignRole: u.staffRole || "Delivery Manager",
-        status: "Active",
+        accountActive: isActive,
+        deactivationPeriod: String(u.deactivationPeriod || "").trim(),
+        status: isActive ? "Active" : "Deactive",
         emailVerified: Boolean(u.emailVerified),
         phoneVerified: Boolean(u.phoneVerified),
         createdAt: u.createdAt ? u.createdAt.toISOString() : null,
@@ -506,6 +509,51 @@ router.patch("/:id/registration-status", async (req, res) => {
       id: user._id,
       registrationStatus: user.registrationStatus,
       staffRole: user.staffRole,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message || "Update failed." });
+  }
+});
+
+/** Activate / deactivate approved staff (admin). Deactivating requires a deactivation period. */
+router.patch("/:id/account-active", requireAdmin, async (req, res) => {
+  try {
+    const { accountActive, deactivationPeriod } = req.body || {};
+    const toActive = accountActive !== false && accountActive !== "false";
+
+    const user = await User.findOne({
+      _id: req.params.id,
+      accountType: "staff",
+      registrationStatus: "approved",
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Staff user not found or not approved." });
+    }
+
+    if (!toActive) {
+      const p = String(deactivationPeriod ?? "").trim();
+      if (!["7", "30", "90", "permanent"].includes(p)) {
+        return res.status(400).json({
+          message: "Select a deactivation period before deactivating this account.",
+          field: "deactivationPeriod",
+        });
+      }
+      user.accountActive = false;
+      user.deactivationPeriod = p;
+    } else {
+      user.accountActive = true;
+      user.deactivationPeriod = "";
+    }
+
+    await user.save();
+
+    res.json({
+      message: "Account status updated.",
+      id: user._id.toString(),
+      accountActive: user.accountActive !== false,
+      deactivationPeriod: user.deactivationPeriod || "",
     });
   } catch (err) {
     console.error(err);
