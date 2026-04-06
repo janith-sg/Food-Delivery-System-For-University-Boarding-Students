@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut, UserCircle } from 'lucide-react';
 import { AUTH_CHANGE_EVENT, getUser } from '../../../lib/auth';
 
 /** First name for greeting (from fullName or email local-part). */
@@ -71,9 +71,14 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
           <button
             type="button"
             onClick={onProfileClick}
-            className="min-w-0 rounded-md border-0 bg-transparent px-1 py-0.5 text-left text-slate-700 shadow-none outline-none ring-0 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent/35 focus-visible:ring-offset-0"
+            className="inline-flex min-w-0 items-center gap-2 rounded-md border-0 bg-transparent px-1.5 py-1 text-left text-slate-700 shadow-none outline-none ring-0 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent/35 focus-visible:ring-offset-0"
             aria-label="Open user profile"
           >
+            <UserCircle
+              className="h-5 w-5 shrink-0 text-slate-500 sm:h-6 sm:w-6"
+              strokeWidth={2}
+              aria-hidden
+            />
             <span className="hidden min-w-0 text-sm sm:inline" title={firstName}>
               Hello,{' '}
               <span className="font-semibold text-admin-accent">{firstName}</span>

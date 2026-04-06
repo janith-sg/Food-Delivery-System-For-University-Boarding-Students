@@ -196,7 +196,7 @@ export function UserProfileCard({ className = '' }) {
             type="button"
             aria-label="Change profile photo"
             onClick={() => fileInputRef.current?.click()}
-            className="absolute bottom-0 right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border-0 bg-admin-accent text-white shadow-md transition hover:bg-admin-accent-hover"
+            className="absolute bottom-0 right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border-0 bg-emerald-600 text-white shadow-md transition hover:bg-emerald-700"
           >
             <Camera className="h-3.5 w-3.5" strokeWidth={2.5} />
           </button>
@@ -289,16 +289,16 @@ export function UserProfileCard({ className = '' }) {
                 resetFormFromSession();
                 setEditing(true);
               }}
-              className="inline-flex items-center gap-1.5 rounded-lg border-0 bg-admin-accent px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-admin-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-accent/40"
+              className="inline-flex items-center gap-1.5 rounded-lg border-0 bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600/50"
             >
               <Pencil className="h-3.5 w-3.5" />
               Edit profile
             </button>
             <Link
               to="/forgot-password"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-admin-ink shadow-sm transition hover:bg-slate-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border-2 border-emerald-600 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-100"
             >
-              <Lock className="h-3.5 w-3.5 shrink-0 text-admin-accent" strokeWidth={2} />
+              <Lock className="h-3.5 w-3.5 shrink-0 text-emerald-700" strokeWidth={2} />
               Change password
             </Link>
           </div>
@@ -387,7 +387,7 @@ export function UserProfileCard({ className = '' }) {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="rounded-lg border-0 bg-admin-accent px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-admin-accent-hover disabled:opacity-60"
+              className="rounded-lg border-0 bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60"
             >
               {saving ? 'Saving…' : 'Save changes'}
             </button>
