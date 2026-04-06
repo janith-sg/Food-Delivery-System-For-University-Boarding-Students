@@ -22,6 +22,7 @@ const BUDGET_LIMIT = 350;
 const CART_STORAGE_KEY = "food_menu_cart";
 const OFFERS_STORAGE_KEY = "food_menu_limited_time_offers";
 const STUDENT_RATINGS_STORAGE_KEY = "food_menu_student_ratings";
+const PURCHASED_ITEMS_KEY = "food_menu_purchased_items";
 const SORT_OPTIONS = {
   PRICE_ASC: "PRICE_ASC",
   PRICE_DESC: "PRICE_DESC",
@@ -126,6 +127,34 @@ function normalizeItem(item) {
       Number(item.ratingCount || 0) >= 10,
     isBudgetFriendly: /budget/i.test(normalizedCategory) || price <= BUDGET_LIMIT,
   };
+}
+
+function applyPurchasedStockReduction(items) {
+  try {
+    const purchasedItemsJson = localStorage.getItem(PURCHASED_ITEMS_KEY);
+    if (!purchasedItemsJson) return items;
+    
+    const purchasedItems = JSON.parse(purchasedItemsJson);
+    if (!Array.isArray(purchasedItems)) return items;
+    
+    const updatedItems = items.map((item) => {
+      const purchased = purchasedItems.find((p) => p._id === (item._id || item.foodID));
+      if (!purchased) return item;
+      
+      const stockText = String(item.stock || "").trim();
+      const numericStock = Number(stockText);
+      if (Number.isNaN(numericStock)) return item;
+      
+      const newStock = Math.max(0, numericStock - Number(purchased.quantity || 1));
+      return { ...item, stock: newStock };
+    });
+    
+    localStorage.removeItem(PURCHASED_ITEMS_KEY);
+    return updatedItems;
+  } catch (error) {
+    console.error("Error applying purchased stock reduction:", error);
+    return items;
+  }
 }
 
 function matchesCategory(item, selectedCategory) {
@@ -324,12 +353,12 @@ function FeaturedCategories({ isAdmin, categoryCounts = {}, adminBasePath = '/ad
 
           return (
             <Link key={category.slug} to={path} className="group block no-underline">
-              <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${category.gradient} px-4 py-6 text-white shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-xl`}>
+              <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${category.gradient} px-3 py-4 text-white shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-xl`}>
                 <div className="absolute inset-0 bg-white/0 transition-colors duration-300 group-hover:bg-white/10" />
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  {Icon ? <Icon className="mb-2 h-5 w-5" /> : null}
-                  <span className="text-sm font-extrabold leading-tight">{category.name}</span>
-                  <p className="mt-2 text-xs font-semibold text-white/90">
+                  {Icon ? <Icon className="mb-2 h-4 w-4" /> : null}
+                  <span className="text-xs font-extrabold leading-tight">{category.name}</span>
+                  <p className="mt-1.5 text-[10px] font-semibold text-white/90">
                     {Number(categoryCounts[category.name] || 0)} items
                   </p>
                 </div>
@@ -744,7 +773,8 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
       setError("");
       const data = await getFoodItems();
       const normalized = Array.isArray(data) ? data.map(normalizeItem) : [];
-      setItems(normalized);
+      const withReducedStock = applyPurchasedStockReduction(normalized);
+      setItems(withReducedStock);
     } catch (requestError) {
       setError(requestError.response?.data?.msg || "Could not load food items.");
     } finally {
@@ -1091,7 +1121,7 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
               <button
                 type="button"
                 onClick={() => setIsCartOpen(true)}
-                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-green-50 text-green-700 transition hover:bg-green-100"
+                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-green-50 text-green-700 transition hover:bg-green-100 outline-none border-0"
                 aria-label={`Open cart (${cartItemsCount} items)`}
               >
                 <span className="text-base leading-none" aria-hidden>

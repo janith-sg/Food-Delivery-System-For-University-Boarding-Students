@@ -349,7 +349,7 @@ export default function FoodCard({
                       whileTap={{ scale: 0.9 }}
                       onClick={() => onRate?.(starValue)}
                       aria-label={`Rate ${starValue} stars`}
-                      className="rounded-full p-0.5 transition"
+                      className="rounded-full p-0.5 transition outline-none border-0"
                     >
                       <Star
                         size={20}
@@ -383,7 +383,7 @@ export default function FoodCard({
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-green-600 transition-colors"
+                      className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-green-600 transition-colors outline-none border-0"
                     >
                       <Minus size={16} />
                     </motion.button>
@@ -394,7 +394,7 @@ export default function FoodCard({
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => setQuantity(quantity + 1)}
-                      className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-green-600 transition-colors"
+                      className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-green-600 transition-colors outline-none border-0"
                     >
                       <Plus size={16} />
                     </motion.button>

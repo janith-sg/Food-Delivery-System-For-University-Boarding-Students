@@ -6,6 +6,7 @@ import StripePaymentForm from "./StripePaymentForm";
 import generateOrderInvoice from "../utils/generateOrderInvoice";
 
 const CART_STORAGE_KEY = "food_menu_cart";
+const PURCHASED_ITEMS_KEY = "food_menu_purchased_items";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
@@ -79,6 +80,18 @@ const Checkout = ({ onBack }) => {
     }
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([]));
     setLocalCartItems([]);
+  };
+
+  const savePurchasedItems = () => {
+    try {
+      const purchasedItems = normalizedCartItems.map(item => ({
+        _id: item._id || item.id || item.foodID,
+        quantity: item.qty || item.quantity || 1,
+      }));
+      localStorage.setItem(PURCHASED_ITEMS_KEY, JSON.stringify(purchasedItems));
+    } catch (error) {
+      console.error("Failed to save purchased items:", error);
+    }
   };
 
   const deliveryFee = normalizedCartItems.length > 0 ? 400 : 0;
@@ -169,6 +182,7 @@ const Checkout = ({ onBack }) => {
     setLoading(true);
     try {
       const savedOrder = await createOrder("Cash on Delivery", "Pending");
+      savePurchasedItems();
       generateOrderInvoice(savedOrder);
       setSuccess(true);
       clearCart();
@@ -231,6 +245,7 @@ const Checkout = ({ onBack }) => {
   const handleCardOrderSuccess = async () => {
     try {
       const savedOrder = await createOrder("Card Payment", "Paid");
+      savePurchasedItems();
       generateOrderInvoice(savedOrder);
       setSuccess(true);
       clearCart();
