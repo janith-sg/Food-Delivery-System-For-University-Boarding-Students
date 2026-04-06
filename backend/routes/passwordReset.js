@@ -169,6 +169,7 @@ router.post("/reset", async (req, res) => {
     }
 
     user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.emailVerified = true;
     await user.save();
 
     latest.usedAt = new Date();

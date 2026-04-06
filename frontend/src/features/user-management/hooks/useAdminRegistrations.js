@@ -1,27 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { STAFF_ROLES } from '../constants/adminTabs';
+import { useFeedbackModal } from './useFeedbackModal';
 
 export function useAdminRegistrations() {
   const [registrationRows, setRegistrationRows] = useState([]);
-  const [declinedRows, setDeclinedRows] = useState([]);
   const [registrationLoading, setRegistrationLoading] = useState(false);
   const [registrationError, setRegistrationError] = useState('');
+  const { feedback, dismissFeedback, showFeedback } = useFeedbackModal();
 
   const fetchRegistrations = useCallback(async () => {
     setRegistrationLoading(true);
     setRegistrationError('');
     try {
-      const [pendingRes, declinedRes] = await Promise.all([
-        axios.get('/api/users/registrations/pending'),
-        axios.get('/api/users/registrations/declined'),
-      ]);
+      const pendingRes = await axios.get('/api/users/registrations/pending');
       setRegistrationRows(Array.isArray(pendingRes.data) ? pendingRes.data : []);
-      setDeclinedRows(Array.isArray(declinedRes.data) ? declinedRes.data : []);
     } catch (e) {
       setRegistrationError(e.response?.data?.message || e.message || 'Failed to load registrations.');
       setRegistrationRows([]);
-      setDeclinedRows([]);
     } finally {
       setRegistrationLoading(false);
     }
@@ -35,49 +30,63 @@ export function useAdminRegistrations() {
     try {
       const body = { status: 'approved' };
       if (row.accountType === 'staff') {
-        const role = row.staffRole && STAFF_ROLES.includes(row.staffRole) ? row.staffRole : STAFF_ROLES[0];
+        const { data: names } = await axios.get('/api/staff-roles/names');
+        const list = Array.isArray(names) ? names : [];
+        const role =
+          row.staffRole && list.includes(row.staffRole) ? row.staffRole : list[0];
+        if (!role) {
+          showFeedback('error', 'No roles', 'Configure staff roles under User Roles & Permissions first.');
+          return;
+        }
         body.staffRole = role;
       }
       await axios.patch(`/api/users/${row.id}/registration-status`, body);
       await fetchRegistrations();
+      const kind = row.accountType === 'customer' ? 'Customer' : 'Staff member';
+      showFeedback('success', 'Success', `${kind} "${row.name}" was approved successfully.`);
     } catch (e) {
-      window.alert(e.response?.data?.message || 'Could not approve.');
+      showFeedback(
+        'error',
+        'Could not approve',
+        e.response?.data?.message || 'Something went wrong. Please try again.',
+      );
     }
   };
 
-  const handleRegistrationDecline = async (id) => {
+  /** @param {string} id @param {{ accountType?: string; name?: string }} [row] */
+  const handleRegistrationDecline = async (id, row) => {
     try {
       await axios.patch(`/api/users/${id}/registration-status`, { status: 'declined' });
       await fetchRegistrations();
+      if (row?.accountType === 'customer') {
+        showFeedback(
+          'success',
+          'Declined',
+          `Customer "${row.name || 'User'}" was declined and removed from the system.`,
+        );
+      } else {
+        showFeedback('error', 'Declined', 'The registration has been declined.');
+      }
     } catch (e) {
-      window.alert(e.response?.data?.message || 'Could not decline.');
-    }
-  };
-
-  const handleDeleteDeclinedRecord = async (id, name) => {
-    if (!window.confirm(`Permanently delete "${name}"? This cannot be undone.`)) return;
-    try {
-      await axios.delete(`/api/users/${id}`);
-      await fetchRegistrations();
-    } catch (e) {
-      window.alert(e.response?.data?.message || 'Could not delete record.');
+      showFeedback(
+        'error',
+        'Could not decline',
+        e.response?.data?.message || 'Something went wrong. Please try again.',
+      );
     }
   };
 
   const pendingCustomerRows = registrationRows.filter((r) => r.accountType === 'customer');
   const pendingStaffRows = registrationRows.filter((r) => r.accountType === 'staff');
-  const declinedCustomerRows = declinedRows.filter((r) => r.accountType === 'customer');
-  const declinedStaffRows = declinedRows.filter((r) => r.accountType === 'staff');
 
   return {
     registrationLoading,
     registrationError,
     handleRegistrationApprove,
     handleRegistrationDecline,
-    handleDeleteDeclinedRecord,
     pendingCustomerRows,
     pendingStaffRows,
-    declinedCustomerRows,
-    declinedStaffRows,
+    feedback,
+    dismissFeedback,
   };
 }

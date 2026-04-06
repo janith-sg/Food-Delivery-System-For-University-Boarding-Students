@@ -1,37 +1,44 @@
 import React from 'react';
+import { LayoutDashboard, MessageCircle, ScrollText, Shield, UserPlus, Users, UsersRound } from 'lucide-react';
 import { TAB_PATHS } from '../constants/adminTabs';
 
 const tabs = Object.keys(TAB_PATHS);
 
+const TAB_ICONS = {
+  Dashboard: LayoutDashboard,
+  'User Registration': UserPlus,
+  'Customer Management': Users,
+  'Staff Management': UsersRound,
+  'User Roles & Permissions': Shield,
+  'Logs & Monitoring': ScrollText,
+  Chat: MessageCircle,
+};
+
 const AdminSidebar = ({ activeTab, onTabClick }) => {
   return (
-    <aside className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-[#bbf7d0]/70 bg-gradient-to-b from-white via-[#f0fdf4]/40 to-[#eff6ff]/50 p-2 shadow-lg backdrop-blur sm:p-3">
-      <p className="mb-1.5 shrink-0 px-1.5 text-[10px] font-bold uppercase tracking-wider text-black sm:mb-2">
-        Navigation
-      </p>
-      <nav className="flex min-h-0 flex-1 flex-col gap-1.5 md:py-0.5" aria-label="Admin sidebar tabs">
+    <aside className="flex min-h-0 w-full flex-col overflow-hidden pb-4 pl-0 pr-2 pt-4 sm:pr-3 md:h-full">
+      <nav className="flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto" aria-label="Admin sidebar">
         {tabs.map((tab) => {
           const isActive = tab === activeTab;
-          const baseBtn =
-            'group flex w-full min-h-0 min-w-0 items-center rounded-xl px-2.5 py-2 text-left text-xs font-bold leading-snug sm:px-3 sm:text-sm md:flex-1 md:py-2.5';
+          const Icon = TAB_ICONS[tab] || LayoutDashboard;
           return (
             <button
               key={tab}
               type="button"
               onClick={() => onTabClick(tab)}
-              className={
-                isActive
-                  ? `${baseBtn} border border-[#16a34a]/35 bg-gradient-to-r from-[#dcfce7] via-[#ecfdf5] to-[#dbeafe] text-black shadow-md ring-1 ring-[#93c5fd]/40`
-                  : `${baseBtn} border border-transparent text-black transition hover:border-[#86efac]/60 hover:bg-gradient-to-r hover:from-[#f0fdf4]/80 hover:to-[#eff6ff]/80`
-              }
+              className={[
+                'group flex min-h-0 w-full flex-1 items-center gap-3 rounded-r-xl rounded-l-none border border-transparent bg-transparent px-4 py-2 pr-3 text-left text-sm transition-colors',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600/35',
+                'hover:border-emerald-200/90 hover:bg-emerald-50 hover:text-[#14532d]',
+                isActive ? 'font-semibold text-slate-900' : 'font-medium text-slate-600',
+              ].join(' ')}
             >
-              <span className="inline-flex min-w-0 w-full flex-1 items-start gap-2">
-                <span
-                  className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#354A3F] ring-2 ring-white/90"
-                  aria-hidden
-                />
-                <span className="min-w-0 flex-1 break-words">{tab}</span>
-              </span>
+              <Icon
+                className={`h-[22px] w-[22px] shrink-0 ${isActive ? 'text-slate-900 group-hover:text-emerald-700' : 'text-slate-600 group-hover:text-emerald-700'}`}
+                strokeWidth={2}
+                aria-hidden
+              />
+              <span className="min-w-0 flex-1 leading-snug">{tab}</span>
             </button>
           );
         })}

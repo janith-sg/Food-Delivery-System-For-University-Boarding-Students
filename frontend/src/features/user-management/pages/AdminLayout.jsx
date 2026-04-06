@@ -1,11 +1,14 @@
 import React, { useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { clearAuth } from '../../../lib/auth';
+import { clearAuthWithAudit } from '../../../lib/auth';
 import UserMenuBar from '../components/UserMenuBar';
 import AdminSidebar from '../components/AdminSidebar';
-import LandingLeafIcon from '../components/LandingLeafIcon';
 import { TAB_PATHS, pathToTab } from '../constants/adminTabs';
-import { USER_PROFILE_PATH } from '../../../lib/postLoginRedirect';
+import { getProfilePath } from '../../../lib/postLoginRedirect';
+import { getUser } from '../../../lib/auth';
+
+/** Must match UserMenuBar header height (centered branding + padding) */
+const HEADER_H_PX = 96;
 
 function getSlugFromPath(pathname) {
   const parts = pathname.replace(/^\//, '').split('/').filter(Boolean);
@@ -27,10 +30,6 @@ export default function AdminLayout() {
 
   const goToTab = useCallback(
     (tabLabel) => {
-      if (tabLabel === 'User Profile') {
-        navigate(USER_PROFILE_PATH);
-        return;
-      }
       const path = TAB_PATHS[tabLabel];
       if (path) navigate(`/admin/${path}`);
     },
@@ -38,40 +37,30 @@ export default function AdminLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans font-normal text-black">
-      <div
-        className="pointer-events-none fixed inset-x-0 top-0 -z-10 min-h-[45vh]"
-        style={{
-          background:
-            'linear-gradient(155deg, rgba(187, 247, 208, 0.55) 0%, #ecfdf5 20%, #eff6ff 45%, #f0fdf4 70%, #f8fafc 100%)',
-        }}
-      />
-      <div className="pointer-events-none fixed left-4 top-24 h-28 w-28 text-black/15 md:left-10">
-        <LandingLeafIcon className="h-full w-full" />
-      </div>
-      <div className="pointer-events-none fixed right-6 top-36 h-20 w-20 rotate-12 text-black/15 md:right-16">
-        <LandingLeafIcon className="h-full w-full" />
-      </div>
-
+    <div className="flex min-h-screen flex-col bg-slate-100 font-admin text-slate-900 antialiased">
       <UserMenuBar
-        onLogout={() => {
-          clearAuth();
+        onLogout={async () => {
+          await clearAuthWithAudit();
           navigate('/login');
         }}
-        onProfileClick={() => navigate(USER_PROFILE_PATH)}
+        onProfileClick={() => navigate(getProfilePath(getUser()))}
       />
 
-      <main className="relative mx-auto max-w-[1600px] p-4 md:p-6">
-        <div className="grid min-h-[calc(100vh-104px)] grid-cols-1 items-stretch gap-4 md:grid-cols-[minmax(240px,280px)_1fr] md:gap-6">
-          <div className="flex h-full min-h-0 flex-col">
-            <AdminSidebar activeTab={activeTab} onTabClick={goToTab} />
-          </div>
-
-          <section className="min-h-full rounded-2xl border border-[#bbf7d0]/60 bg-gradient-to-br from-white/98 via-[#f0fdf4]/50 to-[#eff6ff]/40 p-5 shadow-xl backdrop-blur transition-all duration-300 hover:border-[#93c5fd]/40 hover:shadow-2xl md:p-6">
-            <Outlet />
-          </section>
+      <div
+        className="flex min-h-0 w-full flex-1 flex-col bg-slate-100 md:flex-row"
+        style={{ minHeight: `calc(100vh - ${HEADER_H_PX}px)` }}
+      >
+        {/* height in calc must match HEADER_H_PX — white sidebar; ash gap shows in main section padding */}
+        <div className="flex w-full shrink-0 flex-col border-b border-slate-200 bg-white md:h-[calc(100vh-96px)] md:min-h-0 md:w-[260px] md:border-b-0 lg:w-[280px]">
+          <AdminSidebar activeTab={activeTab} onTabClick={goToTab} />
         </div>
-      </main>
+
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-slate-100 px-4 pb-4 pt-4 md:px-6 md:pb-6 md:pt-6">
+          <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm md:p-8">
+            <Outlet />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

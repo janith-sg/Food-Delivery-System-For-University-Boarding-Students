@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getUser } from '../../../lib/auth';
-import LandingLeafIcon from './LandingLeafIcon';
+import React, { useEffect, useMemo, useState } from 'react';
+import { LogOut, UserCircle } from 'lucide-react';
+import { AUTH_CHANGE_EVENT, getUser } from '../../../lib/auth';
 
+/** Resolve profile image URL from session user (same rules as profile card). */
 function profilePhotoSrc(user) {
   const raw = user?.studentPhotoUrl || user?.photoUrl;
   if (typeof raw !== 'string' || !raw.trim()) return '';
@@ -11,80 +11,108 @@ function profilePhotoSrc(user) {
   return t.startsWith('/') ? t : `/${t}`;
 }
 
-/** Subtitle under the logo: reflects account type (and staff job title when available). */
-function roleSubtitle(user) {
-  const type = String(user?.accountType || '').toLowerCase();
-  if (type === 'admin') return 'Admin';
-  if (type === 'staff') {
-    const role = String(user?.staffRole || '').trim();
-    return role || 'Staff';
+/** First name for greeting (from fullName or email local-part). */
+function firstNameFromUser(user) {
+  const full = (user?.fullName && String(user.fullName).trim()) || '';
+  if (full) return full.split(/\s+/)[0];
+  const em = user?.email ? String(user.email).split('@')[0] : '';
+  return em || 'User';
+}
+
+/** Human-readable role: staff job title, or account type label. */
+function roleLabelFromUser(user) {
+  if (!user) return '—';
+  const at = String(user.accountType || '').toLowerCase();
+  if (at === 'admin') return 'Administrator';
+  if (at === 'staff') {
+    const sr = String(user.staffRole || '').trim();
+    return sr || 'Staff';
   }
-  if (type === 'customer') return 'Student';
-  if (type) return type.charAt(0).toUpperCase() + type.slice(1);
-  return 'User';
+  if (at === 'customer') return 'Customer';
+  return user.accountType ? String(user.accountType) : 'User';
 }
 
 const UserMenuBar = ({ onLogout, onProfileClick }) => {
-  const user = getUser();
-  const roleLine = roleSubtitle(user);
-  const displayName = (user?.fullName && String(user.fullName).trim()) || user?.email || roleLine;
-  const email = user?.email ? String(user.email).trim() : '';
-  const photoSrc = profilePhotoSrc(user);
-  const [photoFailed, setPhotoFailed] = useState(false);
+  const [user, setUser] = useState(() => getUser());
+  const [avatarError, setAvatarError] = useState(false);
+  const firstName = firstNameFromUser(user);
+  const roleLabel = roleLabelFromUser(user);
+  const photoSrc = useMemo(() => profilePhotoSrc(user), [user]);
 
   useEffect(() => {
-    setPhotoFailed(false);
+    const sync = () => {
+      setUser(getUser());
+    };
+    sync();
+    window.addEventListener(AUTH_CHANGE_EVENT, sync);
+    return () => window.removeEventListener(AUTH_CHANGE_EVENT, sync);
+  }, []);
+
+  useEffect(() => {
+    setAvatarError(false);
   }, [photoSrc]);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#bbf7d0]/60 bg-gradient-to-r from-[#f0fdf4]/95 via-white/90 to-[#eff6ff]/95 backdrop-blur-md">
-      <div className="h-0.5 w-full bg-gradient-to-r from-[#16a34a] via-[#4ade80] to-[#2563eb]" aria-hidden />
-      <div className="mx-auto flex h-[64px] max-w-[1600px] items-center justify-between gap-4 px-4 md:px-8">
-        <Link to="/" className="flex min-w-0 items-center gap-2">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#dcfce7] to-[#a7f3d0] text-black ring-2 ring-white/90 shadow-sm">
-            <LandingLeafIcon className="h-6 w-6" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-sans text-xl font-bold tracking-tight text-black md:text-2xl">UNI EATS</span>
-            <span className="hidden max-w-[200px] truncate text-[10px] font-bold uppercase tracking-[0.2em] text-black sm:block" title={roleLine}>
-              {roleLine}
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
+      <div className="relative mx-auto flex min-h-[72px] max-w-[1600px] items-center justify-center px-3 py-2 sm:min-h-[76px] sm:px-6 md:px-8">
+        {/* Left: role + Online status */}
+        <div className="absolute left-3 top-1/2 z-10 max-w-[40%] -translate-y-1/2 sm:left-4 md:left-8">
+          <div className="flex w-fit max-w-full flex-col gap-1">
+            <span
+              className="inline-block max-w-full truncate rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold leading-tight text-admin-accent sm:text-sm"
+              title={roleLabel}
+            >
+              {roleLabel}
+            </span>
+            <span
+              className="inline-flex w-fit max-w-full items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-800 sm:text-sm"
+              title="Online"
+            >
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+              Online
             </span>
           </div>
-        </Link>
+        </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Center: branding (bold, larger, centered) */}
+        <div className="w-full min-w-0 px-[4.5rem] text-center sm:px-28 md:px-36 lg:px-44">
+          <p className="mx-auto max-w-5xl text-sm font-extrabold uppercase leading-tight tracking-tight text-[#0B8E3A] sm:text-base md:text-lg lg:text-xl">
+            UNI EATS - FOOD ORDERING AND DELIVERY SYSTEM FOR UNIVERSITY BORDING STUDENTS
+          </p>
+        </div>
+
+        {/* Right: greeting (opens profile) → Logout */}
+        <div className="absolute right-3 top-1/2 z-10 flex max-w-[42%] -translate-y-1/2 shrink-0 items-center gap-1.5 sm:right-4 sm:gap-2 md:right-8 md:gap-3">
           <button
             type="button"
             onClick={onProfileClick}
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#93c5fd]/50 bg-gradient-to-br from-[#dbeafe] to-[#dcfce7] text-black shadow-sm transition hover:from-[#bfdbfe] hover:to-[#bbf7d0]"
+            className="inline-flex min-w-0 items-center gap-2 rounded-md border-0 bg-transparent px-1.5 py-1 text-left text-slate-700 shadow-none outline-none ring-0 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent/35 focus-visible:ring-offset-0"
             aria-label="Open user profile"
           >
-            {photoSrc && !photoFailed ? (
+            {photoSrc && !avatarError ? (
               <img
                 src={photoSrc}
                 alt=""
-                className="h-full w-full object-cover"
-                onError={() => setPhotoFailed(true)}
+                width={36}
+                height={36}
+                className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-slate-200 sm:h-9 sm:w-9"
+                onError={() => setAvatarError(true)}
               />
             ) : (
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="3" />
-              </svg>
+              <UserCircle
+                className="h-5 w-5 shrink-0 text-slate-500 sm:h-6 sm:w-6"
+                strokeWidth={2}
+                aria-hidden
+              />
             )}
+            <span className="hidden min-w-0 text-sm sm:inline" title={firstName}>
+              Hello,{' '}
+              <span className="font-semibold text-admin-accent">{firstName}</span>
+            </span>
+            <span className="max-w-[4rem] truncate text-[11px] sm:hidden" title={firstName}>
+              Hi, <span className="font-semibold text-admin-accent">{firstName}</span>
+            </span>
           </button>
-
-          <div className="hidden max-w-[200px] leading-tight sm:block md:max-w-[280px]">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-black">Hello</div>
-            <div className="truncate text-sm font-bold text-black" title={displayName}>
-              {displayName}
-            </div>
-            {email ? (
-              <div className="truncate text-[10px] font-normal text-black/65" title={email}>
-                {email}
-              </div>
-            ) : null}
-          </div>
 
           <button
             type="button"
@@ -92,8 +120,9 @@ const UserMenuBar = ({ onLogout, onProfileClick }) => {
               e.preventDefault();
               if (onLogout) onLogout();
             }}
-            className="rounded-full border border-[#86efac]/70 bg-gradient-to-r from-white to-[#ecfdf5] px-3 py-2 text-xs font-bold text-black shadow-sm transition hover:border-[#60a5fa]/50 hover:from-[#eff6ff] hover:to-white md:px-4 md:text-sm"
+            className="inline-flex items-center gap-2 rounded-full border-0 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600/50 sm:px-4 sm:py-2.5"
           >
+            <LogOut className="h-4 w-4 shrink-0 text-white" strokeWidth={2} aria-hidden />
             Logout
           </button>
         </div>

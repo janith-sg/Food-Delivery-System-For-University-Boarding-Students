@@ -3,8 +3,14 @@
  * Keep in sync with backend `constants/staffRoles.js` and staff routes in App.jsx.
  */
 
-/** Single profile URL for every authenticated role (see App.jsx ProtectedRoute). */
+/** Standalone profile URL (staff, customer). Admins use `/admin/profile` inside AdminLayout. */
 export const USER_PROFILE_PATH = '/profile';
+
+/** Profile URL for the current user (admin → in-layout; others → standalone). */
+export function getProfilePath(user) {
+  if (user?.accountType === 'admin') return '/admin/profile';
+  return USER_PROFILE_PATH;
+}
 
 const STAFF_ROLE_HOME = {
   'food menu manager': '/food-menu',
@@ -49,7 +55,7 @@ function isReturnPathAllowedForUser(user, path) {
     return ['admin', 'staff', 'customer'].includes(user?.accountType);
   }
   if (user?.accountType === 'admin') {
-    return path.startsWith('/admin');
+    return path.startsWith('/admin') || path === USER_PROFILE_PATH;
   }
   if (user?.accountType === 'customer') {
     return true;

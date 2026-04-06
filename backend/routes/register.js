@@ -4,7 +4,7 @@ const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
 const User = require("../models/User");
-const STAFF_ROLES = require("../constants/staffRoles");
+const { isStaffRoleAllowed, getAllowedStaffRoleNames } = require("../lib/staffRolesAllowed");
 
 const router = express.Router();
 
@@ -119,9 +119,10 @@ router.post("/", (req, res, next) => {
       if (!role) {
         return res.status(400).json({ message: "Staff role is required.", field: "staffRole" });
       }
-      if (!STAFF_ROLES.includes(role)) {
+      if (!(await isStaffRoleAllowed(role))) {
+        const names = await getAllowedStaffRoleNames();
         return res.status(400).json({
-          message: `Choose a valid staff role: ${STAFF_ROLES.join(", ")}.`,
+          message: `Choose a valid staff role: ${names.join(", ") || "(none configured)"}.`,
           field: "staffRole",
         });
       }
@@ -173,6 +174,8 @@ router.post("/", (req, res, next) => {
       studentPhotoUrl,
       staffRole: accountType === "staff" ? String(staffRole || "").trim() : "",
       registrationStatus: "pending",
+      emailVerified: false,
+      phoneVerified: false,
     });
 
     return res.status(201).json({ message: "Your account has been submitted for review." });

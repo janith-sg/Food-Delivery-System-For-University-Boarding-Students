@@ -1,18 +1,19 @@
 /** Sidebar label → URL path segment */
 export const TAB_PATHS = {
   Dashboard: 'dashboard',
-  'Customer Registration': 'customer-registration',
+  'User Registration': 'user-registration',
   'Customer Management': 'customer-management',
-  'Staff Registration': 'staff-registration',
-  'Role Management': 'role-management',
-  'User Profile': 'profile',
+  'Staff Management': 'staff-management',
+  'User Roles & Permissions': 'staff-user-roles',
+  'Logs & Monitoring': 'logs-monitoring',
+  Chat: 'chat',
 };
 
 export const pathToTab = Object.fromEntries(
   Object.entries(TAB_PATHS).map(([label, slug]) => [slug, label]),
 );
 
-/** Must match backend STAFF_ROLES */
+/** Fallback labels only; live roles come from GET /api/staff-roles/names */
 export const STAFF_ROLES = [
   'Delivery Manager',
   'Order Manager',

@@ -19,6 +19,14 @@ const userSchema = new mongoose.Schema(
       enum: ["pending", "approved", "declined"],
       default: "pending",
     },
+    /** Set true after inbox is proven (e.g. password reset via email). Cleared when email changes. */
+    emailVerified: { type: Boolean, default: false },
+    /** Reserved for SMS/OTP; false until implemented. */
+    phoneVerified: { type: Boolean, default: false },
+    /** Staff/customer login allowed; admins should stay true. */
+    accountActive: { type: Boolean, default: true },
+    /** When deactivated: "7" | "30" | "90" | "permanent" (admin UI). */
+    deactivationPeriod: { type: String, default: "" },
   },
   { timestamps: true }
 );
