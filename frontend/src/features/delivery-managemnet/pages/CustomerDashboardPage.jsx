@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { getAllDeliveries, updateDeliveryRating } from "../api/deliveryApi";
 import { getUserNotifications } from "../../notification-management/api/notificationApi";
 import DeliveryStatusBadge from "../components/DeliveryStatusBadge";
 import LiveMap from "../../../components/LiveMap";
+import CustomerMenuBar from "../../user-management/components/CustomerMenuBar";
+import { clearAuthWithAudit, getUser } from "../../../lib/auth";
+import { getProfilePath } from "../../../lib/postLoginRedirect";
 
 function CustomerDashboardPage() {
+  const navigate = useNavigate();
   const userId = "USER001";
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -227,17 +231,37 @@ function CustomerDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 px-4 py-8">
-        <div className="mx-auto max-w-6xl rounded-2xl bg-white p-8 text-black shadow-sm">
-          Loading customer dashboard...
+      <div className="min-h-screen bg-slate-100">
+        <CustomerMenuBar
+          onLogout={async () => {
+            await clearAuthWithAudit();
+            navigate("/login");
+          }}
+          onProfileClick={() => navigate(getProfilePath(getUser()))}
+          cartItemsCount={0}
+          onCartClick={() => navigate("/order-management")}
+        />
+        <div className="mx-auto max-w-6xl px-4 py-8">
+          <div className="rounded-2xl bg-white p-8 text-black shadow-sm">
+            Loading customer dashboard...
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-8 text-black">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-slate-100 text-black">
+      <CustomerMenuBar
+        onLogout={async () => {
+          await clearAuthWithAudit();
+          navigate("/login");
+        }}
+        onProfileClick={() => navigate(getProfilePath(getUser()))}
+        cartItemsCount={0}
+        onCartClick={() => navigate("/order-management")}
+      />
+      <div className="mx-auto max-w-6xl px-4 py-8">
         {/* HEADER */}
         <div className="mb-8 rounded-3xl bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white shadow-lg">
           <h1 className="text-3xl font-bold">Customer Dashboard</h1>

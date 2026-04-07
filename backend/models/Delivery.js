@@ -7,6 +7,26 @@ const deliverySchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    customerName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    customerPhone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    deliveryAddress: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    paymentMethod: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     studentId: {
       type: String,
       default: "",

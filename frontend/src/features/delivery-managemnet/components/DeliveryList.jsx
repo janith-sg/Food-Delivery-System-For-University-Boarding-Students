@@ -1,6 +1,6 @@
 import DeliveryCard from "./DeliveryCard";
 
-function DeliveryList({ deliveries, onStatusChange, isAdmin = false }) {
+function DeliveryList({ deliveries, onStatusChange, onAssignRider, isAdmin = false }) {
   if (!deliveries.length) {
     return (
       <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
@@ -16,6 +16,7 @@ function DeliveryList({ deliveries, onStatusChange, isAdmin = false }) {
           key={delivery._id}
           delivery={delivery}
           onStatusChange={onStatusChange}
+          onAssignRider={onAssignRider}
           isAdmin={isAdmin}
         />
       ))}

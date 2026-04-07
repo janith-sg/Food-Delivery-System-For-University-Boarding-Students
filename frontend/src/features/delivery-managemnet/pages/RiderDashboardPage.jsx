@@ -7,6 +7,7 @@ import {
   updateDeliveryStatus,
 } from "../api/deliveryApi";
 import DeliveryStatusBadge from "../components/DeliveryStatusBadge";
+import NotificationBell from "../../../components/NotificationBell";
 import { generateRiderStatsReport } from "../reports/generateRiderStatsReport";
 
 function RiderDashboardPage() {
@@ -19,6 +20,7 @@ function RiderDashboardPage() {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeSection, setActiveSection] = useState("ongoing");
 
   const deliveriesPerPage = 5;
 
@@ -135,9 +137,23 @@ function RiderDashboardPage() {
   const getDirectionsUrl = (delivery) => {
     const destinationLat = Number(delivery?.deliveryLocation?.lat);
     const destinationLng = Number(delivery?.deliveryLocation?.lng);
+    const destinationAddress = String(delivery?.deliveryAddress || "").trim();
 
-    if (!Number.isFinite(destinationLat) || !Number.isFinite(destinationLng)) {
-      return "";
+    if (
+      !Number.isFinite(destinationLat) ||
+      !Number.isFinite(destinationLng)
+    ) {
+      if (!destinationAddress) {
+        return "";
+      }
+
+      const addressParams = new URLSearchParams({
+        api: "1",
+        destination: destinationAddress,
+        travelmode: "driving",
+      });
+
+      return `https://www.google.com/maps/dir/?${addressParams.toString()}`;
     }
 
     const originLat = Number(
@@ -160,13 +176,43 @@ function RiderDashboardPage() {
     return `https://www.google.com/maps/dir/?${params.toString()}`;
   };
 
-  const totalPages = Math.ceil(deliveries.length / deliveriesPerPage);
+  const ongoingStatuses = ["Assigned", "Picked Up", "On the Way"];
+
+  const ongoingDeliveries = useMemo(
+    () => deliveries.filter((delivery) => ongoingStatuses.includes(delivery.status)),
+    [deliveries]
+  );
+
+  const cancelledDeliveries = useMemo(
+    () => deliveries.filter((delivery) => delivery.status === "Cancelled"),
+    [deliveries]
+  );
+
+  const sectionMap = {
+    ongoing: ongoingDeliveries,
+    cancelled: cancelledDeliveries,
+    all: deliveries,
+  };
+
+  const sectionTitleMap = {
+    ongoing: "Ongoing Deliveries",
+    cancelled: "Cancelled Deliveries",
+    all: "All Deliveries",
+  };
+
+  const filteredDeliveries = sectionMap[activeSection] || ongoingDeliveries;
+
+  const totalPages = Math.ceil(filteredDeliveries.length / deliveriesPerPage);
 
   const paginatedDeliveries = useMemo(() => {
     const startIndex = (currentPage - 1) * deliveriesPerPage;
     const endIndex = startIndex + deliveriesPerPage;
-    return deliveries.slice(startIndex, endIndex);
-  }, [deliveries, currentPage]);
+    return filteredDeliveries.slice(startIndex, endIndex);
+  }, [filteredDeliveries, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeSection]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -182,8 +228,8 @@ function RiderDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 p-8">
-        <div className="mx-auto max-w-6xl rounded-2xl bg-white p-8 shadow">
+      <div className="min-h-screen bg-gray-100 p-6">
+        <div className="mx-auto max-w-6xl rounded-2xl bg-white p-6 shadow">
           Loading rider dashboard...
         </div>
       </div>
@@ -191,17 +237,17 @@ function RiderDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-8">
+    <div className="min-h-screen bg-gray-100 px-3 py-5">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-8 rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white shadow-lg">
+        <div className="mb-5 rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-600 p-5 text-white shadow-lg">
           <h1 className="text-3xl font-bold">Rider Dashboard</h1>
-          <p className="mt-2 text-sm text-emerald-50">
+          <p className="mt-1 text-sm text-emerald-50">
             View assigned deliveries, move through delivery steps, and monitor performance.
           </p>
         </div>
 
-        <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-900">Rider Summary</h2>
               <p className="mt-1 text-sm text-gray-500">
@@ -219,45 +265,45 @@ function RiderDashboardPage() {
           </div>
         </div>
 
-        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-6">
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-6">
+          <div className="rounded-2xl bg-white p-4 shadow-sm">
             <p className="text-sm text-gray-500">Total Assigned</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">
+            <p className="mt-1 text-3xl font-bold text-gray-900">
               {stats?.totalAssigned || 0}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-yellow-50 p-5 shadow-sm">
+          <div className="rounded-2xl bg-yellow-50 p-4 shadow-sm">
             <p className="text-sm text-gray-500">Active</p>
-            <p className="mt-2 text-3xl font-bold text-yellow-700">
+            <p className="mt-1 text-3xl font-bold text-yellow-700">
               {stats?.active || 0}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-green-50 p-5 shadow-sm">
+          <div className="rounded-2xl bg-green-50 p-4 shadow-sm">
             <p className="text-sm text-gray-500">Delivered</p>
-            <p className="mt-2 text-3xl font-bold text-green-700">
+            <p className="mt-1 text-3xl font-bold text-green-700">
               {stats?.delivered || 0}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-red-50 p-5 shadow-sm">
+          <div className="rounded-2xl bg-red-50 p-4 shadow-sm">
             <p className="text-sm text-gray-500">Cancelled</p>
-            <p className="mt-2 text-3xl font-bold text-red-700">
+            <p className="mt-1 text-3xl font-bold text-red-700">
               {stats?.cancelled || 0}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-blue-50 p-5 shadow-sm">
+          <div className="rounded-2xl bg-blue-50 p-4 shadow-sm">
             <p className="text-sm text-gray-500">Avg. Delivery Time</p>
-            <p className="mt-2 text-3xl font-bold text-blue-700">
+            <p className="mt-1 text-3xl font-bold text-blue-700">
               {stats?.averageDeliveryTime || 0} min
             </p>
           </div>
 
-          <div className="rounded-2xl bg-amber-50 p-5 shadow-sm">
+          <div className="rounded-2xl bg-amber-50 p-4 shadow-sm">
             <p className="text-sm text-gray-500">Avg. Rating</p>
-            <p className="mt-2 text-3xl font-bold text-amber-700">
+            <p className="mt-1 text-3xl font-bold text-amber-700">
               {stats?.averageRating ? `${stats.averageRating} / 5` : "No ratings"}
             </p>
             <p className="mt-1 text-xs text-gray-500">
@@ -266,8 +312,8 @@ function RiderDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="rounded-3xl bg-white p-4 shadow-sm">
+          <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
                 Assigned Deliveries
@@ -284,13 +330,64 @@ function RiderDashboardPage() {
             )}
           </div>
 
+          {deliveries.length > 0 && (
+            <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-3">
+              <button
+                onClick={() => setActiveSection("ongoing")}
+                className={`rounded-2xl border px-3 py-2 text-left transition ${
+                  activeSection === "ongoing"
+                    ? "border-emerald-600 bg-emerald-50 text-emerald-800"
+                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide">Section</p>
+                <p className="text-base font-bold">Ongoing Deliveries</p>
+                <p className="text-sm">{ongoingDeliveries.length} records</p>
+              </button>
+
+              <button
+                onClick={() => setActiveSection("cancelled")}
+                className={`rounded-2xl border px-3 py-2 text-left transition ${
+                  activeSection === "cancelled"
+                    ? "border-red-600 bg-red-50 text-red-800"
+                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide">Section</p>
+                <p className="text-base font-bold">Cancelled Deliveries</p>
+                <p className="text-sm">{cancelledDeliveries.length} records</p>
+              </button>
+
+              <button
+                onClick={() => setActiveSection("all")}
+                className={`rounded-2xl border px-3 py-2 text-left transition ${
+                  activeSection === "all"
+                    ? "border-blue-600 bg-blue-50 text-blue-800"
+                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide">Section</p>
+                <p className="text-base font-bold">All Deliveries</p>
+                <p className="text-sm">{deliveries.length} records</p>
+              </button>
+            </div>
+          )}
+
           {deliveries.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
+            <div className="rounded-2xl border border-dashed border-gray-300 p-6 text-center text-gray-500">
               No deliveries assigned to this rider.
+            </div>
+          ) : filteredDeliveries.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-gray-300 p-6 text-center text-gray-500">
+              No deliveries found in {sectionTitleMap[activeSection].toLowerCase()}.
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-5">
+              <div className="mb-3 rounded-2xl bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700">
+                {sectionTitleMap[activeSection]} ({filteredDeliveries.length})
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
                 {paginatedDeliveries.map((delivery) => {
                   const nextLabel = getNextButtonLabel(delivery.status);
                   const canMoveNext = !!nextLabel;
@@ -305,44 +402,48 @@ function RiderDashboardPage() {
                   return (
                     <div
                       key={delivery._id}
-                      className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+                      className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
                     >
-                      <div className="mb-4 flex items-start justify-between gap-4">
+                      <div className="mb-2 flex items-start justify-between gap-2">
                         <div>
                           <h2 className="text-xl font-bold text-gray-900">
                             Order ID: {delivery.orderId}
                           </h2>
-                          <p className="mt-1 text-sm text-gray-500">
-                            Student ID: {delivery.studentId || "Not available"}
+                          <p className="mt-0.5 text-sm text-gray-500">
+                            Customer: {delivery.customerName || "Not available"}
                           </p>
                         </div>
                         <DeliveryStatusBadge status={delivery.status} />
                       </div>
 
-                      <div className="grid grid-cols-1 gap-3 text-sm text-gray-700 md:grid-cols-2">
-                        <p>
-                          <span className="font-semibold text-gray-900">Rider:</span>{" "}
-                          {delivery.deliveryPersonName}
+                      <div className="grid grid-cols-1 gap-1.5 text-sm text-gray-700 md:grid-cols-2">
+                        <p className="leading-tight">
+                          <span className="font-semibold text-gray-900">Customer Name:</span>{" "}
+                          {delivery.customerName || "Not available"}
                         </p>
-                        <p>
-                          <span className="font-semibold text-gray-900">Phone:</span>{" "}
-                          {delivery.deliveryPersonPhone}
+                        <p className="leading-tight">
+                          <span className="font-semibold text-gray-900">Customer Phone:</span>{" "}
+                          {delivery.customerPhone || "Not available"}
                         </p>
-                        <p>
+                        <p className="leading-tight md:col-span-2">
+                          <span className="font-semibold text-gray-900">Delivery Address:</span>{" "}
+                          {delivery.deliveryAddress || "Not available"}
+                        </p>
+                        <p className="leading-tight">
                           <span className="font-semibold text-gray-900">Current Location:</span>{" "}
                           {delivery.currentLocation}
                         </p>
-                        <p>
+                        <p className="leading-tight">
                           <span className="font-semibold text-gray-900">ETA:</span>{" "}
                           {delivery.estimatedDeliveryTime
                             ? new Date(delivery.estimatedDeliveryTime).toLocaleString()
                             : "Not available"}
                         </p>
-                        <p className="md:col-span-2">
+                        <p className="leading-tight md:col-span-2">
                           <span className="font-semibold text-gray-900">Notes:</span>{" "}
                           {delivery.notes || "No notes"}
                         </p>
-                        <p>
+                        <p className="leading-tight">
                           <span className="font-semibold text-gray-900">Customer Rating:</span>{" "}
                           {Number.isInteger(delivery.customerRating) ? (
                             <>
@@ -353,18 +454,18 @@ function RiderDashboardPage() {
                             "Not rated yet"
                           )}
                         </p>
-                        <p className="md:col-span-2">
+                        <p className="leading-tight md:col-span-2">
                           <span className="font-semibold text-gray-900">Customer Feedback:</span>{" "}
                           {delivery.customerFeedback || "No feedback"}
                         </p>
                       </div>
 
-                      <div className="mt-5 flex flex-wrap gap-3">
+                      <div className="mt-3 flex flex-wrap gap-2">
                         {canOpenDirections && directionsUrl && (
                           <button
                             type="button"
                             onClick={() => window.open(directionsUrl, "_blank", "noopener,noreferrer")}
-                            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                            className="rounded-xl bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
                           >
                             Open Directions
                           </button>
@@ -373,7 +474,7 @@ function RiderDashboardPage() {
                         {canMoveNext && (
                           <button
                             onClick={() => handleNextStep(delivery)}
-                            className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                            className="rounded-xl bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
                           >
                             {nextLabel}
                           </button>
@@ -382,7 +483,7 @@ function RiderDashboardPage() {
                         {canCancel && (
                           <button
                             onClick={() => handleCancel(delivery)}
-                            className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                            className="rounded-xl bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
                           >
                             Cancel Delivery
                           </button>
@@ -393,11 +494,11 @@ function RiderDashboardPage() {
                 })}
               </div>
 
-              <div className="mt-6 flex items-center justify-center gap-3">
+              <div className="mt-4 flex items-center justify-center gap-2">
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
-                  className="rounded-xl bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-xl bg-gray-200 px-4 py-1.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Back
                 </button>
@@ -405,7 +506,7 @@ function RiderDashboardPage() {
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-xl bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Next
                 </button>
@@ -414,6 +515,8 @@ function RiderDashboardPage() {
           )}
         </div>
       </div>
+
+      <NotificationBell role="rider" userId={riderId} />
     </div>
   );
 }

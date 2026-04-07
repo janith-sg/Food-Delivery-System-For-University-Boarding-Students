@@ -39,14 +39,6 @@ function Navbar() {
             Admin Notifications
           </NavLink>
 
-          <NavLink to="/rider/dashboard" className={navClass}>
-            Rider Dashboard
-          </NavLink>
-
-          <NavLink to="/customer/dashboard" className={navClass}>
-            Customer Dashboard
-          </NavLink>
-
           <NotificationBell role={role} userId={userId} />
         </div>
       </div>

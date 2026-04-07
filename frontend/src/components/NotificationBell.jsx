@@ -39,7 +39,28 @@ function NotificationBell({ role = "customer", userId = "USER001" }) {
       if (role === "admin") {
         response = await getAllNotifications();
       } else if (role === "customer" || role === "rider") {
-        response = await getUserNotifications(userId);
+        const normalizedUserId = String(userId || "").trim();
+        const fallbackIds = role === "customer" ? ["USER001"] : [];
+        const idsToTry = [normalizedUserId, ...fallbackIds].filter(Boolean);
+
+        let resolvedData = [];
+        for (const id of idsToTry) {
+          const candidateResponse = await getUserNotifications(id);
+          const candidateData = Array.isArray(candidateResponse.data)
+            ? candidateResponse.data
+            : [];
+
+          if (candidateData.length > 0) {
+            resolvedData = candidateData;
+            break;
+          }
+
+          if (resolvedData.length === 0) {
+            resolvedData = candidateData;
+          }
+        }
+
+        response = { data: resolvedData };
       } else {
         response = { data: [] };
       }
@@ -205,7 +226,7 @@ function NotificationBell({ role = "customer", userId = "USER001" }) {
   const showPreferencesButton = role === "customer" || role === "rider";
 
   return (
-    <div className="relative" ref={wrapperRef}>
+    <div className="fixed bottom-6 right-6 z-[250]" ref={wrapperRef}>
       {toastVisible && (
         <div className="fixed right-6 top-20 z-[100] rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-xl">
           <p className="font-semibold">{toastNotification?.title || "New Notification"}</p>
@@ -237,7 +258,7 @@ function NotificationBell({ role = "customer", userId = "USER001" }) {
           e.stopPropagation();
           setIsOpen((prev) => !prev);
         }}
-        className="relative rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
+        className="relative rounded-full bg-slate-800 p-3 text-white shadow-xl transition hover:bg-slate-900"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -263,7 +284,7 @@ function NotificationBell({ role = "customer", userId = "USER001" }) {
 
       {isOpen && (
         <div
-          className="absolute right-0 z-[200] mt-3 w-96 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
+          className="absolute bottom-full right-0 z-[260] mb-3 w-96 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="border-b border-gray-100 px-4 py-3">
@@ -336,7 +357,7 @@ function NotificationBell({ role = "customer", userId = "USER001" }) {
 
       {isPreferencesOpen && showPreferencesButton && (
         <div
-          className="absolute right-0 z-[300] mt-3 w-[28rem] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
+          className="absolute bottom-full right-0 z-[300] mb-3 w-[28rem] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="border-b border-gray-100 px-4 py-3">

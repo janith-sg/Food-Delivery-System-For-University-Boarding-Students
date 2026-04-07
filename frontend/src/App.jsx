@@ -22,6 +22,7 @@ import DeliveryAdminShell from './components/DeliveryAdminShell';
 import AdminNotificationPage from './features/notification-management/pages/AdminNotificationPage';
 import AdminOrders from './features/order-managemnt/pages/AdminOrders';
 import AdminGroupOrders from './features/order-managemnt/pages/AdminGroupOrders';
+import CustomerDashboardPage from './features/delivery-managemnet/pages/CustomerDashboardPage';
 import Checkout from './features/order-managemnt/pages/Checkout';
 import OrderManagement from './features/order-managemnt/pages/OrderManagement';
 import GroupOrderFlow from './features/order-managemnt/pages/GroupOrderFlow';
@@ -195,6 +196,14 @@ function App() {
               <StaffPageShell>
                 <RiderDashboardPage />
               </StaffPageShell>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <CustomerDashboardPage />
             </ProtectedRoute>
           }
         />

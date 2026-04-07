@@ -1,10 +1,23 @@
+import { useState } from "react";
 import DeliveryStatusBadge from "./DeliveryStatusBadge";
 
-function DeliveryCard({ delivery, onStatusChange, isAdmin = false }) {
+const riderOptions = [
+  { id: "RIDER001", label: "Kamal Perera (RIDER001)" },
+  { id: "RIDER002", label: "Nimal Silva (RIDER002)" },
+];
+
+function DeliveryCard({ delivery, onStatusChange, onAssignRider, isAdmin = false }) {
+  const [selectedRiderId, setSelectedRiderId] = useState(delivery.deliveryPersonId || "");
+
   const handleSelectChange = (e) => {
     const newStatus = e.target.value;
     if (!newStatus || !onStatusChange) return;
     onStatusChange(delivery._id, newStatus);
+  };
+
+  const handleAssignClick = () => {
+    if (!selectedRiderId || !onAssignRider) return;
+    onAssignRider(delivery._id, selectedRiderId);
   };
 
   return (
@@ -21,6 +34,26 @@ function DeliveryCard({ delivery, onStatusChange, isAdmin = false }) {
       </div>
 
       <div className="grid grid-cols-1 gap-3 text-sm text-gray-700 md:grid-cols-2">
+        <div>
+          <span className="font-semibold text-gray-900">Customer Name:</span>{" "}
+          {delivery.customerName || "Not available"}
+        </div>
+
+        <div>
+          <span className="font-semibold text-gray-900">Customer Phone:</span>{" "}
+          {delivery.customerPhone || "Not available"}
+        </div>
+
+        <div className="md:col-span-2">
+          <span className="font-semibold text-gray-900">Delivery Address:</span>{" "}
+          {delivery.deliveryAddress || "Not available"}
+        </div>
+
+        <div>
+          <span className="font-semibold text-gray-900">Payment Method:</span>{" "}
+          {delivery.paymentMethod || "Not available"}
+        </div>
+
         <div>
           <span className="font-semibold text-gray-900">Delivery Person:</span>{" "}
           {delivery.deliveryPersonName}
@@ -51,6 +84,31 @@ function DeliveryCard({ delivery, onStatusChange, isAdmin = false }) {
 
       {isAdmin && (
         <div className="mt-5">
+          <label className="mb-2 block text-sm font-semibold text-gray-800">
+            Assign Rider
+          </label>
+          <div className="mb-4 flex flex-col gap-2 md:flex-row">
+            <select
+              value={selectedRiderId}
+              onChange={(e) => setSelectedRiderId(e.target.value)}
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-800 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+            >
+              <option value="">Select rider</option>
+              {riderOptions.map((rider) => (
+                <option key={rider.id} value={rider.id}>
+                  {rider.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleAssignClick}
+              disabled={!selectedRiderId}
+              className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-300"
+            >
+              Assign Rider
+            </button>
+          </div>
+
           <label className="mb-2 block text-sm font-semibold text-gray-800">
             Update Status
           </label>

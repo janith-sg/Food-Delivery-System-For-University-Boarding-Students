@@ -1,15 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, ShoppingCart, UserCircle } from 'lucide-react';
 import { AUTH_CHANGE_EVENT, getUser } from '../../../lib/auth';
+import NotificationBell from '../../../components/NotificationBell';
 
 function scrollToAllProducts() {
   const el = document.getElementById('all-products');
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    const path = window.location.pathname + window.location.search;
-    window.history.replaceState(null, '', `${path}#all-products`);
-  }
+  if (!el) return false;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const path = window.location.pathname + window.location.search;
+  window.history.replaceState(null, '', `${path}#all-products`);
+  return true;
 }
 
 /** Resolve profile image URL from session user (same rules as profile card). */
@@ -36,10 +37,12 @@ function roleLabelFromUser(user) {
 }
 
 /**
- * Top bar for logged-in customers: role + nav (Home, Our Menu, Group Order) + cart + profile + logout.
+ * Top bar for logged-in customers: role + nav (Home, Our Menu, Group Order, My Orders) + cart + profile + logout.
  * Replaces the long UNI EATS branding used in {@link UserMenuBar}.
  */
 const CustomerMenuBar = ({ onLogout, onProfileClick, cartItemsCount = 0, onCartClick }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(() => getUser());
   const [avatarError, setAvatarError] = useState(false);
   const firstName = firstNameFromUser(user);
@@ -58,10 +61,29 @@ const CustomerMenuBar = ({ onLogout, onProfileClick, cartItemsCount = 0, onCartC
   }, [photoSrc]);
 
   const count = Number(cartItemsCount) || 0;
+  const notificationUserId =
+    String(user?.userId || user?.id || user?.studentId || user?._id || '').trim() || 'USER001';
+
+  const handleOurMenuClick = (event) => {
+    event.preventDefault();
+
+    const isMenuPage = location.pathname.startsWith('/menu');
+    if (!isMenuPage) {
+      navigate('/menu#all-products');
+      return;
+    }
+
+    const scrolled = scrollToAllProducts();
+    if (!scrolled) {
+      window.setTimeout(scrollToAllProducts, 200);
+      window.setTimeout(scrollToAllProducts, 500);
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
-      <div className="relative mx-auto flex min-h-[72px] max-w-[1600px] items-center justify-center px-3 py-2 sm:min-h-[76px] sm:px-6 md:px-8">
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
+        <div className="relative mx-auto flex min-h-[72px] max-w-[1600px] items-center justify-center px-3 py-2 sm:min-h-[76px] sm:px-6 md:px-8">
         {/* Left: role + Online */}
         <div className="absolute left-3 top-1/2 z-10 max-w-[34%] -translate-y-1/2 sm:left-4 md:left-8">
           <div className="flex w-fit max-w-full flex-col gap-1">
@@ -81,7 +103,7 @@ const CustomerMenuBar = ({ onLogout, onProfileClick, cartItemsCount = 0, onCartC
           </div>
         </div>
 
-        {/* Center: Home, Our Menu, Group Order */}
+        {/* Center: Home, Our Menu, Group Order, My Orders */}
         <nav
           className="flex w-full min-w-0 flex-wrap items-center justify-center gap-x-3 gap-y-2 px-16 text-center sm:gap-x-5 sm:px-24 md:gap-x-8 md:px-32 lg:px-40"
           aria-label="Main navigation"
@@ -95,14 +117,7 @@ const CustomerMenuBar = ({ onLogout, onProfileClick, cartItemsCount = 0, onCartC
           <a
             href="#all-products"
             className="text-xs font-semibold text-slate-700 no-underline transition hover:text-[#0B8E3A] sm:text-sm md:text-base"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToAllProducts();
-              if (!document.getElementById('all-products')) {
-                window.setTimeout(scrollToAllProducts, 200);
-                window.setTimeout(scrollToAllProducts, 500);
-              }
-            }}
+            onClick={handleOurMenuClick}
           >
             Our Menu
           </a>
@@ -111,6 +126,12 @@ const CustomerMenuBar = ({ onLogout, onProfileClick, cartItemsCount = 0, onCartC
             className="text-xs font-semibold text-slate-700 no-underline transition hover:text-[#0B8E3A] sm:text-sm md:text-base"
           >
             Group Order
+          </Link>
+          <Link
+            to="/customer/dashboard"
+            className="text-xs font-semibold text-slate-700 no-underline transition hover:text-[#0B8E3A] sm:text-sm md:text-base"
+          >
+            My Orders
           </Link>
         </nav>
 
@@ -171,8 +192,11 @@ const CustomerMenuBar = ({ onLogout, onProfileClick, cartItemsCount = 0, onCartC
             Logout
           </button>
         </div>
-      </div>
-    </header>
+        </div>
+      </header>
+
+      <NotificationBell role="customer" userId={notificationUserId} />
+    </>
   );
 };
 

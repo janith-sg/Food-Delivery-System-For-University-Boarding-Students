@@ -35,3 +35,7 @@ export const updateDeliveryLocation = async (id, data) => {
 export const updateDeliveryRating = async (id, data) => {
   return await deliveryApi.put(`/${id}/rating`, data);
 };
+
+export const assignRiderToDelivery = async (id, data) => {
+  return await deliveryApi.put(`/${id}/assign-rider`, data);
+};

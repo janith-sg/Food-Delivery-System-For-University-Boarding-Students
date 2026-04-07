@@ -1,5 +1,6 @@
 const Delivery = require("../models/Delivery");
 const Notification = require("../models/Notification");
+const Order = require("../models/Order");
 
 // Simulated delivery staff pool
 const deliveryStaffPool = [
@@ -16,6 +17,45 @@ const getNextAutoAssignRider = () => {
   const rider = deliveryStaffPool[autoAssignPointer % deliveryStaffPool.length];
   autoAssignPointer += 1;
   return rider;
+};
+
+const buildDeliveryFromOrder = ({ order, now }) => ({
+  orderId: String(order._id),
+  customerName: order.customer?.fullName || "",
+  customerPhone: order.customer?.phone || "",
+  deliveryAddress: order.customer?.address || "",
+  paymentMethod: order.paymentMethod || "",
+  studentId: "",
+  deliveryPersonId: "",
+  deliveryPersonName: "Pending Assignment",
+  deliveryPersonPhone: "Pending Assignment",
+  status: "Assigned",
+  estimatedDeliveryTime: new Date(now.getTime() + 30 * 60000),
+  assignedAt: now,
+  currentLocation: "Shop",
+  notes: order.customer?.note || "",
+});
+
+const syncMissingOrderDeliveries = async () => {
+  const [orders, deliveries] = await Promise.all([
+    Order.find().sort({ createdAt: -1 }),
+    Delivery.find({}, { orderId: 1 }),
+  ]);
+
+  const existingOrderIds = new Set(
+    deliveries
+      .map((delivery) => String(delivery.orderId || "").trim())
+      .filter(Boolean)
+  );
+
+  const now = new Date();
+  const missingDeliveryDocs = orders
+    .filter((order) => !existingOrderIds.has(String(order._id)))
+    .map((order) => buildDeliveryFromOrder({ order, now }));
+
+  if (missingDeliveryDocs.length > 0) {
+    await Delivery.insertMany(missingDeliveryDocs, { ordered: false });
+  }
 };
 
 const scheduleAutoAssignment = ({ deliveryId, orderId, customerId }) => {
@@ -78,6 +118,7 @@ const createDelivery = async (req, res) => {
     } = req.body;
     const customerId = (studentId || req.body.userId || "USER001").trim();
     const resolvedOrderId = (orderId || "").trim() || generateOrderId();
+    const linkedOrder = await Order.findById(resolvedOrderId).catch(() => null);
 
     const selectedRider = deliveryStaffPool.find(
       (rider) => rider.id === (deliveryPersonId || "").trim()
@@ -103,7 +144,11 @@ const createDelivery = async (req, res) => {
         : 0;
 
     const delivery = await Delivery.create({
-      orderId: resolvedOrderId,
+      orderId: linkedOrder ? String(linkedOrder._id) : resolvedOrderId,
+      customerName: linkedOrder?.customer?.fullName || "",
+      customerPhone: linkedOrder?.customer?.phone || "",
+      deliveryAddress: linkedOrder?.customer?.address || "",
+      paymentMethod: linkedOrder?.paymentMethod || "",
       studentId: customerId,
       deliveryPersonId: selectedRider?.id || "",
       deliveryPersonName: selectedRider?.name || "Pending Assignment",
@@ -115,7 +160,7 @@ const createDelivery = async (req, res) => {
       deliveredAt,
       deliveryDurationMinutes,
       currentLocation,
-      notes: notes || "",
+      notes: notes || linkedOrder?.customer?.note || "",
       pickupLocation: pickupLocation || undefined,
       deliveryLocation: deliveryLocation || undefined,
       latitude: latitude ?? null,
@@ -152,11 +197,13 @@ const createDelivery = async (req, res) => {
         });
       }
 
-      scheduleAutoAssignment({
-        deliveryId: delivery._id,
-        orderId: resolvedOrderId,
-        customerId,
-      });
+      if (!linkedOrder) {
+        scheduleAutoAssignment({
+          deliveryId: delivery._id,
+          orderId: resolvedOrderId,
+          customerId,
+        });
+      }
     }
 
     res.status(201).json(delivery);
@@ -171,7 +218,8 @@ const createDelivery = async (req, res) => {
 // Get all deliveries
 const getAllDeliveries = async (req, res) => {
   try {
-    const deliveries = await Delivery.find().populate("orderId");
+    await syncMissingOrderDeliveries();
+    const deliveries = await Delivery.find().sort({ createdAt: -1 });
     res.status(200).json(deliveries);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch deliveries", error: error.message });
@@ -181,7 +229,7 @@ const getAllDeliveries = async (req, res) => {
 // Get one delivery by ID
 const getDeliveryById = async (req, res) => {
   try {
-    const delivery = await Delivery.findById(req.params.id).populate("orderId");
+    const delivery = await Delivery.findById(req.params.id);
 
     if (!delivery) {
       return res.status(404).json({ message: "Delivery not found" });
@@ -190,6 +238,47 @@ const getDeliveryById = async (req, res) => {
     res.status(200).json(delivery);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch delivery", error: error.message });
+  }
+};
+
+const assignRiderToDelivery = async (req, res) => {
+  try {
+    const { deliveryPersonId } = req.body;
+    const riderId = (deliveryPersonId || "").trim();
+
+    if (!riderId) {
+      return res.status(400).json({ message: "deliveryPersonId is required" });
+    }
+
+    const selectedRider = deliveryStaffPool.find((rider) => rider.id === riderId);
+    if (!selectedRider) {
+      return res.status(400).json({ message: "Invalid rider ID" });
+    }
+
+    const delivery = await Delivery.findById(req.params.id);
+    if (!delivery) {
+      return res.status(404).json({ message: "Delivery not found" });
+    }
+
+    delivery.deliveryPersonId = selectedRider.id;
+    delivery.deliveryPersonName = selectedRider.name;
+    delivery.deliveryPersonPhone = selectedRider.phone;
+    delivery.assignedAt = new Date();
+    await delivery.save();
+
+    await Notification.create({
+      userId: selectedRider.id,
+      title: "New Delivery Assigned",
+      message: `A delivery (${delivery.orderId}) has been assigned to you.`,
+      type: "delivery",
+    });
+
+    res.status(200).json(delivery);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to assign rider",
+      error: error.message,
+    });
   }
 };
 
@@ -483,4 +572,5 @@ module.exports = {
   updateDeliveryLocation,
   getRiderStats,
   updateDeliveryRating,
+  assignRiderToDelivery,
 };
