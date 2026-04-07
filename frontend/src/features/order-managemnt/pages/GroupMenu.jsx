@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getImageUrl } from "../../food-menu-management/api";
+import FoodCard from "../../food-menu-management/components/FoodCard";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
@@ -44,10 +45,17 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
 
       const mapped = sourceItems.map((item, index) => ({
         id: parseItemId(item, index),
+        _id: item._id || item.foodID || item.id || parseItemId(item, index),
+        foodID: item.foodID || item.FoodID,
         name: item.name || `Food Item ${index + 1}`,
         price: Number(item.price || 0),
         image: getImageUrl(item.image),
         description: item.description || "Fresh menu item",
+        category: item.category || "Lunch",
+        type: item.type || "Regular",
+        ratingAverage: Number(item.ratingAverage || 0),
+        ratingCount: Number(item.ratingCount || 0),
+        stock: item.stock,
         tag: getTagForItem(item),
         isOutOfStock: Number(item.stock || 0) <= 0 || /out|unavailable|false|sold/i.test(String(item.stock || "")),
       }));
@@ -185,7 +193,7 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
         </div>
 
         {/* Menu Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {loadingMenu ? (
             <div className="col-span-full rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
               Loading food menu...
@@ -194,46 +202,21 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
             <div className="col-span-full rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
               No food menu items available.
             </div>
-          ) : menuItems.map((item) => {
-            const isAdded = addedMap[item.id];
-            return (
-              <div
-                key={item.id}
-                className="group relative flex flex-col overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="relative overflow-hidden h-40">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <span className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full ${tagColors[item.tag]}`}>
-                    {item.tag}
-                  </span>
+          ) : menuItems.map((item) => (
+            <div key={item.id} className="relative">
+              {addedMap[item.id] && (
+                <div className="pointer-events-none absolute left-3 top-3 z-20 rounded-full bg-green-100 px-2 py-1 text-xs font-bold text-green-700">
+                  Added
                 </div>
-                <div className="flex flex-col flex-1 p-4 gap-2">
-                  <h3 className="text-base font-bold text-gray-900">{item.name}</h3>
-                  <p className="text-xs text-gray-500 flex-1">{item.description}</p>
-                  <p className="text-lg font-extrabold text-green-700">
-                    Rs. {item.price.toLocaleString()}
-                  </p>
-                  <button
-                    onClick={() => addToGroupCart(item)}
-                    disabled={item.isOutOfStock}
-                    className={`w-full rounded-xl py-2.5 text-sm font-bold transition-all duration-300 border-none cursor-pointer
-                      ${isAdded
-                        ? "bg-green-100 text-green-700 scale-95"
-                        : item.isOutOfStock
-                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          : "bg-green-600 text-white hover:bg-green-700 active:scale-95"
-                      }`}
-                  >
-                    {item.isOutOfStock ? "Out of Stock" : isAdded ? "✓ Added to Group!" : "+ Add to Group Cart"}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              )}
+              <FoodCard
+                item={item}
+                showAddToCart
+                disabledOutOfStock={item.isOutOfStock}
+                onAddToCart={() => addToGroupCart(item)}
+              />
+            </div>
+          ))}
         </div>
       </div>
 

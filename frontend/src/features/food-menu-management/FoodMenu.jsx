@@ -112,20 +112,76 @@ const EMPTY_OFFER_FORM = {
 };
 
 const FEATURED_CATEGORIES = [
-  { name: "Soft Drinks", slug: "soft-drinks", icon: Droplet, gradient: "from-sky-500 to-blue-500" },
-  { name: "Coffee", slug: "coffee", icon: CoffeeIcon, gradient: "from-amber-700 to-orange-500" },
-  { name: "Milk & Dairy", slug: "milk-dairy", icon: Milk, gradient: "from-sky-300 to-blue-200" },
-  { name: "Water & Juice", slug: "water-juice", icon: Droplet, gradient: "from-cyan-500 to-sky-400" },
-  { name: "Snacks", slug: "snacks", icon: ShoppingBag, gradient: "from-amber-400 to-yellow-400" },
-  { name: "Sandwiches", slug: "sandwiches", icon: Sandwich, gradient: "from-amber-500 to-orange-500" },
-  { name: "Burgers", slug: "burgers", icon: ShoppingBag, gradient: "from-red-600 to-orange-500" },
-  { name: "Short Eats", slug: "short-eats", icon: Pizza, gradient: "from-pink-500 to-rose-500" },
-  { name: "Pizza", slug: "pizza", icon: Pizza, gradient: "from-rose-500 to-red-500" },
-  { name: "Cakes", slug: "cakes", icon: Cake, gradient: "from-pink-400 to-rose-300" },
-  { name: "Ice Cream", slug: "ice-cream", icon: IceCream, gradient: "from-fuchsia-400 to-pink-300" },
-  { name: "Fresh Fruits", slug: "fresh-fruits", icon: Apple, gradient: "from-green-400 to-emerald-300" },
-  { name: "Healthy", slug: "healthy", icon: Leaf, gradient: "from-emerald-500 to-green-500" },
-  { name: "Soups", slug: "soups", icon: Soup, gradient: "from-yellow-400 to-amber-300" },
+  {
+    name: "Soft Drinks",
+    slug: "soft-drinks",
+    emoji: "🥤",
+  },
+  {
+    name: "Coffee",
+    slug: "coffee",
+    emoji: "☕",
+  },
+  {
+    name: "Milk & Dairy",
+    slug: "milk-dairy",
+    emoji: "🥛",
+  },
+  {
+    name: "Water & Juice",
+    slug: "water-juice",
+    emoji: "💧",
+  },
+  {
+    name: "Snacks",
+    slug: "snacks",
+    emoji: "🍿",
+  },
+  {
+    name: "Sandwiches",
+    slug: "sandwiches",
+    emoji: "🥪",
+  },
+  {
+    name: "Burgers",
+    slug: "burgers",
+    emoji: "🍔",
+  },
+  {
+    name: "Short Eats",
+    slug: "short-eats",
+    emoji: "🍢",
+  },
+  {
+    name: "Pizza",
+    slug: "pizza",
+    emoji: "🍕",
+  },
+  {
+    name: "Cakes",
+    slug: "cakes",
+    emoji: "🍰",
+  },
+  {
+    name: "Ice Cream",
+    slug: "ice-cream",
+    emoji: "🍦",
+  },
+  {
+    name: "Fresh Fruits",
+    slug: "fresh-fruits",
+    emoji: "🍎",
+  },
+  {
+    name: "Healthy",
+    slug: "healthy",
+    emoji: "🥗",
+  },
+  {
+    name: "Soups",
+    slug: "soups",
+    emoji: "🥣",
+  },
 ];
 
 function getCurrentMealLabel() {
@@ -380,19 +436,18 @@ function FeaturedCategories({ isAdmin, categoryCounts = {}, adminBasePath = '/ad
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
         {FEATURED_CATEGORIES.map((category) => {
-          const Icon = category.icon;
           const path = isAdmin
             ? `${adminBasePath}/category/${category.slug}`
             : `/menu/category/${category.slug}`;
 
           return (
             <Link key={category.slug} to={path} className="group block no-underline">
-              <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${category.gradient} px-3 py-4 text-white shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-xl`}>
-                <div className="absolute inset-0 bg-white/0 transition-colors duration-300 group-hover:bg-white/10" />
+              <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-4 text-slate-900 shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <div className="absolute inset-0 bg-white/0 transition-colors duration-300 group-hover:bg-emerald-100/60" />
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  {Icon ? <Icon className="mb-2 h-4 w-4" /> : null}
+                  <span className="mb-2 text-3xl leading-none">{category.emoji}</span>
                   <span className="text-xs font-extrabold leading-tight">{category.name}</span>
-                  <p className="mt-1.5 text-[10px] font-semibold text-white/90">
+                  <p className="mt-1.5 text-[10px] font-semibold text-emerald-700">
                     {Number(categoryCounts[category.name] || 0)} items
                   </p>
                 </div>
@@ -1227,14 +1282,6 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
               </>
             )}
           </>
-        )}
-
-        {isAdmin && !isCategoryPage && (
-          <FeaturedCategories
-            isAdmin
-            categoryCounts={featuredCategoryCounts}
-            adminBasePath={adminBasePath}
-          />
         )}
 
         <div className="mt-6">

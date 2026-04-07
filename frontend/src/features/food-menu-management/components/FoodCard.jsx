@@ -5,7 +5,7 @@ import {
   Clock, TrendingUp, Shield, Sparkles, Crown,
   Eye, ShoppingBag, Zap, Award, Coffee, Pizza,
   Sandwich, Cake, Apple, Salad, Soup, Droplet,
-  CheckCircle, Plus, Minus, Info
+  CheckCircle, Info
 } from "lucide-react";
 import { getImageUrl } from "../api";
 
@@ -91,7 +91,6 @@ export default function FoodCard({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  const [quantity, setQuantity] = useState(1);
 
   const categoryGradient = getCategoryColor(item.category);
   const isVeg = item.type?.toLowerCase().includes("veg") || item.dietType === "Vegetarian";
@@ -99,8 +98,7 @@ export default function FoodCard({
 
   const handleAddToCart = () => {
     if (onAddToCart && !item.isOutOfStock) {
-      onAddToCart(item, quantity);
-      setQuantity(1);
+      onAddToCart(item, 1);
     }
   };
 
@@ -331,13 +329,13 @@ export default function FoodCard({
           )}
 
           {/* Student Rating Section */}
-          <div className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-3">
-            <p className="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-1">
-              <Sparkles size={12} className="text-yellow-500" />
+          <div className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 px-2.5 py-1.5">
+            <p className="mb-0.5 flex items-center gap-1 text-[11px] font-semibold text-gray-600">
+              <Sparkles size={10} className="text-yellow-500" />
               Rate this item
             </p>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, index) => {
                   const starValue = index + 1;
                   const active = starValue <= studentRating;
@@ -349,10 +347,10 @@ export default function FoodCard({
                       whileTap={{ scale: 0.9 }}
                       onClick={() => onRate?.(starValue)}
                       aria-label={`Rate ${starValue} stars`}
-                      className="rounded-full p-0.5 transition outline-none border-0"
+                      className="rounded-full p-0 transition outline-none border-0"
                     >
                       <Star
-                        size={20}
+                        size={16}
                         className={`transition-all ${
                           active 
                             ? "fill-yellow-400 text-yellow-400 drop-shadow-md" 
@@ -363,48 +361,12 @@ export default function FoodCard({
                   );
                 })}
               </div>
-              <span className="text-xs text-gray-500">
-                Your rating helps others
-              </span>
             </div>
           </div>
 
           {/* Add to Cart Section */}
           {showAddToCart && (
             <div className="space-y-3">
-              {!item.isOutOfStock && (
-                <motion.div 
-                  className="flex items-center justify-between gap-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <div className="flex items-center gap-2 bg-gray-100 rounded-xl p-1">
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-green-600 transition-colors outline-none border-0"
-                    >
-                      <Minus size={16} />
-                    </motion.button>
-                    <span className="w-8 text-center font-semibold text-gray-700">
-                      {quantity}
-                    </span>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-green-600 transition-colors outline-none border-0"
-                    >
-                      <Plus size={16} />
-                    </motion.button>
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Total: {formatCurrency(item.price * quantity)}
-                  </div>
-                </motion.div>
-              )}
-              
               <motion.button
                 whileHover={!item.isOutOfStock ? { scale: 1.02 } : {}}
                 whileTap={!item.isOutOfStock ? { scale: 0.98 } : {}}
@@ -424,7 +386,7 @@ export default function FoodCard({
                 ) : (
                   <>
                     <ShoppingBag size={18} />
-                    Add to Cart • {formatCurrency(item.price * quantity)}
+                    Add to Cart • {formatCurrency(item.price)}
                   </>
                 )}
               </motion.button>
