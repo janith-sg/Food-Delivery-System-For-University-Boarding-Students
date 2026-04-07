@@ -54,6 +54,15 @@ function isReturnPathAllowedForUser(user, path) {
   if (path === USER_PROFILE_PATH) {
     return ['admin', 'staff', 'customer'].includes(user?.accountType);
   }
+  // Group order / checkout: any logged-in role; allow resuming after login.
+  if (
+    path === '/group-order' ||
+    path.startsWith('/group-order/') ||
+    path === '/checkout' ||
+    path.startsWith('/checkout/')
+  ) {
+    return ['admin', 'staff', 'customer'].includes(user?.accountType);
+  }
   if (user?.accountType === 'admin') {
     return path.startsWith('/admin') || path === USER_PROFILE_PATH;
   }

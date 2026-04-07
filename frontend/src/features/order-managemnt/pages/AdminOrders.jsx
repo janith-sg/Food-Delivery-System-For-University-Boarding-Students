@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { TrendingUp, ShoppingCart, CheckCircle, Clock } from "lucide-react";
-import "../orderFont.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
@@ -132,7 +131,7 @@ const AdminOrders = () => {
   }, {});
 
   return (
-    <div className="order-feature-font min-h-screen bg-gray-50">
+    <div className="font-sans min-h-screen bg-gray-50">
       {deleteTarget && (
         <ConfirmModal
           message="This action cannot be undone."

@@ -68,8 +68,22 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/menu" element={<FoodMenu />} />
         <Route path="/menu/category/:categorySlug" element={<FoodMenu />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/group-order" element={<GroupOrderFlow />} />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff', 'customer']}>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/group-order"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff', 'customer']}>
+              <GroupOrderFlow />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/order-management"
           element={

@@ -54,7 +54,7 @@ const GroupCart = ({ groupCode, onBack }) => {
   const splitData = calculateSplit();
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="font-sans min-h-screen bg-gray-100 p-6">
       <div className="mx-auto max-w-4xl space-y-6">
 
         <div className="flex justify-between items-center">

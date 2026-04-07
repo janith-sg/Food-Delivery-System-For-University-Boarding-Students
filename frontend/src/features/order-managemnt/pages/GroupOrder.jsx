@@ -198,12 +198,15 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
       </div>
 
       {/* ── PAGE CONTENT ── */}
-      <div style={{
+      <div
+        className="font-sans"
+        style={{
         position: "relative", zIndex: 1,
         minHeight: "100vh",
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         padding: 16,
-      }}>
+      }}
+      >
         <div style={{ width: "100%", maxWidth: 440 }}>
 
           {/* ── Header glass card ── */}

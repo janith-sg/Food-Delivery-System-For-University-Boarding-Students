@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import GroupOrder from "./GroupOrder";
 import GroupMenu from "./GroupMenu";
 import GroupSummary from "./GroupSummary";
-import "../orderFont.css";
 
 const STEPS = {
   ENTRY: "ENTRY",
@@ -23,7 +22,7 @@ const GroupOrderFlow = () => {
 
   if (step === STEPS.SUMMARY) {
     return (
-      <div className="order-feature-font">
+      <div className="font-sans min-h-screen">
         <GroupSummary
           groupCode={groupCode}
           memberName={memberName}
@@ -35,7 +34,7 @@ const GroupOrderFlow = () => {
 
   if (step === STEPS.MENU) {
     return (
-      <div className="order-feature-font">
+      <div className="font-sans min-h-screen">
         <GroupMenu
           groupCode={groupCode}
           memberName={memberName}
@@ -47,7 +46,7 @@ const GroupOrderFlow = () => {
   }
 
   return (
-    <div className="order-feature-font">
+    <div className="font-sans min-h-screen">
       <GroupOrder onEnterGroup={handleEnterGroup} onBack={() => window.history.back()} />
     </div>
   );

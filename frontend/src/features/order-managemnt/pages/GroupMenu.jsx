@@ -156,7 +156,7 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
   const splitData = calculateSplit();
 
   return (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px]">
+    <div className="font-sans grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px]">
       {/* LEFT: Header + Menu */}
       <div className="space-y-5">
 

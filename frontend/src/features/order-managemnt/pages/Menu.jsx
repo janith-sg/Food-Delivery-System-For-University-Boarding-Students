@@ -59,7 +59,7 @@ const Menu = () => {
   };
 
   return (
-    <div className="mb-6">
+    <div className="font-sans mb-6">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>

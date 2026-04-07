@@ -11,7 +11,7 @@ const Cart = ({ onCheckout }) => {
   const totalItems = cartItems.reduce((sum, i) => sum + i.qty, 0);
 
   return (
-    <div className="sticky top-5 rounded-2xl bg-white border border-gray-100 shadow-md overflow-hidden">
+    <div className="font-sans sticky top-5 rounded-2xl bg-white border border-gray-100 shadow-md overflow-hidden">
       {/* Cart Header */}
       <div className="bg-green-600 px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">

@@ -33,7 +33,7 @@ const GroupStripePaymentForm = ({ onPaymentSuccess }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="font-sans space-y-4">
       <PaymentElement />
 
       {errorMessage && (

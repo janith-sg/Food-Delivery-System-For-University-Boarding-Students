@@ -245,7 +245,7 @@ const handleGroupCardPaymentSuccess = async () => {
     return (
       <>
         <Slideshow />
-        <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center", paddingTop: 100 }}>
+        <div className="font-sans" style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center", paddingTop: 100 }}>
           <svg style={{ animation: "go-spin 1s linear infinite", height: 36, width: 36, color: "#fff" }} fill="none" viewBox="0 0 24 24">
             <style>{"@keyframes go-spin { to { transform: rotate(360deg); } }"}</style>
             <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -260,7 +260,7 @@ const handleGroupCardPaymentSuccess = async () => {
     <>
       <Slideshow />
 
-      <div style={{ position: "relative", zIndex: 1, minHeight: "100vh", padding: 16 }}>
+      <div className="font-sans" style={{ position: "relative", zIndex: 1, minHeight: "100vh", padding: 16 }}>
         <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
 
           {/* Header */}
