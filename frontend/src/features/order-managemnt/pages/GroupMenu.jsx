@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getImageUrl } from "../../food-menu-management/api";
 import FoodCard from "../../food-menu-management/components/FoodCard";
+import CustomerMenuBar from "../../user-management/components/CustomerMenuBar";
+import { clearAuthWithAudit, getUser } from "../../../lib/auth";
+import { getProfilePath } from "../../../lib/postLoginRedirect";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
@@ -30,6 +34,7 @@ const getTagForItem = (item) => {
 };
 
 const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => {
+  const navigate = useNavigate();
   const [groupData, setGroupData] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
   const [loadingMenu, setLoadingMenu] = useState(true);
@@ -164,7 +169,17 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
   const splitData = calculateSplit();
 
   return (
-    <div className="font-sans grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px]">
+    <>
+      <CustomerMenuBar
+        onLogout={async () => {
+          await clearAuthWithAudit();
+          navigate("/login");
+        }}
+        onProfileClick={() => navigate(getProfilePath(getUser()))}
+        cartItemsCount={0}
+        onCartClick={() => navigate("/checkout")}
+      />
+      <div className="font-sans grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px]">
       {/* LEFT: Header + Menu */}
       <div className="space-y-5">
 
@@ -339,7 +354,8 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

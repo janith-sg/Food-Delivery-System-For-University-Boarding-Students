@@ -1,15 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import CustomerMenuBar from "../../user-management/components/CustomerMenuBar";
+import { clearAuthWithAudit, getUser } from "../../../lib/auth";
+import { getProfilePath } from "../../../lib/postLoginRedirect";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
-
-const SLIDE_IMAGES = [
-  "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1600&q=80",
-  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=80",
-  "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1600&q=80",
-  "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=1600&q=80",
-  "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1600&q=80",
-];
 
 const Field = ({ label, error, children }) => (
   <div>
@@ -31,9 +27,8 @@ const Spinner = () => (
 );
 
 const GroupOrder = ({ onEnterGroup, onBack }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("create");
-  const [current, setCurrent] = useState(0);
-  const [prev, setPrev] = useState(null);
 
   const [title, setTitle] = useState("");
   const [createdBy, setCreatedBy] = useState("");
@@ -45,16 +40,6 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
   const [message, setMessage] = useState({ text: "", type: "" });
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [loadingJoin, setLoadingJoin] = useState(false);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setPrev(current);
-      const next = (current + 1) % SLIDE_IMAGES.length;
-      setCurrent(next);
-      setTimeout(() => setPrev(null), 1200);
-    }, 4500);
-    return () => clearInterval(timer);
-  }, [current]);
 
   const minDateTime = new Date(Date.now() + 60000).toISOString().slice(0, 16);
 
@@ -149,53 +134,22 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
     boxSizing: "border-box",
   });
 
-  const slideBase = {
-    position: "absolute", top: "-10px", left: "-10px", right: "-10px", bottom: "-10px",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    filter: "blur(5px)",
-  };
-
   return (
     <>
       <style>{`
         @keyframes go-spin    { to { transform: rotate(360deg); } }
-        @keyframes bg-fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes bg-fade-out{ from { opacity: 1; } to { opacity: 0; } }
-        @keyframes kb-zoom    { from { transform: scale(1); } to { transform: scale(1.07); } }
-        html, body, #root { margin: 0; padding: 0; background: #000; }
         .back-btn:hover { background: rgba(255,255,255,0.28) !important; }
       `}</style>
 
-      {/* ── BACKGROUND SLIDESHOW ── */}
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: "hidden" }}>
-        {prev !== null && (
-          <div style={{
-            ...slideBase,
-            backgroundImage: `url(${SLIDE_IMAGES[prev]})`,
-            animation: "bg-fade-out 1.2s ease forwards",
-          }} />
-        )}
-        <div style={{
-          ...slideBase,
-          backgroundImage: `url(${SLIDE_IMAGES[current]})`,
-          animation: "bg-fade-in 1.2s ease forwards, kb-zoom 5s ease forwards",
-        }} />
-        <div style={{
-          position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-          background: "rgba(0,0,0,0.35)",
-        }} />
-        <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 7, zIndex: 10 }}>
-          {SLIDE_IMAGES.map((_, i) => (
-            <span key={i} style={{
-              display: "inline-block", height: 7, borderRadius: 999,
-              width: i === current ? 22 : 7,
-              background: i === current ? "#fff" : "rgba(255,255,255,0.38)",
-              transition: "all 0.5s ease",
-            }} />
-          ))}
-        </div>
-      </div>
+      <CustomerMenuBar
+        onLogout={async () => {
+          await clearAuthWithAudit();
+          navigate("/login");
+        }}
+        onProfileClick={() => navigate(getProfilePath(getUser()))}
+        cartItemsCount={0}
+        onCartClick={() => navigate("/checkout")}
+      />
 
       {/* ── PAGE CONTENT ── */}
       <div

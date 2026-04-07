@@ -1,41 +1,26 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import GroupStripePaymentForm from "./GroupStripePaymentForm";
 import generateGroupOrderInvoice from "../utils/generateGroupOrderInvoice";
+import CustomerMenuBar from "../../user-management/components/CustomerMenuBar";
+import { clearAuthWithAudit, getUser } from "../../../lib/auth";
+import { getProfilePath } from "../../../lib/postLoginRedirect";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-const SLIDE_IMAGES = [
-  "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1600&q=80",
-  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=80",
-  "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1600&q=80",
-  "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=1600&q=80",
-  "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1600&q=80",
-];
-
 const GroupSummary = ({ groupCode, memberName, onBack }) => {
+  const navigate = useNavigate();
   const [groupData, setGroupData] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const [current, setCurrent] = useState(0);
-  const [prev, setPrev] = useState(null);
   const [clientSecret, setClientSecret] = useState("");
 const [stripeReady, setStripeReady] = useState(false);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setPrev(current);
-      const next = (current + 1) % SLIDE_IMAGES.length;
-      setCurrent(next);
-      setTimeout(() => setPrev(null), 1200);
-    }, 4500);
-    return () => clearInterval(timer);
-  }, [current]);
 
   const fetchGroup = async () => {
     setFetching(true);
@@ -127,53 +112,6 @@ const [stripeReady, setStripeReady] = useState(false);
     overflow: "hidden",
   };
 
-  const slideBase = {
-    position: "absolute", top: "-10px", left: "-10px", right: "-10px", bottom: "-10px",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    filter: "blur(5px)",
-  };
-
-  const Slideshow = () => (
-    <>
-      <style>{`
-        @keyframes bg-fade-in  { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes bg-fade-out { from { opacity: 1; } to { opacity: 0; } }
-        @keyframes kb-zoom     { from { transform: scale(1); } to { transform: scale(1.07); } }
-        @keyframes go-spin     { to { transform: rotate(360deg); } }
-        html, body, #root { margin: 0; padding: 0; background: #000; }
-      `}</style>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: "hidden" }}>
-        {prev !== null && (
-          <div style={{
-            ...slideBase,
-            backgroundImage: `url(${SLIDE_IMAGES[prev]})`,
-            animation: "bg-fade-out 1.2s ease forwards",
-          }} />
-        )}
-        <div style={{
-          ...slideBase,
-          backgroundImage: `url(${SLIDE_IMAGES[current]})`,
-          animation: "bg-fade-in 1.2s ease forwards, kb-zoom 5s ease forwards",
-        }} />
-        <div style={{
-          position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-          background: "rgba(0,0,0,0.35)",
-        }} />
-        <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 7, zIndex: 10 }}>
-          {SLIDE_IMAGES.map((_, i) => (
-            <span key={i} style={{
-              display: "inline-block", height: 7, borderRadius: 999,
-              width: i === current ? 22 : 7,
-              background: i === current ? "#fff" : "rgba(255,255,255,0.38)",
-              transition: "all 0.5s ease",
-            }} />
-          ))}
-        </div>
-      </div>
-    </>
-  );
-
   const handleCreateGroupPaymentIntent = async () => {
   if (!groupData?.items?.length) {
     alert("Please add items before paying.");
@@ -244,7 +182,15 @@ const handleGroupCardPaymentSuccess = async () => {
   if (fetching) {
     return (
       <>
-        <Slideshow />
+        <CustomerMenuBar
+          onLogout={async () => {
+            await clearAuthWithAudit();
+            navigate("/login");
+          }}
+          onProfileClick={() => navigate(getProfilePath(getUser()))}
+          cartItemsCount={0}
+          onCartClick={() => navigate("/checkout")}
+        />
         <div className="font-sans" style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center", paddingTop: 100 }}>
           <svg style={{ animation: "go-spin 1s linear infinite", height: 36, width: 36, color: "#fff" }} fill="none" viewBox="0 0 24 24">
             <style>{"@keyframes go-spin { to { transform: rotate(360deg); } }"}</style>
@@ -258,8 +204,15 @@ const handleGroupCardPaymentSuccess = async () => {
 
   return (
     <>
-      <Slideshow />
-
+      <CustomerMenuBar
+        onLogout={async () => {
+          await clearAuthWithAudit();
+          navigate("/login");
+        }}
+        onProfileClick={() => navigate(getProfilePath(getUser()))}
+        cartItemsCount={0}
+        onCartClick={() => navigate("/checkout")}
+      />
       <div className="font-sans" style={{ position: "relative", zIndex: 1, minHeight: "100vh", padding: 16 }}>
         <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
 
