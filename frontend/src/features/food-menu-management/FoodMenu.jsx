@@ -1,6 +1,38 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, Sparkles, Star, Clock, TrendingUp, Shield, Zap, Heart, ShoppingBag, Coffee, Sun, Moon, Users, Award, Crown, Flame, Leaf, Pizza, Sandwich, Cake, IceCream, Apple, Salad, Soup, Droplet, Milk, Coffee as CoffeeIcon } from "lucide-react";
+import {
+  ChevronLeft,
+  Sparkles,
+  Star,
+  Clock,
+  TrendingUp,
+  Shield,
+  Zap,
+  Heart,
+  ShoppingBag,
+  Minus,
+  Plus,
+  Trash2,
+  X,
+  Coffee,
+  Sun,
+  Moon,
+  Users,
+  Award,
+  Crown,
+  Flame,
+  Leaf,
+  Pizza,
+  Sandwich,
+  Cake,
+  IceCream,
+  Apple,
+  Salad,
+  Soup,
+  Droplet,
+  Milk,
+  Coffee as CoffeeIcon,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminPanel from "./components/AdminPanel";
 import FilterBar from "./components/FilterBar";
@@ -1118,7 +1150,7 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
   };
 
   return (
-    <div className="food-menu-feature-font min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="food-menu-feature-font font-sans min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {showUserMenuBar ? (
         isLoggedInCustomer ? (
           <CustomerMenuBar
@@ -1151,18 +1183,17 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
             <nav className="hidden items-center gap-8 text-sm font-medium text-black md:flex">
               <Link to="/" className="text-black no-underline transition hover:text-black/80">Home</Link>
               <a href="#all-products" className="text-black no-underline transition hover:text-black/80">Our Menu</a>
-              <a href="/#team" className="text-black no-underline transition hover:text-black/80">Team</a>
               <Link to="/group-order" className="text-black no-underline transition hover:text-black/80">Group Order</Link>
               <button
                 type="button"
                 onClick={() => setIsCartOpen(true)}
-                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-green-50 text-green-700 transition hover:bg-green-100 outline-none border-0"
+                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border-0 bg-green-50 text-green-700 shadow-none outline-none ring-0 transition hover:bg-green-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-0"
                 aria-label={`Open cart (${cartItemsCount} items)`}
               >
                 <span className="text-base leading-none" aria-hidden>
                   🛒
                 </span>
-                <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-green-600 px-1.5 text-[10px] font-bold text-white">
+                <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full border-0 bg-green-600 px-1.5 text-[10px] font-bold text-white shadow-none ring-0">
                   {cartItemsCount}
                 </span>
               </button>
@@ -1323,98 +1354,178 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
 
           <AnimatePresence>
             {!isAdmin && isCartOpen && (
-              <motion.aside
-                initial={{ opacity: 0, x: 42 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 42 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                className="fixed bottom-24 right-4 z-50 w-[calc(100vw-2rem)] max-w-sm sm:bottom-24 sm:right-6"
-              >
-                <div className="max-h-[72vh] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
-                <div className="flex items-center justify-between bg-green-600 px-4 py-3 text-white">
-                  <h3 className="text-base font-bold">My Cart</h3>
-                  <button
-                    type="button"
-                    onClick={() => setIsCartOpen(false)}
-                    className="rounded-md bg-white/20 px-2 py-1 text-xs font-semibold transition hover:bg-white/30"
-                  >
-                    Close
-                  </button>
-                </div>
-
-                <div className="max-h-[46vh] overflow-y-auto p-4">
-                  {cart.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-gray-500">Your cart is empty.</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {cart.map((entry) => (
-                        <div key={entry._id} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-semibold text-slate-800">{entry.name}</p>
-                            <p className="text-sm font-bold text-green-700">
-                              Rs. {(Number(entry.price || 0) * Number(entry.quantity || 0)).toLocaleString()}
-                            </p>
-                          </div>
-
-                          <div className="mt-3 flex items-center justify-between">
-                            <div className="inline-flex items-center overflow-hidden rounded-lg border border-gray-200 bg-white">
-                              <button
-                                type="button"
-                                onClick={() => handleDecreaseCartItem(entry._id)}
-                                className="h-8 w-8 text-gray-700 transition hover:bg-gray-100"
-                              >
-                                -
-                              </button>
-                              <span className="w-8 text-center text-sm font-semibold">{entry.quantity}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleIncreaseCartItem(entry._id)}
-                                className="h-8 w-8 text-gray-700 transition hover:bg-gray-100"
-                              >
-                                +
-                              </button>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveCartItem(entry._id)}
-                              className="text-xs font-semibold text-rose-600 hover:text-rose-700"
-                            >
-                              Remove
-                            </button>
-                          </div>
+              <>
+                <motion.div
+                  key="cart-backdrop"
+                  role="presentation"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 z-40 bg-slate-900/45 backdrop-blur-[3px]"
+                  onClick={() => setIsCartOpen(false)}
+                />
+                <motion.aside
+                  key="cart-drawer"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="food-cart-title"
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{ type: "spring", damping: 30, stiffness: 320 }}
+                  className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-slate-200/80 bg-white shadow-[0_0_48px_-12px_rgba(15,23,42,0.25)]"
+                >
+                  <div className="relative overflow-hidden border-b border-slate-100 bg-gradient-to-br from-emerald-600 via-emerald-600 to-teal-700 px-5 pb-5 pt-6 text-white">
+                    <div
+                      className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl"
+                      aria-hidden
+                    />
+                    <div className="relative flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20">
+                          <ShoppingBag className="h-5 w-5" strokeWidth={2} aria-hidden />
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="border-t border-gray-100 bg-white p-4">
-                  <div className="space-y-1 text-sm text-gray-600">
-                    <div className="flex items-center justify-between">
-                      <span>Subtotal</span>
-                      <span className="font-semibold">Rs. {cartSubTotal.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Delivery</span>
-                      <span className="font-semibold">Rs. {cartDeliveryFee.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between border-t border-gray-200 pt-2 text-base font-bold text-slate-900">
-                      <span>Total</span>
-                      <span>Rs. {cartTotal.toLocaleString()}</span>
+                        <div>
+                          <h3 id="food-cart-title" className="text-lg font-bold tracking-tight">
+                            Your cart
+                          </h3>
+                          <p className="text-sm text-emerald-100">
+                            {cartItemsCount === 0
+                              ? "No items yet"
+                              : `${cartItemsCount} ${cartItemsCount === 1 ? "item" : "items"}`}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsCartOpen(false)}
+                        className="rounded-xl border-0 bg-white/15 p-2 text-white shadow-none outline-none ring-0 transition hover:bg-white/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-0"
+                        aria-label="Close cart"
+                      >
+                        <X className="h-5 w-5" strokeWidth={2} aria-hidden />
+                      </button>
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleCheckoutClick}
-                    className="mt-3 w-full rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-green-700"
-                  >
-                    Go to Checkout
-                  </button>
-                </div>
-              </div>
-              </motion.aside>
+                  <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50/80">
+                    <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+                      {cart.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+                          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-200/60 text-slate-400">
+                            <ShoppingBag className="h-8 w-8" strokeWidth={1.5} aria-hidden />
+                          </div>
+                          <p className="text-base font-semibold text-slate-800">Your cart is empty</p>
+                          <p className="mt-1 max-w-[240px] text-sm text-slate-500">
+                            Add meals from the menu — they&apos;ll show up here.
+                          </p>
+                        </div>
+                      ) : (
+                        <ul className="space-y-3">
+                          {cart.map((entry) => (
+                            <li
+                              key={entry._id}
+                              className="overflow-hidden rounded-2xl border border-slate-100 bg-white p-3 shadow-sm transition hover:border-emerald-200/60 hover:shadow-md"
+                            >
+                              <div className="flex gap-3">
+                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                                  {entry.image ? (
+                                    <img
+                                      src={entry.image}
+                                      alt=""
+                                      className="h-full w-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-slate-300">
+                                      <ShoppingBag className="h-6 w-6" strokeWidth={1.5} aria-hidden />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <p className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900">
+                                      {entry.name}
+                                    </p>
+                                    <p className="shrink-0 text-sm font-bold tabular-nums text-emerald-700">
+                                      Rs.{" "}
+                                      {(
+                                        Number(entry.price || 0) * Number(entry.quantity || 0)
+                                      ).toLocaleString()}
+                                    </p>
+                                  </div>
+                                  <div className="mt-3 flex items-center justify-between gap-2">
+                                    <div className="inline-flex items-center rounded-full border border-slate-200/90 bg-slate-50 p-0.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDecreaseCartItem(entry._id)}
+                                        className="flex h-8 w-8 items-center justify-center rounded-full border-0 bg-transparent text-slate-600 shadow-none outline-none ring-0 transition hover:bg-white hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35 focus-visible:ring-offset-0"
+                                        aria-label="Decrease quantity"
+                                      >
+                                        <Minus className="h-4 w-4" strokeWidth={2} aria-hidden />
+                                      </button>
+                                      <span className="min-w-[2rem] text-center text-sm font-bold tabular-nums text-slate-900">
+                                        {entry.quantity}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleIncreaseCartItem(entry._id)}
+                                        className="flex h-8 w-8 items-center justify-center rounded-full border-0 bg-transparent text-slate-600 shadow-none outline-none ring-0 transition hover:bg-white hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35 focus-visible:ring-offset-0"
+                                        aria-label="Increase quantity"
+                                      >
+                                        <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
+                                      </button>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveCartItem(entry._id)}
+                                      className="inline-flex items-center gap-1 rounded-full border-0 bg-transparent px-2 py-1 text-xs font-semibold text-rose-600 shadow-none outline-none ring-0 transition hover:bg-rose-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-0"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div className="border-t border-slate-200/80 bg-white p-5 shadow-[0_-8px_24px_-8px_rgba(15,23,42,0.08)]">
+                      <div className="space-y-2.5 text-sm">
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span>Subtotal</span>
+                          <span className="font-semibold tabular-nums text-slate-900">
+                            Rs. {cartSubTotal.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span>Delivery</span>
+                          <span className="font-semibold tabular-nums text-slate-900">
+                            Rs. {cartDeliveryFee.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-base">
+                          <span className="font-semibold text-slate-900">Total</span>
+                          <span className="text-lg font-bold tabular-nums text-emerald-700">
+                            Rs. {cartTotal.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleCheckoutClick}
+                        disabled={cart.length === 0}
+                        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-0 bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/25 outline-none ring-0 transition hover:from-emerald-500 hover:to-teal-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+                      >
+                        Go to checkout
+                      </button>
+                    </div>
+                  </div>
+                </motion.aside>
+              </>
             )}
           </AnimatePresence>
         </div>

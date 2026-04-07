@@ -119,11 +119,11 @@ const CustomerMenuBar = ({ onLogout, onProfileClick, cartItemsCount = 0, onCartC
           <button
             type="button"
             onClick={onCartClick}
-            className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600/40 sm:h-9 sm:w-9"
+            className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-0 bg-emerald-50 text-emerald-700 shadow-none outline-none ring-0 transition hover:bg-emerald-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-0 sm:h-9 sm:w-9"
             aria-label={`Open cart (${count} items)`}
           >
             <ShoppingCart className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={2} aria-hidden />
-            <span className="absolute -right-0.5 -top-0.5 inline-flex min-w-[1.125rem] items-center justify-center rounded-full bg-emerald-600 px-1 text-[9px] font-bold leading-none text-white sm:text-[10px]">
+            <span className="absolute -right-0.5 -top-0.5 inline-flex min-w-[1.125rem] items-center justify-center rounded-full border-0 bg-emerald-600 px-1 text-[9px] font-bold leading-none text-white shadow-none ring-0 sm:text-[10px]">
               {count}
             </span>
           </button>

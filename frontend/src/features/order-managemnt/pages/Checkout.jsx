@@ -5,7 +5,6 @@ import { Elements } from "@stripe/react-stripe-js";
 import { Search, MapPin } from "lucide-react";
 import StripePaymentForm from "./StripePaymentForm";
 import generateOrderInvoice from "../utils/generateOrderInvoice";
-import "../orderFont.css";
 
 const CART_STORAGE_KEY = "food_menu_cart";
 const PURCHASED_ITEMS_KEY = "food_menu_purchased_items";
@@ -397,7 +396,7 @@ const Checkout = ({ onBack }) => {
 
   if (success) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-2xl bg-white p-8 text-center shadow-md">
+      <div className="font-sans flex flex-col items-center justify-center gap-4 rounded-2xl bg-white p-8 text-center shadow-md">
         <div className="text-4xl">✅</div>
         <h2 className="text-2xl font-extrabold text-gray-900">Order Placed!</h2>
         <p className="max-w-sm text-sm text-gray-500">
@@ -414,7 +413,7 @@ const Checkout = ({ onBack }) => {
   }
 
   return (
-    <div className="order-feature-font overflow-hidden rounded-2xl bg-white shadow-md">
+    <div className="font-sans overflow-hidden rounded-2xl bg-white shadow-md">
       <div className="flex items-center gap-4 bg-green-600 px-6 py-5">
         <button
           onClick={() => (onBack ? onBack() : window.history.back())}

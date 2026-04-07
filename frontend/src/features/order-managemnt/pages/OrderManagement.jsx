@@ -2,14 +2,13 @@ import React, { useState } from "react";
 import Menu from "./Menu";
 import Cart from "./Cart";
 import Checkout from "./Checkout";
-import "../orderFont.css";
 
 const OrderManagement = () => {
   const [showCheckout, setShowCheckout] = useState(false);
 
   if (showCheckout) {
     return (
-      <main className="order-feature-font min-h-screen bg-gradient-to-b from-gray-50 to-white px-4 py-8 sm:px-6 lg:px-8">
+      <main className="font-sans min-h-screen bg-gradient-to-b from-gray-50 to-white px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-5xl">
           <Checkout onBack={() => setShowCheckout(false)} />
         </div>
@@ -18,7 +17,7 @@ const OrderManagement = () => {
   }
 
   return (
-    <main className="order-feature-font min-h-screen bg-gradient-to-b from-gray-50 to-white px-4 py-8 sm:px-6 lg:px-8">
+    <main className="font-sans min-h-screen bg-gradient-to-b from-gray-50 to-white px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-6">
           <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">Order Management</h1>
