@@ -1,10 +1,15 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { Search, MapPin } from "lucide-react";
 import StripePaymentForm from "./StripePaymentForm";
 import generateOrderInvoice from "../utils/generateOrderInvoice";
+import UserMenuBar from "../../user-management/components/UserMenuBar";
+import CustomerMenuBar from "../../user-management/components/CustomerMenuBar";
+import { clearAuthWithAudit, getToken, getUser } from "../../../lib/auth";
+import { getProfilePath } from "../../../lib/postLoginRedirect";
 
 const CART_STORAGE_KEY = "food_menu_cart";
 const PURCHASED_ITEMS_KEY = "food_menu_purchased_items";
@@ -12,7 +17,10 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
 const Checkout = ({ onBack }) => {
+  const navigate = useNavigate();
   const cartContext = useContext(CartContext) || {};
+  const showUserMenuBar = Boolean(getToken()) && getUser()?.accountType === "customer";
+  const isLoggedInCustomer = Boolean(getToken()) && getUser()?.accountType === "customer";
   const [localCartItems, setLocalCartItems] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -396,24 +404,71 @@ const Checkout = ({ onBack }) => {
 
   if (success) {
     return (
-      <div className="font-sans flex flex-col items-center justify-center gap-4 rounded-2xl bg-white p-8 text-center shadow-md">
-        <div className="text-4xl">✅</div>
-        <h2 className="text-2xl font-extrabold text-gray-900">Order Placed!</h2>
-        <p className="max-w-sm text-sm text-gray-500">
-          Your order has been received. We will deliver it shortly.
-        </p>
-        <button
-          onClick={() => (onBack ? onBack() : window.history.back())}
-          className="rounded-xl bg-green-600 px-8 py-3 text-sm font-bold text-white transition hover:bg-green-700"
-        >
-          Back to Menu
-        </button>
+      <div className="space-y-3">
+        {showUserMenuBar ? (
+          isLoggedInCustomer ? (
+            <CustomerMenuBar
+              onLogout={async () => {
+                await clearAuthWithAudit();
+                navigate("/login");
+              }}
+              onProfileClick={() => navigate(getProfilePath(getUser()))}
+              cartItemsCount={0}
+              onCartClick={() => {}}
+            />
+          ) : (
+            <UserMenuBar
+              onLogout={async () => {
+                await clearAuthWithAudit();
+                navigate("/login");
+              }}
+              onProfileClick={() => navigate(getProfilePath(getUser()))}
+            />
+          )
+        ) : null}
+
+        <div className="font-sans flex flex-col items-center justify-center gap-4 rounded-2xl bg-white p-8 text-center shadow-md">
+          <div className="text-4xl">✅</div>
+          <h2 className="text-2xl font-extrabold text-gray-900">Order Placed!</h2>
+          <p className="max-w-sm text-sm text-gray-500">
+            Your order has been received. We will deliver it shortly.
+          </p>
+          <button
+            onClick={() => (onBack ? onBack() : window.history.back())}
+            className="rounded-xl bg-green-600 px-8 py-3 text-sm font-bold text-white transition hover:bg-green-700"
+          >
+            Back to Menu
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="font-sans overflow-hidden rounded-2xl bg-white shadow-md">
+    <div className="space-y-3">
+      {showUserMenuBar ? (
+        isLoggedInCustomer ? (
+          <CustomerMenuBar
+            onLogout={async () => {
+              await clearAuthWithAudit();
+              navigate("/login");
+            }}
+            onProfileClick={() => navigate(getProfilePath(getUser()))}
+            cartItemsCount={normalizedCartItems.reduce((sum, item) => sum + Number(item.qty || 0), 0)}
+            onCartClick={() => {}}
+          />
+        ) : (
+          <UserMenuBar
+            onLogout={async () => {
+              await clearAuthWithAudit();
+              navigate("/login");
+            }}
+            onProfileClick={() => navigate(getProfilePath(getUser()))}
+          />
+        )
+      ) : null}
+
+      <div className="font-sans overflow-hidden rounded-2xl bg-white shadow-md">
       <div className="flex items-center gap-4 bg-green-600 px-6 py-5">
         <button
           onClick={() => (onBack ? onBack() : window.history.back())}
@@ -622,6 +677,7 @@ const Checkout = ({ onBack }) => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };
