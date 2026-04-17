@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Calendar, Search } from 'lucide-react';
+import { syncAxiosAuth } from '../../../../lib/auth';
 import AdminPageShell from '../../components/AdminPageShell';
 
 function formatDateLine(iso) {
@@ -43,6 +44,7 @@ export default function AuditLogsPage() {
     if (!silent) setLoading(true);
     setError('');
     try {
+      syncAxiosAuth();
       const params = {};
       const s = debouncedQ.trim();
       if (s) params.q = s;
@@ -50,7 +52,15 @@ export default function AuditLogsPage() {
       const { data } = await axios.get('/api/audit-logs', { params });
       setRows(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e.response?.data?.message || e.message || 'Could not load audit logs.');
+      const status = e.response?.status;
+      const serverMsg = e.response?.data?.message;
+      if (status === 401) {
+        setError(
+          'Unauthorized — your login session may have expired, or the server could not verify your token. Log out and log in again as an admin.',
+        );
+      } else {
+        setError(serverMsg || e.message || 'Could not load audit logs.');
+      }
       setRows([]);
     } finally {
       if (!silent) setLoading(false);
@@ -91,7 +101,7 @@ export default function AuditLogsPage() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search by user ID or action..."
+              placeholder="Search by name, user ID, or action..."
               className="w-full rounded-md border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-admin-accent focus:ring-1 focus:ring-admin-accent/35"
               aria-label="Search audit logs"
             />
@@ -121,7 +131,7 @@ export default function AuditLogsPage() {
               <table className="w-full min-w-[800px] border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50">
-                    {['Log ID', 'User ID', 'Timestamp', 'Action', 'IP address'].map((h) => (
+                    {['Log ID', 'User', 'Timestamp', 'Action', 'IP address'].map((h) => (
                       <th
                         key={h}
                         className="px-5 py-4 text-xs font-bold uppercase tracking-wide text-slate-500"
@@ -144,7 +154,12 @@ export default function AuditLogsPage() {
                         <td className="px-5 py-4 font-semibold text-slate-900">
                           #{r.logId ?? '—'}
                         </td>
-                        <td className="px-5 py-4 text-slate-800">{r.userId || '—'}</td>
+                        <td className="px-5 py-4 text-slate-800">
+                          <div className="font-medium text-slate-900">{r.userName || r.userId || '—'}</div>
+                          {r.userName && r.userId && r.userName !== r.userId ? (
+                            <div className="mt-0.5 text-xs text-slate-500">{r.userId}</div>
+                          ) : null}
+                        </td>
                         <td className="px-5 py-4 text-slate-800">
                           <div className="leading-tight">
                             <div>{formatDateLine(r.timestamp)}</div>

@@ -11,6 +11,7 @@ import CustomerManagementPage from './features/user-management/pages/admin/Custo
 import CustomerDetailPage from './features/user-management/pages/admin/CustomerDetailPage';
 import UserRolesPermissionsPage from './features/user-management/pages/admin/UserRolesPermissionsPage';
 import AuditLogsPage from './features/user-management/pages/admin/AuditLogsPage';
+import AdminChatPage from './features/user-management/pages/admin/AdminChatPage';
 import AdminProfilePage from './features/user-management/pages/admin/AdminProfilePage';
 import LoginPage from './features/user-management/pages/LoginPage';
 import RegisterPage from './features/user-management/pages/RegisterPage';
@@ -140,7 +141,7 @@ function App() {
             <Route path="staff-management" element={<RoleManagementPage />} />
             <Route path="staff-user-roles" element={<UserRolesPermissionsPage />} />
             <Route path="logs-monitoring" element={<AuditLogsPage />} />
-            <Route path="chat" element={<div className="min-h-[200px]" aria-hidden />} />
+            <Route path="chat" element={<AdminChatPage />} />
             <Route path="role-management" element={<Navigate to="/admin/staff-management" replace />} />
             <Route path="customer-management/:customerId" element={<CustomerDetailPage />} />
             <Route path="customer-management" element={<CustomerManagementPage />} />

@@ -22,6 +22,7 @@ const deliveryRoutes = require("./routes/deliveryRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const staffRolesRoutes = require("./routes/staffRoles");
 const auditLogsRoutes = require("./routes/auditLogs");
+const supportChatRoutes = require("./routes/supportChat");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,7 @@ app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/staff-roles", staffRolesRoutes);
 app.use("/api/audit-logs", auditLogsRoutes);
+app.use("/api/support-chat", supportChatRoutes);
 
 app.get("/", (req, res) => res.send("UNI EATS API — OK"));
 

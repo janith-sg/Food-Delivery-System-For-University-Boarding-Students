@@ -24,25 +24,35 @@ router.get("/", requireAdmin, async (req, res) => {
       }
     }
 
-    let query = AuditLog.find(filter).sort({ createdAt: -1 }).limit(500).lean();
+    const docs = await AuditLog.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(500)
+      .populate("userRef", "fullName")
+      .lean();
 
-    const docs = await query.exec();
-
-    let rows = docs.map((doc) => ({
-      id: doc._id.toString(),
-      logId: doc.seq,
-      userId: doc.userId,
-      timestamp: doc.createdAt ? new Date(doc.createdAt).toISOString() : null,
-      action: doc.action,
-      ipAddress: doc.ipAddress || "—",
-    }));
+    let rows = docs.map((doc) => {
+      const name =
+        doc.userRef && typeof doc.userRef === "object" && doc.userRef.fullName
+          ? String(doc.userRef.fullName).trim()
+          : "";
+      return {
+        id: doc._id.toString(),
+        logId: doc.seq,
+        userId: doc.userId,
+        userName: name || doc.userId,
+        timestamp: doc.createdAt ? new Date(doc.createdAt).toISOString() : null,
+        action: doc.action,
+        ipAddress: doc.ipAddress || "—",
+      };
+    });
 
     if (q) {
       rows = rows.filter((r) => {
         const idMatch = String(r.logId).includes(q) || r.id.toLowerCase().includes(q);
         const userMatch = (r.userId || "").toLowerCase().includes(q);
+        const nameMatch = (r.userName || "").toLowerCase().includes(q);
         const actionMatch = (r.action || "").toLowerCase().includes(q);
-        return idMatch || userMatch || actionMatch;
+        return idMatch || userMatch || nameMatch || actionMatch;
       });
     }
 
