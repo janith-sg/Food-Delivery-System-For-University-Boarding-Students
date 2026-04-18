@@ -106,19 +106,19 @@ export default function FoodCard({
     <motion.article
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      whileHover={{ y: -8 }}
+      whileHover={{ y: -6 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       className={`group relative ${disabledOutOfStock ? "opacity-60" : ""}`}
     >
       <ParticleEffect isHovered={isHovered} />
       
-      <div className={`relative bg-white rounded-3xl shadow-xl overflow-hidden transition-all duration-500 ${
+      <div className={`relative bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-500 ${
         isHovered ? "shadow-2xl" : ""
       }`}>
         
         {/* 3D Rotating Image Container */}
-        <div className="relative h-52 overflow-hidden cursor-pointer group/image">
+        <div className="relative h-36 overflow-hidden cursor-pointer group/image">
           <motion.div
             whileHover={{ scale: 1.1 }}
             transition={{ duration: 0.4 }}
@@ -141,7 +141,7 @@ export default function FoodCard({
           }`} />
           
           {/* Badges */}
-          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          <div className="absolute left-2.5 top-2.5 flex flex-wrap gap-1.5">
             {item.isPopular && (
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
@@ -149,7 +149,7 @@ export default function FoodCard({
                 className="relative"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur-sm" />
-                <span className="relative inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full text-xs font-bold text-white shadow-lg">
+                <span className="relative inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full text-[10px] font-bold text-white shadow-lg">
                   <Flame size={14} />
                   Popular
                 </span>
@@ -162,7 +162,7 @@ export default function FoodCard({
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.05 }}
               >
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full text-xs font-bold text-white shadow-lg">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full text-[10px] font-bold text-white shadow-lg">
                   <Zap size={14} />
                   Budget Deal
                 </span>
@@ -175,7 +175,7 @@ export default function FoodCard({
                 animate={{ scale: 1 }}
                 transition={{ type: "spring" }}
               >
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-gray-700 to-gray-800 rounded-full text-xs font-bold text-white shadow-lg">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-gray-700 to-gray-800 rounded-full text-[10px] font-bold text-white shadow-lg">
                   <Package size={14} />
                   Out of Stock
                 </span>
@@ -188,9 +188,9 @@ export default function FoodCard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 20 }}
             onClick={() => setShowDetails(!showDetails)}
-            className="absolute bottom-3 right-3 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg hover:bg-white transition-all"
+            className="absolute bottom-2 right-2 p-1.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg hover:bg-white transition-all"
           >
-            <Eye size={18} className="text-gray-700" />
+            <Eye size={16} className="text-gray-700" />
           </motion.button>
           
           {/* Price Tag */}
@@ -198,11 +198,11 @@ export default function FoodCard({
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="absolute bottom-3 left-3"
+            className="absolute bottom-2 left-2"
           >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full blur-sm" />
-              <span className="relative block px-3 py-1.5 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full text-sm font-bold text-white shadow-lg">
+              <span className="relative block px-2 py-0.5 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full text-[11px] font-bold text-white shadow-lg">
                 {formatCurrency(item.price)}
               </span>
             </div>
@@ -210,43 +210,43 @@ export default function FoodCard({
         </div>
 
         {/* Content */}
-        <div className="p-5 space-y-4">
+        <div className="p-3 space-y-2.5">
           {/* Title & Rating */}
           <div>
-            <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="mb-1 flex items-start justify-between gap-2">
               <motion.h3 
-                className="text-xl font-bold text-gray-800 line-clamp-1"
+                className="text-base font-bold text-gray-800 line-clamp-1"
                 whileHover={{ scale: 1.02 }}
               >
                 {item.name}
               </motion.h3>
               {isVeg && (
-                <Leaf size={20} className="text-green-600 flex-shrink-0" />
+                <Leaf size={16} className="text-green-600 flex-shrink-0" />
               )}
             </div>
             
-            <div className="flex items-center gap-2 mb-3">
-              <span className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${categoryGradient} text-white font-medium`}>
+            <div className="mb-1.5 flex items-center gap-1.5">
+              <span className={`text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r ${categoryGradient} text-white font-medium`}>
                 {item.category}
               </span>
-              <span className="text-xs text-gray-500">{item.portion || "Standard"}</span>
+              <span className="text-[10px] text-gray-500">{item.portion || "Standard"}</span>
             </div>
             
             {/* Rating Bar */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-sm">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px]">
                 <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                   <span className="font-semibold text-gray-700">
                     {item.ratingAverage.toFixed(1)}
                   </span>
-                  <span className="text-gray-400 text-xs">
+                  <span className="text-[10px] text-gray-400">
                     ({item.ratingCount} reviews)
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Clock size={12} className="text-gray-400" />
-                  <span className="text-xs text-gray-500">{item.preparationTime || "15-20 min"}</span>
+                  <Clock size={11} className="text-gray-400" />
+                  <span className="text-[10px] text-gray-500">{item.preparationTime || "15-20 min"}</span>
                 </div>
               </div>
               <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -267,9 +267,9 @@ export default function FoodCard({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="space-y-3"
+                className="space-y-2"
               >
-                <p className="text-sm text-gray-600 line-clamp-2">
+                <p className="text-[11px] text-gray-600 line-clamp-2">
                   {item.description || "Delicious food prepared with fresh ingredients and love."}
                 </p>
                 
@@ -314,27 +314,13 @@ export default function FoodCard({
             )}
           </AnimatePresence>
 
-          {/* Stock Status */}
-          {item.lowStock && !item.isOutOfStock && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 p-2 bg-orange-50 rounded-xl"
-            >
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-              <span className="text-xs font-medium text-orange-700">
-                Only {item.stock} left in stock! Order soon.
-              </span>
-            </motion.div>
-          )}
-
           {/* Student Rating Section */}
-          <div className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 px-2.5 py-1.5">
-            <p className="mb-0.5 flex items-center gap-1 text-[11px] font-semibold text-gray-600">
-              <Sparkles size={10} className="text-yellow-500" />
-              Rate this item
-            </p>
-            <div className="flex items-center justify-between gap-2">
+          {showDetails && (
+            <div className="rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 px-2 py-1.5">
+              <p className="mb-0.5 flex items-center gap-1 text-[10px] font-semibold text-gray-600">
+                <Sparkles size={9} className="text-yellow-500" />
+                Rate this item
+              </p>
               <div className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, index) => {
                   const starValue = index + 1;
@@ -343,17 +329,17 @@ export default function FoodCard({
                   return (
                     <motion.button
                       key={starValue}
-                      whileHover={{ scale: 1.2, rotate: 10 }}
-                      whileTap={{ scale: 0.9 }}
+                      whileHover={{ scale: 1.15, rotate: 8 }}
+                      whileTap={{ scale: 0.92 }}
                       onClick={() => onRate?.(starValue)}
                       aria-label={`Rate ${starValue} stars`}
                       className="rounded-full p-0 transition outline-none border-0"
                     >
                       <Star
-                        size={16}
+                        size={13}
                         className={`transition-all ${
-                          active 
-                            ? "fill-yellow-400 text-yellow-400 drop-shadow-md" 
+                          active
+                            ? "fill-yellow-400 text-yellow-400 drop-shadow-md"
                             : "text-gray-300 hover:text-yellow-300"
                         }`}
                       />
@@ -362,17 +348,31 @@ export default function FoodCard({
                 })}
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Stock Status */}
+          {item.lowStock && !item.isOutOfStock && (
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-2 rounded-xl bg-orange-50 px-2 py-1.5"
+            >
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+              <span className="text-[10px] font-medium text-orange-700">
+                Only {item.stock} left in stock! Order soon.
+              </span>
+            </motion.div>
+          )}
 
           {/* Add to Cart Section */}
           {showAddToCart && (
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               <motion.button
                 whileHover={!item.isOutOfStock ? { scale: 1.02 } : {}}
                 whileTap={!item.isOutOfStock ? { scale: 0.98 } : {}}
                 disabled={item.isOutOfStock}
                 onClick={handleAddToCart}
-                className={`w-full py-3 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
+                className={`flex w-full items-center justify-center gap-1.5 rounded-xl py-2 text-[13px] font-bold transition-all duration-300 ${
                   item.isOutOfStock
                     ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                     : "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
@@ -380,12 +380,12 @@ export default function FoodCard({
               >
                 {item.isOutOfStock ? (
                   <>
-                    <Package size={18} />
+                    <Package size={16} />
                     Out of Stock
                   </>
                 ) : (
                   <>
-                    <ShoppingBag size={18} />
+                    <ShoppingBag size={16} />
                     Add to Cart • {formatCurrency(item.price)}
                   </>
                 )}

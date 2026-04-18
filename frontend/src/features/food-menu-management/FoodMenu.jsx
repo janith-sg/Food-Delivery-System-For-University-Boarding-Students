@@ -115,71 +115,85 @@ const FEATURED_CATEGORIES = [
   {
     name: "Soft Drinks",
     slug: "soft-drinks",
+    image: "https://i.pinimg.com/736x/45/ff/a2/45ffa23fd7e96d5a3650f7c5e5a9801b.jpg",
     emoji: "🥤",
   },
   {
     name: "Coffee",
     slug: "coffee",
+    image: "https://i.pinimg.com/736x/93/80/6b/93806b4e411c8cd9d36e753f69cdd930.jpg",
     emoji: "☕",
   },
   {
     name: "Milk & Dairy",
     slug: "milk-dairy",
+    image: "https://i.pinimg.com/1200x/01/ee/f8/01eef87c666b2f683fa9f2fb6883a257.jpg",
     emoji: "🥛",
   },
   {
     name: "Water & Juice",
     slug: "water-juice",
+    image: "https://i.pinimg.com/736x/fd/3c/b6/fd3cb67f8a315c6d28c686b64738b801.jpg",
     emoji: "💧",
   },
   {
     name: "Snacks",
     slug: "snacks",
+    image: "https://i.pinimg.com/1200x/ed/51/26/ed51260e841e0f15ef945051447ac1f8.jpg",
     emoji: "🍿",
   },
   {
     name: "Sandwiches",
     slug: "sandwiches",
+    image: "https://i.pinimg.com/1200x/28/2c/e1/282ce184b10314c72aab511146f3a7f9.jpg",
     emoji: "🥪",
   },
   {
     name: "Burgers",
     slug: "burgers",
+    image: "https://i.pinimg.com/736x/37/00/ef/3700ef80f448d2a59dd80a78debce0c6.jpg",
     emoji: "🍔",
   },
   {
     name: "Short Eats",
     slug: "short-eats",
+    image: "https://i.pinimg.com/736x/02/d8/57/02d85786f4692e1ef6ec7139a02fe671.jpg",
     emoji: "🍢",
   },
   {
     name: "Pizza",
     slug: "pizza",
+    image: "https://i.pinimg.com/736x/84/91/53/849153db67c274ca58e0bc30cd056673.jpg",
     emoji: "🍕",
   },
   {
     name: "Cakes",
     slug: "cakes",
+    image: "https://i.pinimg.com/1200x/a4/f4/a7/a4f4a72080b5ee074b50f43c194af916.jpg",
     emoji: "🍰",
   },
   {
     name: "Ice Cream",
     slug: "ice-cream",
+    image: "https://i.pinimg.com/736x/a2/aa/b6/a2aab609d18ee5578b409916a669a618.jpg",
     emoji: "🍦",
   },
   {
     name: "Fresh Fruits",
     slug: "fresh-fruits",
+    image: "https://i.pinimg.com/1200x/46/26/7d/46267d396aaa18c063d2e52b78d92e4b.jpg",
     emoji: "🍎",
   },
   {
     name: "Healthy",
     slug: "healthy",
+    image: "https://i.pinimg.com/736x/aa/e6/82/aae682f0181256fca423e2c814f8d9c5.jpg",
     emoji: "🥗",
   },
   {
     name: "Soups",
     slug: "soups",
+    image: "https://i.pinimg.com/736x/4c/44/a5/4c44a52eedb1af340d9f1d1a014ddecd.jpg",
     emoji: "🥣",
   },
 ];
@@ -434,20 +448,34 @@ function FeaturedCategories({ isAdmin, categoryCounts = {}, adminBasePath = '/ad
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
         {FEATURED_CATEGORIES.map((category) => {
           const path = isAdmin
             ? `${adminBasePath}/category/${category.slug}`
             : `/menu/category/${category.slug}`;
+          const previewImage = category.image || null;
 
           return (
             <Link key={category.slug} to={path} className="group block no-underline">
-              <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-4 text-slate-900 shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md">
-                <div className="absolute inset-0 bg-white/0 transition-colors duration-300 group-hover:bg-emerald-100/60" />
+              <div className="relative overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white px-3 py-3 text-slate-900 transition-all duration-300 group-hover:-translate-y-1">
+                <div className="absolute inset-0 bg-white opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  <span className="mb-2 text-3xl leading-none">{category.emoji}</span>
-                  <span className="text-xs font-extrabold leading-tight">{category.name}</span>
-                  <p className="mt-1.5 text-[10px] font-semibold text-emerald-700">
+                  <div className="mb-2 flex h-20 w-full items-center justify-center rounded-2xl bg-white p-2">
+                    {previewImage ? (
+                      <img
+                        src={previewImage}
+                        alt={category.name}
+                        className="h-full w-full object-contain"
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <span className="text-3xl leading-none">{category.emoji}</span>
+                    )}
+                  </div>
+                  <span className="text-xs font-extrabold leading-tight text-slate-800">{category.name}</span>
+                  <p className="mt-1 text-[10px] font-semibold text-orange-600">
                     {Number(categoryCounts[category.name] || 0)} items
                   </p>
                 </div>
@@ -1362,7 +1390,7 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
                   </div>
 
                   {filteredItems.length ? (
-                    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       {filteredItems.map((item) => (
                         <FoodCard
                           key={item._id || item.foodID || item.name}
