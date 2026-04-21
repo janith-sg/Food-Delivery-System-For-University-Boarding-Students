@@ -1,5 +1,16 @@
 import { useEffect, useState } from "react";
-import { TrendingUp, ShoppingCart, CheckCircle, Clock } from "lucide-react";
+import {
+  TrendingUp,
+  ShoppingCart,
+  CheckCircle,
+  Clock,
+  CalendarDays,
+  Download,
+  FileText,
+  DollarSign,
+  BadgeCheck,
+  AlertCircle,
+} from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
@@ -49,6 +60,9 @@ const AdminOrders = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  const [reportFrom, setReportFrom] = useState("");
+  const [reportTo, setReportTo] = useState("");
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   const fetchOrders = () => {
     setLoading(true);
@@ -121,6 +135,40 @@ const AdminOrders = () => {
     }
   };
 
+  const handleDownloadReport = async () => {
+    setDownloadingReport(true);
+    try {
+      const params = new URLSearchParams();
+      if (reportFrom) params.append("from", reportFrom);
+      if (reportTo) params.append("to", reportTo);
+
+      const url = params.toString()
+        ? apiUrl(`/api/orders/report/pdf?${params.toString()}`)
+        : apiUrl("/api/orders/report/pdf");
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Failed to download report");
+      }
+
+      const blob = await response.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const rangePart = reportFrom || reportTo ? `${reportFrom || "all"}_to_${reportTo || "all"}` : "all";
+      link.href = objectUrl;
+      link.download = `order-analytics-${rangePart}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      console.error(error);
+      window.alert("Failed to download PDF report");
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
+
   const statuses = ["All", "Pending", "Confirmed", "Preparing", "Out for Delivery", "Delivered"];
   const filtered =
     filterStatus === "All" ? orders : orders.filter((o) => o.orderStatus === filterStatus);
@@ -129,6 +177,12 @@ const AdminOrders = () => {
     acc[s] = orders.filter((o) => o.orderStatus === s).length;
     return acc;
   }, {});
+
+  const reportTotalRevenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+  const paidOrdersCount = orders.filter((o) => o.paymentStatus === "Paid").length;
+  const pendingPaymentsCount = orders.filter(
+    (o) => o.paymentStatus === "Pending" || !o.paymentStatus
+  ).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50/60 font-sans">
@@ -163,6 +217,127 @@ const AdminOrders = () => {
         <div className="mb-8">
           <h2 className="mb-2 text-2xl font-extrabold text-slate-900">Overview</h2>
           <p className="text-sm text-slate-600">Track order progress, payment status, and update fulfillment in one place.</p>
+        </div>
+
+        <div className="relative mb-8 overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-sky-50/40 to-emerald-50/60 p-5 shadow-sm md:p-6">
+          <div className="pointer-events-none absolute -right-10 -top-14 h-44 w-44 rounded-full bg-sky-200/30 blur-3xl" />
+          <div className="pointer-events-none absolute -left-10 bottom-0 h-36 w-36 rounded-full bg-emerald-200/30 blur-2xl" />
+
+          <div className="relative mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-200 bg-sky-100 text-sky-700">
+                <FileText className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-extrabold text-slate-900">Order Analytics Report</h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  Operational summary with daily income and complete order-level details.
+                </p>
+              </div>
+            </div>
+            <div className="rounded-full border border-slate-200 bg-white/90 px-4 py-1.5 text-xs font-bold text-slate-600">
+              Total Orders Tracked: {orders.length}
+            </div>
+          </div>
+
+          <div className="relative mb-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
+              <div className="h-1.5 w-full bg-sky-500" />
+              <div className="p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-slate-500">Total Revenue</p>
+                  <span className="rounded-xl bg-sky-100 p-2 text-sky-700">
+                    <DollarSign className="h-4 w-4" />
+                  </span>
+                </div>
+                <p className="text-2xl font-extrabold text-slate-900">Rs. {reportTotalRevenue.toLocaleString()}</p>
+                <p className="mt-1 text-xs text-slate-500">Across current filtered admin data</p>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
+              <div className="h-1.5 w-full bg-emerald-500" />
+              <div className="p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-slate-500">Paid Orders</p>
+                  <span className="rounded-xl bg-emerald-100 p-2 text-emerald-700">
+                    <BadgeCheck className="h-4 w-4" />
+                  </span>
+                </div>
+                <p className="text-2xl font-extrabold text-slate-900">{paidOrdersCount}</p>
+                <p className="mt-1 text-xs text-slate-500">Payment completed successfully</p>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-amber-100 bg-white shadow-sm">
+              <div className="h-1.5 w-full bg-amber-500" />
+              <div className="p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-slate-500">Pending Payments</p>
+                  <span className="rounded-xl bg-amber-100 p-2 text-amber-700">
+                    <AlertCircle className="h-4 w-4" />
+                  </span>
+                </div>
+                <p className="text-2xl font-extrabold text-slate-900">{pendingPaymentsCount}</p>
+                <p className="mt-1 text-xs text-slate-500">Require follow-up confirmation</p>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm">
+              <div className="h-1.5 w-full bg-violet-500" />
+              <div className="p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-slate-500">Delivered Rate</p>
+                  <span className="rounded-xl bg-violet-100 p-2 text-violet-700">
+                    <TrendingUp className="h-4 w-4" />
+                  </span>
+                </div>
+                <p className="text-2xl font-extrabold text-slate-900">
+                  {orders.length > 0 ? Math.round((statusCounts.Delivered / orders.length) * 100) : 0}%
+                </p>
+                <p className="mt-1 text-xs text-slate-500">Fulfillment performance trend</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/90 p-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <span className="flex items-center gap-1 text-[11px]">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  From Date
+                </span>
+                <input
+                  type="date"
+                  value={reportFrom}
+                  onChange={(e) => setReportFrom(e.target.value)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none transition focus:border-sky-500"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <span className="flex items-center gap-1 text-[11px]">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  To Date
+                </span>
+                <input
+                  type="date"
+                  value={reportTo}
+                  onChange={(e) => setReportTo(e.target.value)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none transition focus:border-sky-500"
+                />
+              </label>
+            </div>
+
+            <button
+              onClick={handleDownloadReport}
+              disabled={downloadingReport}
+              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" />
+              {downloadingReport ? "Generating PDF..." : "Download Full Report PDF"}
+            </button>
+          </div>
         </div>
 
         <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
