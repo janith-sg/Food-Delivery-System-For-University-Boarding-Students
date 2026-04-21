@@ -6,30 +6,30 @@ const apiUrl = (path) => `${API_BASE_URL}${path}`;
 const statusConfig = {
   Open: { color: "bg-blue-100 text-blue-700 border-blue-200", dot: "bg-blue-500" },
   Closed: { color: "bg-amber-100 text-amber-700 border-amber-200", dot: "bg-amber-500" },
-  Completed: { color: "bg-green-100 text-green-700 border-green-200", dot: "bg-green-500" },
+  Completed: { color: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
 };
 
 const paymentStatusConfig = {
   Pending: "bg-amber-100 text-amber-700",
-  Paid: "bg-green-100 text-green-700",
+  Paid: "bg-emerald-100 text-emerald-700",
 };
 
 const ConfirmModal = ({ message, onConfirm, onCancel }) => (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
-      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">🗑️</div>
-      <p className="text-center font-bold text-gray-800 mb-1">Delete Group Order?</p>
-      <p className="text-center text-sm text-gray-500 mb-6">{message}</p>
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-2xl"></div>
+      <p className="mb-1 text-center font-bold text-gray-800">Delete Group Order?</p>
+      <p className="mb-6 text-center text-sm text-gray-500">{message}</p>
       <div className="flex gap-3">
         <button
           onClick={onCancel}
-          className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer bg-white"
+          className="flex-1 cursor-pointer rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700 transition cursor-pointer border-none"
+          className="flex-1 cursor-pointer rounded-xl border-none bg-red-600 py-2.5 text-sm font-bold text-white transition hover:bg-red-700"
         >
           Yes, Delete
         </button>
@@ -55,7 +55,9 @@ const AdminGroupOrders = () => {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchGroups(); }, []);
+  useEffect(() => {
+    fetchGroups();
+  }, []);
 
   const handleStatusChange = async (id, newStatus, currentGroup) => {
     setUpdatingId(id);
@@ -70,11 +72,8 @@ const AdminGroupOrders = () => {
         }),
       });
       const data = await response.json();
-      if (response.ok) {
-        fetchGroups();
-      } else {
-        alert(data.message || "Failed to update group order");
-      }
+      if (response.ok) fetchGroups();
+      else alert(data.message || "Failed to update group order");
     } catch (error) {
       console.error(error);
     } finally {
@@ -85,15 +84,10 @@ const AdminGroupOrders = () => {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
-      const response = await fetch(apiUrl(`/api/group-orders/${deleteTarget}`), {
-        method: "DELETE",
-      });
+      const response = await fetch(apiUrl(`/api/group-orders/${deleteTarget}`), { method: "DELETE" });
       const data = await response.json();
-      if (response.ok) {
-        fetchGroups();
-      } else {
-        alert(data.message || "Failed toDelete Group order");
-      }
+      if (response.ok) fetchGroups();
+      else alert(data.message || "Failed to delete group order");
     } catch (error) {
       console.error(error);
     } finally {
@@ -102,33 +96,38 @@ const AdminGroupOrders = () => {
   };
 
   const statuses = ["All", "Open", "Closed", "Completed"];
-
   const filtered = filterStatus === "All" ? groups : groups.filter((g) => g.status === filterStatus);
 
   const statusCounts = { All: groups.length, Open: 0, Closed: 0, Completed: 0 };
-  groups.forEach((g) => { if (statusCounts[g.status] !== undefined) statusCounts[g.status]++; });
+  groups.forEach((g) => {
+    if (statusCounts[g.status] !== undefined) statusCounts[g.status]++;
+  });
 
-  const getSubTotal = (items = []) =>
-   Items.reduce((s, i) => s + i.price * i.qty, 0);
+  const getSubTotal = (items = []) => items.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 0), 0);
 
   const calculateSplit = (group) => {
-    if (!group.items?.length) return [];
+    const items = Array.isArray(group?.items) ? group.items : [];
+    if (!items.length) return [];
+
     const memberTotals = {};
-    group.items.forEach((item) => {
-      memberTotals[item.addedBy] = (memberTotals[item.addedBy] || 0) + item.price * item.qty;
+    items.forEach((item) => {
+      const addedBy = item?.addedBy || "Unknown";
+      memberTotals[addedBy] = (memberTotals[addedBy] || 0) + (item?.price || 0) * (item?.qty || 0);
     });
-    constMembers = Object.keys(memberTotals);
-    const share =Members.length > 0 ? (group.deliveryFee || 200) /Members.length : 0;
-    returnMembers.map((m) => ({
-      name: m,
-      subTotal: memberTotals[m],
+
+    const members = Object.keys(memberTotals);
+    const share = members.length > 0 ? (group?.deliveryFee || 200) / members.length : 0;
+
+    return members.map((name) => ({
+      name,
+      subTotal: memberTotals[name],
       delivery: share,
-      total: memberTotals[m] + share,
+      total: memberTotals[name] + share,
     }));
   };
 
   return (
-    <div className="font-sans rounded-2xl border border-emerald-100 bg-gradient-to-b from-emerald-50/60 to-white shadow-sm overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-b from-emerald-50/60 to-white font-sans shadow-sm">
       {deleteTarget && (
         <ConfirmModal
           message="This will permanently remove the group order."
@@ -137,42 +136,42 @@ const AdminGroupOrders = () => {
         />
       )}
 
-      {/* Header */}
-      <div className="border-b border-emerald-200 bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-5 flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-emerald-200 bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-5">
         <div>
-          <p className="text-green-100 text-xs font-semibold uppercase tracking-widest mb-1">
-            Admin Panel
-          </p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-emerald-100">Admin Panel</p>
           <h1 className="text-xl font-extrabold text-white">Group Order Management</h1>
         </div>
-        <div className="flex items-center gap-2 bg-white/15 rounded-full px-4 py-2">
-          <span className="text-white font-extrabold text-lg">{groups.length}</span>
-          <span className="text-green-100 text-xs font-semibold">Total Groups</span>
+        <div className="flex items-center gap-2 rounded-full bg-white/15 px-4 py-2">
+          <span className="text-lg font-extrabold text-white">{groups.length}</span>
+          <span className="text-xs font-semibold text-emerald-100">Total Groups</span>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="px-6 py-4 border-b border-emerald-100 bg-white/70 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 border-b border-emerald-100 bg-white/70 px-6 py-4">
         {statuses.map((s) => {
           const cfg = statusConfig[s];
           const count = statusCounts[s];
           const isActive = filterStatus === s;
+
           return (
             <button
               key={s}
               onClick={() => setFilterStatus(s)}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold border transition cursor-pointer
-                ${isActive
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+                isActive
                   ? s === "All"
-                    ? "bg-green-600 text-white border-green-600"
+                    ? "border-green-600 bg-green-600 text-white"
                     : `${cfg?.color} border-current`
-                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
-                }`}
+                  : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+              }`}
             >
-              {cfg && <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />}
+              {cfg && <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />}
               {s}
-              <span className={`ml-0.5 rounded-full px-1.5 py-0.5 text-xs font-extrabold
-                ${isActive && s === "All" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"}`}>
+              <span
+                className={`ml-0.5 rounded-full px-1.5 py-0.5 text-xs font-extrabold ${
+                  isActive && s === "All" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+                }`}
+              >
                 {count}
               </span>
             </button>
@@ -180,18 +179,17 @@ const AdminGroupOrders = () => {
         })}
       </div>
 
-      {/* Content */}
       <div className="p-6">
         {loading ? (
           <div className="flex justify-center py-16">
-            <svg className="animate-spin h-7 w-7 text-green-600" fill="none" viewBox="0 0 24 24">
+            <svg className="h-7 w-7 animate-spin text-green-600" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center py-16 gap-3 text-center">
-            <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center text-2xl">👥</div>
+          <div className="flex flex-col items-center gap-3 py-16 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-xl"></div>
             <p className="font-bold text-gray-700">No group orders found</p>
             <p className="text-sm text-gray-400">
               {filterStatus !== "All" ? `No "${filterStatus}" group orders yet.` : "Group orders will appear here once created."}
@@ -200,132 +198,122 @@ const AdminGroupOrders = () => {
         ) : (
           <div className="space-y-3">
             {filtered.map((group) => {
-              const cfg = statusConfig[group.status] || statusConfig["Open"];
-              const isUpdating = updatingId === group._id;
-              const isExpanded = expandedId === group._id;
-              const subTotal = getSubTotal(group.items);
-              const deliveryFee = group.deliveryFee || 200;
-              const finalTotal = group.finalTotal || subTotal + deliveryFee;
+              const cfg = statusConfig[group?.status] || statusConfig.Open;
+              const isUpdating = updatingId === group?._id;
+              const isExpanded = expandedId === group?._id;
+
+              const title = group?.title || "Untitled Group";
+              const createdBy = group?.createdBy || "Unknown";
+              const code = group?.groupCode || "N/A";
+              const members = Array.isArray(group?.members) ? group.members : [];
+              const items = Array.isArray(group?.items) ? group.items : [];
+
+              const subTotal = getSubTotal(items);
+              const deliveryFee = group?.deliveryFee || 200;
+              const finalTotal = group?.finalTotal || subTotal + deliveryFee;
               const splitData = calculateSplit(group);
 
               return (
-                <div
-                  key={group._id}
-                  className="rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-                >
-                  {/* Card Header */}
-                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+                <div key={group?._id || code} className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
+                  <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-extrabold text-green-700">
-                        {group.title?.charAt(0).toUpperCase()}
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-sm font-extrabold text-green-700">
+                        {title.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-extrabold text-gray-900">{group.title}</p>
+                        <p className="text-sm font-extrabold text-gray-900">{title}</p>
                         <p className="text-xs text-gray-400">
-                          by {group.createdBy} · Code:{" "}
-                          <span className="font-mono font-bold text-gray-600">{group.groupCode}</span>
+                          by {createdBy}  Code: <span className="font-mono font-bold text-gray-600">{code}</span>
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border ${cfg.color}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                        {group.status}
+                      <span className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${cfg.color}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+                        {group?.status || "Open"}
                       </span>
                       <button
-                        onClick={() => setExpandedId(isExpanded ? null : group._id)}
-                        className="w-7 h-7 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600 transition cursor-pointer border-none"
+                        onClick={() => setExpandedId(isExpanded ? null : group?._id)}
+                        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-none bg-gray-200 text-xs font-bold text-gray-600 transition hover:bg-gray-300"
                       >
-                        {isExpanded ? "▲" : "▼"}
+                        {isExpanded ? "" : ""}
                       </button>
                     </div>
                   </div>
 
-                  <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/*Members & Info */}
+                  <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-3">
                     <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">👥Members</p>
+                      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">Members</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {group.members?.map((m, i) => (
-                          <span key={i} className="bg-green-50 border border-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-                            {m.name}
+                        {members.map((m, i) => (
+                          <span key={`${m?.name || "member"}-${i}`} className="rounded-full border border-green-100 bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
+                            {m?.name || "Unknown"}
                           </span>
                         ))}
-                        {(!group.members || group.members.length === 0) && (
-                          <span className="text-xs text-gray-400">NoMembers yet</span>
-                        )}
+                        {!members.length && <span className="text-xs text-gray-400">No members yet</span>}
                       </div>
                       <div className="mt-3 space-y-1">
-                        <p className="text-xs text-gray-500">
-                          💳 {group.paymentMethod || "N/A"}
-                        </p>
-                        <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full ${paymentStatusConfig[group.paymentStatus] || paymentStatusConfig["Pending"]}`}>
-                          {group.paymentStatus || "Pending"}
+                        <p className="text-xs text-gray-500">{group?.paymentMethod || "N/A"}</p>
+                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-bold ${paymentStatusConfig[group?.paymentStatus] || paymentStatusConfig.Pending}`}>
+                          {group?.paymentStatus || "Pending"}
                         </span>
                       </div>
                     </div>
 
-                    {/*Items & Total */}
                     <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">🍗Items</p>
-                      {group.items?.length ? (
+                      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">Items</p>
+                      {items.length ? (
                         <div className="space-y-1">
-                          {group.items.map((item) => (
-                            <div key={item._id} className="flex justify-between text-sm">
-                              <span className="text-gray-700">{item.name} × {item.qty}</span>
-                              <span className="text-gray-400 text-xs">{item.addedBy}</span>
+                          {items.map((item, idx) => (
+                            <div key={item?._id || `${group?._id}-${idx}`} className="flex justify-between text-sm">
+                              <span className="text-gray-700">{item?.name || "Item"} x {item?.qty || 0}</span>
+                              <span className="text-xs text-gray-400">{item?.addedBy || "Unknown"}</span>
                             </div>
                           ))}
-                          <div className="border-t border-gray-100 pt-1 mt-1 flex justify-between">
+                          <div className="mt-1 flex justify-between border-t border-gray-100 pt-1">
                             <span className="text-xs text-gray-500">Final Total</span>
-                            <span className="text-sm font-extrabold text-green-700">
-                              Rs. {finalTotal.toLocaleString()}
-                            </span>
+                            <span className="text-sm font-extrabold text-green-700">Rs. {finalTotal.toLocaleString()}</span>
                           </div>
                         </div>
                       ) : (
-                        <p className="text-xs text-gray-400">NoItems yet</p>
+                        <p className="text-xs text-gray-400">No items yet</p>
                       )}
                     </div>
 
-                    {/*Actions */}
-                    <div className="flex flex-col gap-2 justify-end">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">⚙️Actions</p>
+                    <div className="flex flex-col justify-end gap-2">
+                      <p className="mb-1 text-xs font-bold uppercase tracking-widest text-gray-400">Actions</p>
                       <select
-                        value={group.status}
-                        onChange={(e) => handleStatusChange(group._id, e.target.value, group)}
+                        value={group?.status || "Open"}
+                        onChange={(e) => handleStatusChange(group?._id, e.target.value, group)}
                         disabled={isUpdating}
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-semibold outline-none focus:border-green-500 transition cursor-pointer disabled:opacity-60"
+                        className="w-full cursor-pointer rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-semibold outline-none transition focus:border-green-500 disabled:opacity-60"
                       >
                         <option value="Open">Open</option>
                         <option value="Closed">Closed</option>
                         <option value="Completed">Completed</option>
                       </select>
                       <button
-                        onClick={() => setDeleteTarget(group._id)}
-                        className="w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-sm font-bold text-red-600 hover:bg-red-100 transition cursor-pointer"
+                        onClick={() => setDeleteTarget(group?._id)}
+                        className="w-full cursor-pointer rounded-xl border border-red-200 bg-red-50 py-2.5 text-sm font-bold text-red-600 transition hover:bg-red-100"
                       >
-                        🗑️Delete Group
+                        Delete Group
                       </button>
                     </div>
                   </div>
 
-                  {/* Expanded:Bill Split */}
                   {isExpanded && splitData.length > 0 && (
-                    <div className="border-t border-gray-100 px-4 pb-4 pt-3 bg-gray-50">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">💰Bill Split</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    <div className="border-t border-gray-100 bg-gray-50 px-4 pb-4 pt-3">
+                      <p className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-400">Bill Split</p>
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {splitData.map((member, i) => (
-                          <div key={i} className="rounded-xl bg-white border border-gray-200 px-3 py-2.5 flex justify-betweenItems-center">
+                          <div key={`${member.name}-${i}`} className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-3 py-2.5">
                             <div>
                               <p className="text-sm font-bold text-gray-900">{member.name}</p>
                               <p className="text-xs text-gray-400">
                                 Food Rs. {member.subTotal.toLocaleString()} + Delivery Rs. {member.delivery.toFixed(0)}
                               </p>
                             </div>
-                            <span className="text-sm font-extrabold text-green-700">
-                              Rs. {member.total.toFixed(0)}
-                            </span>
+                            <span className="text-sm font-extrabold text-green-700">Rs. {member.total.toFixed(0)}</span>
                           </div>
                         ))}
                       </div>
@@ -342,7 +330,3 @@ const AdminGroupOrders = () => {
 };
 
 export default AdminGroupOrders;
-
-
-
-
