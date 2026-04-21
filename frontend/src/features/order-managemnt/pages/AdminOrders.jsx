@@ -310,6 +310,11 @@ const AdminOrders = () => {
                 const cfg = statusConfig[order.orderStatus] || statusConfig.Pending;
                 const paymentCfg = paymentStatusConfig[order.paymentStatus] || paymentStatusConfig.Pending;
                 const isUpdating = updatingId === order._id;
+                const customerName = order?.customer?.fullName || "Unknown Customer";
+                const customerPhone = order?.customer?.phone || "N/A";
+                const customerAddress = order?.customer?.address || "No address provided";
+                const customerNote = order?.customer?.note || "";
+                const items = Array.isArray(order?.items) ? order.items : [];
 
                 return (
                   <div
@@ -319,11 +324,11 @@ const AdminOrders = () => {
                     <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-extrabold text-emerald-700">
-                          {order.customer.fullName?.charAt(0).toUpperCase()}
+                          {customerName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-extrabold text-slate-900">{order.customer.fullName}</p>
-                          <p className="text-xs text-slate-400">{order.customer.phone}</p>
+                          <p className="text-sm font-extrabold text-slate-900">{customerName}</p>
+                          <p className="text-xs text-slate-400">{customerPhone}</p>
                         </div>
                       </div>
 
@@ -343,9 +348,9 @@ const AdminOrders = () => {
                         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-slate-400">
                           Address
                         </p>
-                        <p className="text-sm text-slate-700">{order.customer.address}</p>
-                        {order.customer.note && (
-                          <p className="mt-1 text-xs italic text-slate-400">"{order.customer.note}"</p>
+                        <p className="text-sm text-slate-700">{customerAddress}</p>
+                        {customerNote && (
+                          <p className="mt-1 text-xs italic text-slate-400">"{customerNote}"</p>
                         )}
                       </div>
 
@@ -354,8 +359,8 @@ const AdminOrders = () => {
                           Items
                         </p>
                         <div className="space-y-1">
-                          {order.items.map((item) => (
-                            <div key={item._id} className="flex justify-between text-sm">
+                          {items.map((item, idx) => (
+                            <div key={item._id || `${order._id}-${idx}`} className="flex justify-between text-sm">
                               <span className="text-slate-700">
                                 {item.name} x {item.qty}
                               </span>
@@ -431,3 +436,4 @@ const AdminOrders = () => {
 };
 
 export default AdminOrders;
+
