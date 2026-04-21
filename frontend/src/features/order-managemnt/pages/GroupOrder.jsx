@@ -9,11 +9,12 @@ const apiUrl = (path) => `${API_BASE_URL}${path}`;
 
 const Field = ({ label, error, children }) => (
   <div>
-    <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#374151", marginBottom: 6 }}>{label}</label>
+    <label style={{ display: "block", fontSize: 12, fontWeight: 800, color: "#14532d", marginBottom: 8, letterSpacing: "0.02em", textTransform: "uppercase" }}>{label}</label>
     {children}
     {error && (
-      <p style={{ marginTop: 6, fontSize: 12, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
-        <span>⚠</span> {error}
+      <p style={{ marginTop: 6, fontSize: 12, color: "#b91c1c", display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
+        <span style={{ width: 16, height: 16, borderRadius: 999, background: "#fee2e2", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>!</span>
+        {error}
       </p>
     )}
   </div>
@@ -123,22 +124,195 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
     }
   };
 
-  const inputStyle = (err) => ({
-    width: "100%",
-    borderRadius: 12,
-    border: `1.5px solid ${err ? "#f87171" : "#e5e7eb"}`,
-    padding: "12px 16px",
-    fontSize: 14,
-    outline: "none",
-    background: err ? "#fef2f2" : "#f9fafb",
-    boxSizing: "border-box",
-  });
-
   return (
     <>
       <style>{`
         @keyframes go-spin    { to { transform: rotate(360deg); } }
         .back-btn:hover { background: rgba(255,255,255,0.28) !important; }
+        .go-page {
+          min-height: 100vh;
+          padding: 18px 16px 28px;
+          background:
+            radial-gradient(circle at top left, rgba(34,197,94,0.12), transparent 30%),
+            radial-gradient(circle at top right, rgba(16,185,129,0.10), transparent 26%),
+            #f0fdf4;
+        }
+        .go-shell {
+          width: 100%;
+          max-width: 760px;
+          margin: 0 auto;
+        }
+        .go-hero {
+          border-radius: 24px;
+          background: linear-gradient(135deg, #14532d 0%, #16a34a 52%, #22c55e 100%);
+          padding: 22px 24px;
+          margin-bottom: 14px;
+          color: #fff;
+          box-shadow: 0 18px 42px rgba(20,83,45,0.22);
+          border: 1px solid rgba(255,255,255,0.12);
+        }
+        .go-hero-top {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          align-items: flex-start;
+        }
+        .go-kicker {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: rgba(220,252,231,0.9);
+          margin: 0 0 8px;
+        }
+        .go-title {
+          margin: 0 0 12px;
+          font-size: 28px;
+          line-height: 1.1;
+          font-weight: 900;
+          letter-spacing: -0.03em;
+        }
+        .go-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 7px 14px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.16);
+          border: 1px solid rgba(255,255,255,0.12);
+          font-size: 12px;
+          font-weight: 700;
+          color: rgba(240,253,244,0.96);
+        }
+        .go-hero-btn {
+          width: 42px;
+          height: 42px;
+          border-radius: 999px;
+          border: 1px solid rgba(255,255,255,0.22);
+          background: rgba(255,255,255,0.12);
+          color: #fff;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          transition: transform 0.18s ease, background 0.18s ease;
+        }
+        .go-hero-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.2); }
+        .go-card {
+          border-radius: 24px;
+          background: #fff;
+          border: 1px solid #bbf7d0;
+          box-shadow: 0 18px 54px rgba(20,83,45,0.10);
+          overflow: hidden;
+        }
+        .go-tabs {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          background: #f0fdf4;
+          border-bottom: 1px solid #d1fae5;
+        }
+        .go-tab {
+          padding: 15px 14px;
+          border: none;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 800;
+          color: #166534;
+          background: transparent;
+          transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+        .go-tab-inactive {
+          color: #6b7280;
+          background: #fff;
+        }
+        .go-tab-active {
+          background: linear-gradient(135deg, #16a34a, #15803d);
+          color: #fff;
+          box-shadow: inset 0 -1px 0 rgba(255,255,255,0.12);
+        }
+        .go-message {
+          margin: 16px 20px 0;
+          border-radius: 14px;
+          padding: 12px 14px;
+          font-size: 13px;
+          font-weight: 600;
+        }
+        .go-message-success {
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          color: #166534;
+        }
+        .go-message-error {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #b91c1c;
+        }
+        .go-form {
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .go-label {
+          display: block;
+          font-size: 13px;
+          font-weight: 800;
+          color: #14532d;
+          margin-bottom: 6px;
+        }
+        .go-input {
+          width: 100%;
+          border-radius: 14px;
+          border: 1.5px solid #d1fae5;
+          padding: 12px 14px;
+          font-size: 14px;
+          color: #14532d;
+          outline: none;
+          background: #f8fdfa;
+          box-sizing: border-box;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+        .go-input:focus {
+          border-color: #16a34a;
+          box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
+          background: #fff;
+        }
+        .go-input-error { border-color: #fca5a5; background: #fffafa; }
+        .go-error {
+          margin-top: 6px;
+          font-size: 12px;
+          color: #dc2626;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-weight: 600;
+        }
+        .go-action {
+          width: 100%;
+          border-radius: 14px;
+          padding: 14px 16px;
+          border: none;
+          cursor: pointer;
+          font-size: 15px;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          box-shadow: 0 10px 24px rgba(22,163,74,0.18);
+          transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+        }
+        .go-action:hover { transform: translateY(-1px); }
+        .go-action-create { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+        .go-action-join { background: linear-gradient(135deg, #14532d, #15803d); color: #fff; }
+        .go-footer {
+          text-align: center;
+          font-size: 12px;
+          color: #4b5563;
+          margin-top: 14px;
+          font-weight: 600;
+        }
       `}</style>
 
       <CustomerMenuBar
@@ -152,46 +326,20 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
       />
 
       {/* ── PAGE CONTENT ── */}
-      <div
-        className="font-sans"
-        style={{
-        position: "relative", zIndex: 1,
-        minHeight: "100vh",
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        padding: 16,
-      }}
-      >
-        <div style={{ width: "100%", maxWidth: 440 }}>
+      <div className="go-page font-sans">
+        <div className="go-shell">
 
           {/* ── Header glass card ── */}
-          <div style={{
-            borderRadius: 20,
-            background: "rgba(0,0,0,0.35)",
-            backdropFilter: "blur(18px)",
-            WebkitBackdropFilter: "blur(18px)",
-            border: "1px solid rgba(255,255,255,0.18)",
-            padding: "20px 24px",
-            marginBottom: 14,
-            color: "#fff",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-          }}>
+          <div className="go-hero">
+            <div className="go-hero-top">
             {/* Text info */}
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(187,247,208,0.9)", margin: "0 0 6px" }}>
-                University Boarding Canteen
-              </p>
-              <h1 style={{ fontSize: 24, fontWeight: 900, margin: "0 0 12px", color: "#fff" }}>
+              <h1 className="go-title">
                 Group Ordering 👥
               </h1>
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                background: "rgba(255,255,255,0.14)", borderRadius: 999, padding: "6px 14px",
-              }}>
+              <div className="go-badge">
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#86efac", display: "inline-block" }} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(220,252,231,0.95)" }}>
+                <span>
                   Available: 8:00 AM – 10:00 PM
                 </span>
               </div>
@@ -200,64 +348,28 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
             {/* ── Back button ── */}
             {onBack && (
               <button
-                className="back-btn"
+                className="back-btn go-hero-btn"
                 onClick={onBack}
                 title="Back to Menu"
-                style={{
-                  flexShrink: 0,
-                  width: 40, height: 40,
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,0.18)",
-                  border: "1px solid rgba(255,255,255,0.28)",
-                  color: "#fff",
-                  fontSize: 18,
-                  cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  transition: "background 0.2s",
-                  marginTop: 2,
-                }}
               >
                 ←
               </button>
             )}
+            </div>
           </div>
 
           {/* Main card */}
-          <div style={{
-            borderRadius: 20,
-            background: "rgba(255,255,255,0.97)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            border: "1px solid rgba(255,255,255,0.75)",
-            boxShadow: "0 12px 48px rgba(0,0,0,0.25)",
-            overflow: "hidden",
-          }}>
+          <div className="go-card">
 
             {/* Tabs */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid #f3f4f6" }}>
-              <button onClick={() => { setActiveTab("create"); setMessage({ text: "", type: "" }); }} style={{
-                padding: "15px 0", fontSize: 13, fontWeight: 800, border: "none", cursor: "pointer",
-                background: activeTab === "create" ? "#16a34a" : "#fff",
-                color: activeTab === "create" ? "#fff" : "#9ca3af",
-                transition: "all 0.2s",
-              }}>➕ Create Group</button>
-              <button onClick={() => { setActiveTab("join"); setMessage({ text: "", type: "" }); }} style={{
-                padding: "15px 0", fontSize: 13, fontWeight: 800, border: "none", cursor: "pointer",
-                background: activeTab === "join" ? "#111827" : "#fff",
-                color: activeTab === "join" ? "#fff" : "#9ca3af",
-                transition: "all 0.2s",
-              }}>🔗 Join Group</button>
+            <div className="go-tabs">
+              <button onClick={() => { setActiveTab("create"); setMessage({ text: "", type: "" }); }} className={`go-tab ${activeTab === "create" ? "go-tab-active" : "go-tab-inactive"}`}>➕ Create Group</button>
+              <button onClick={() => { setActiveTab("join"); setMessage({ text: "", type: "" }); }} className={`go-tab ${activeTab === "join" ? "go-tab-active" : "go-tab-inactive"}`}>🔗 Join Group</button>
             </div>
 
             {/* Banner */}
             {message.text && (
-              <div style={{
-                margin: "16px 20px 0", borderRadius: 12, padding: "11px 16px",
-                fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8,
-                background: message.type === "success" ? "#f0fdf4" : "#fef2f2",
-                border: `1px solid ${message.type === "success" ? "#bbf7d0" : "#fecaca"}`,
-                color: message.type === "success" ? "#15803d" : "#dc2626",
-              }}>
+              <div className={`go-message ${message.type === "success" ? "go-message-success" : "go-message-error"}`}>
                 <span>{message.type === "success" ? "✅" : "⚠️"}</span>
                 {message.text}
               </div>
@@ -265,29 +377,23 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
 
             {/* Create form */}
             {activeTab === "create" && (
-              <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+              <div className="go-form">
                 <Field label="Order Title *" error={createErrors.title}>
                   <input type="text" placeholder="e.g. Friday Night Feast" value={title}
                     onChange={(e) => { setTitle(e.target.value); setCreateErrors((p) => ({ ...p, title: "" })); }}
-                    style={inputStyle(createErrors.title)} />
+                    className={`go-input${createErrors.title ? " go-input-error" : ""}`} />
                 </Field>
                 <Field label="Your Name *" error={createErrors.createdBy}>
                   <input type="text" placeholder="e.g. Kavindu Perera" value={createdBy}
                     onChange={(e) => { setCreatedBy(e.target.value); setCreateErrors((p) => ({ ...p, createdBy: "" })); }}
-                    style={inputStyle(createErrors.createdBy)} />
+                    className={`go-input${createErrors.createdBy ? " go-input-error" : ""}`} />
                 </Field>
                 <Field label="Order Deadline *" error={createErrors.deadline}>
                   <input type="datetime-local" value={deadline} min={minDateTime}
                     onChange={(e) => { setDeadline(e.target.value); setCreateErrors((p) => ({ ...p, deadline: "" })); }}
-                    style={inputStyle(createErrors.deadline)} />
+                    className={`go-input${createErrors.deadline ? " go-input-error" : ""}`} />
                 </Field>
-                <button onClick={handleCreateGroup} disabled={loadingCreate} style={{
-                  width: "100%", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 800,
-                  color: "#fff", border: "none", cursor: loadingCreate ? "not-allowed" : "pointer",
-                  background: loadingCreate ? "#86efac" : "#16a34a",
-                  boxShadow: "0 4px 16px rgba(22,163,74,0.3)",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                }}>
+                <button onClick={handleCreateGroup} disabled={loadingCreate} className="go-action go-action-create">
                   {loadingCreate ? <><Spinner /> Creating...</> : "Create Group →"}
                 </button>
               </div>
@@ -295,31 +401,26 @@ const GroupOrder = ({ onEnterGroup, onBack }) => {
 
             {/* Join form */}
             {activeTab === "join" && (
-              <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+              <div className="go-form">
                 <Field label="Group Code *" error={joinErrors.joinCode}>
                   <input type="text" placeholder="e.g. GRP123" value={joinCode}
                     onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setJoinErrors((p) => ({ ...p, joinCode: "" })); }}
-                    style={{ ...inputStyle(joinErrors.joinCode), fontFamily: "monospace", letterSpacing: "0.25em" }} />
+                    className={`go-input${joinErrors.joinCode ? " go-input-error" : ""}`}
+                    style={{ fontFamily: "monospace", letterSpacing: "0.25em" }} />
                 </Field>
                 <Field label="Your Name *" error={joinErrors.joinName}>
                   <input type="text" placeholder="e.g. Nimasha Silva" value={joinName}
                     onChange={(e) => { setJoinName(e.target.value); setJoinErrors((p) => ({ ...p, joinName: "" })); }}
-                    style={inputStyle(joinErrors.joinName)} />
+                    className={`go-input${joinErrors.joinName ? " go-input-error" : ""}`} />
                 </Field>
-                <button onClick={handleJoinGroup} disabled={loadingJoin} style={{
-                  width: "100%", borderRadius: 12, padding: "14px 0", fontSize: 14, fontWeight: 800,
-                  border: "none", cursor: loadingJoin ? "not-allowed" : "pointer",
-                  background: loadingJoin ? "#d1d5db" : "#111827",
-                  color: loadingJoin ? "#9ca3af" : "#fff",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                }}>
+                <button onClick={handleJoinGroup} disabled={loadingJoin} className="go-action go-action-join">
                   {loadingJoin ? <><Spinner /> Joining...</> : "Join Group →"}
                 </button>
               </div>
             )}
           </div>
 
-          <p style={{ textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.55)", marginTop: 14, fontWeight: 500 }}>
+          <p className="go-footer">
             🔒 Secure group ordering for boarding students
           </p>
         </div>

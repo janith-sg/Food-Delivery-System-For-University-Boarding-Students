@@ -5,7 +5,7 @@ const Cart = ({ onCheckout }) => {
   const { cartItems, addToCart, decreaseQty, removeFromCart, getCartTotal } =
     useContext(CartContext);
 
-  const deliveryFee = cartItems.length > 0 ? 400 : 0;
+  const deliveryFee = cartItems.length > 0 ? 200 : 0;
   const subTotal = getCartTotal();
   const finalTotal = subTotal + deliveryFee;
   const totalItems = cartItems.reduce((sum, i) => sum + i.qty, 0);
@@ -127,3 +127,4 @@ const Cart = ({ onCheckout }) => {
 };
 
 export default Cart;
+

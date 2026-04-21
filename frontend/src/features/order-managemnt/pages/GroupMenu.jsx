@@ -158,7 +158,7 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
     return groupData.items.reduce((sum, item) => sum + item.price * item.qty, 0);
   };
 
-  const deliveryFee = groupData?.deliveryFee || 400;
+  const deliveryFee = groupData?.deliveryFee || 200;
   const finalTotal = getSubTotal() + deliveryFee;
   const totalItems = groupData?.items?.reduce((s, i) => s + i.qty, 0) || 0;
 
@@ -473,3 +473,4 @@ const GroupMenu = ({ groupCode, memberName, onBackToGroups, onViewSummary }) => 
 };
 
 export default GroupMenu;
+

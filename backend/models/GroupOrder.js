@@ -53,7 +53,7 @@ const groupOrderSchema = new mongoose.Schema(
 
     deliveryFee: {
       type: Number,
-      default: 400,
+      default: 200,
     },
 
     splitDetails: [splitSchema],

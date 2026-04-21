@@ -186,7 +186,7 @@ const finalizeGroupOrder = async (req, res) => {
       0
     );
 
-    const deliveryFee = group.deliveryFee || 400;
+    const deliveryFee = group.deliveryFee || 200;
     const finalTotal = subTotal + deliveryFee;
 
     const memberTotals = {};

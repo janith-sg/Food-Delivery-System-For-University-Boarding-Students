@@ -25,7 +25,7 @@ const GroupCart = ({ groupCode, onBack }) => {
 
   const items = groupData?.items || [];
   const totalItems = items.reduce((sum, item) => sum + (item.qty || 0), 0);
-  const deliveryFee = items.length > 0 ? groupData?.deliveryFee || 400 : 0;
+  const deliveryFee = items.length > 0 ? groupData?.deliveryFee || 200 : 0;
   const subTotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
   const finalTotal = subTotal + deliveryFee;
 

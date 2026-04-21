@@ -1141,7 +1141,7 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
     [cart],
   );
 
-  const cartDeliveryFee = cart.length > 0 ? 400 : 0;
+  const cartDeliveryFee = cart.length > 0 ? 200 : 0;
   const cartTotal = cartSubTotal + cartDeliveryFee;
 
   const handleCheckoutClick = () => {
@@ -1643,3 +1643,4 @@ export default function FoodMenu({ isAdmin = false, adminBasePath = '/admin/menu
     </div>
   );
 }
+

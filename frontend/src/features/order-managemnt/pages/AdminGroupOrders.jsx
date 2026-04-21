@@ -92,7 +92,7 @@ const AdminGroupOrders = () => {
       if (response.ok) {
         fetchGroups();
       } else {
-        alert(data.message || "Failed to delete group order");
+        alert(data.message || "Failed toDelete Group order");
       }
     } catch (error) {
       console.error(error);
@@ -109,7 +109,7 @@ const AdminGroupOrders = () => {
   groups.forEach((g) => { if (statusCounts[g.status] !== undefined) statusCounts[g.status]++; });
 
   const getSubTotal = (items = []) =>
-    items.reduce((s, i) => s + i.price * i.qty, 0);
+   Items.reduce((s, i) => s + i.price * i.qty, 0);
 
   const calculateSplit = (group) => {
     if (!group.items?.length) return [];
@@ -117,9 +117,9 @@ const AdminGroupOrders = () => {
     group.items.forEach((item) => {
       memberTotals[item.addedBy] = (memberTotals[item.addedBy] || 0) + item.price * item.qty;
     });
-    const members = Object.keys(memberTotals);
-    const share = members.length > 0 ? (group.deliveryFee || 400) / members.length : 0;
-    return members.map((m) => ({
+    constMembers = Object.keys(memberTotals);
+    const share =Members.length > 0 ? (group.deliveryFee || 200) /Members.length : 0;
+    returnMembers.map((m) => ({
       name: m,
       subTotal: memberTotals[m],
       delivery: share,
@@ -128,7 +128,7 @@ const AdminGroupOrders = () => {
   };
 
   return (
-    <div className="font-sans rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+    <div className="font-sans rounded-2xl border border-emerald-100 bg-gradient-to-b from-emerald-50/60 to-white shadow-sm overflow-hidden">
       {deleteTarget && (
         <ConfirmModal
           message="This will permanently remove the group order."
@@ -138,7 +138,7 @@ const AdminGroupOrders = () => {
       )}
 
       {/* Header */}
-      <div className="bg-green-600 px-6 py-5 flex items-center justify-between">
+      <div className="border-b border-emerald-200 bg-gradient-to-r from-emerald-700 to-emerald-600 px-6 py-5 flex items-center justify-between">
         <div>
           <p className="text-green-100 text-xs font-semibold uppercase tracking-widest mb-1">
             Admin Panel
@@ -152,7 +152,7 @@ const AdminGroupOrders = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap gap-2">
+      <div className="px-6 py-4 border-b border-emerald-100 bg-white/70 flex flex-wrap gap-2">
         {statuses.map((s) => {
           const cfg = statusConfig[s];
           const count = statusCounts[s];
@@ -204,7 +204,7 @@ const AdminGroupOrders = () => {
               const isUpdating = updatingId === group._id;
               const isExpanded = expandedId === group._id;
               const subTotal = getSubTotal(group.items);
-              const deliveryFee = group.deliveryFee || 400;
+              const deliveryFee = group.deliveryFee || 200;
               const finalTotal = group.finalTotal || subTotal + deliveryFee;
               const splitData = calculateSplit(group);
 
@@ -242,9 +242,9 @@ const AdminGroupOrders = () => {
                   </div>
 
                   <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Members & Info */}
+                    {/*Members & Info */}
                     <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">👥 Members</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">👥Members</p>
                       <div className="flex flex-wrap gap-1.5">
                         {group.members?.map((m, i) => (
                           <span key={i} className="bg-green-50 border border-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
@@ -252,7 +252,7 @@ const AdminGroupOrders = () => {
                           </span>
                         ))}
                         {(!group.members || group.members.length === 0) && (
-                          <span className="text-xs text-gray-400">No members yet</span>
+                          <span className="text-xs text-gray-400">NoMembers yet</span>
                         )}
                       </div>
                       <div className="mt-3 space-y-1">
@@ -265,9 +265,9 @@ const AdminGroupOrders = () => {
                       </div>
                     </div>
 
-                    {/* Items & Total */}
+                    {/*Items & Total */}
                     <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">🍗 Items</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">🍗Items</p>
                       {group.items?.length ? (
                         <div className="space-y-1">
                           {group.items.map((item) => (
@@ -284,13 +284,13 @@ const AdminGroupOrders = () => {
                           </div>
                         </div>
                       ) : (
-                        <p className="text-xs text-gray-400">No items yet</p>
+                        <p className="text-xs text-gray-400">NoItems yet</p>
                       )}
                     </div>
 
-                    {/* Actions */}
+                    {/*Actions */}
                     <div className="flex flex-col gap-2 justify-end">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">⚙️ Actions</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">⚙️Actions</p>
                       <select
                         value={group.status}
                         onChange={(e) => handleStatusChange(group._id, e.target.value, group)}
@@ -305,18 +305,18 @@ const AdminGroupOrders = () => {
                         onClick={() => setDeleteTarget(group._id)}
                         className="w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-sm font-bold text-red-600 hover:bg-red-100 transition cursor-pointer"
                       >
-                        🗑️ Delete Group
+                        🗑️Delete Group
                       </button>
                     </div>
                   </div>
 
-                  {/* Expanded: Bill Split */}
+                  {/* Expanded:Bill Split */}
                   {isExpanded && splitData.length > 0 && (
                     <div className="border-t border-gray-100 px-4 pb-4 pt-3 bg-gray-50">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">💰 Bill Split</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">💰Bill Split</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                         {splitData.map((member, i) => (
-                          <div key={i} className="rounded-xl bg-white border border-gray-200 px-3 py-2.5 flex justify-between items-center">
+                          <div key={i} className="rounded-xl bg-white border border-gray-200 px-3 py-2.5 flex justify-betweenItems-center">
                             <div>
                               <p className="text-sm font-bold text-gray-900">{member.name}</p>
                               <p className="text-xs text-gray-400">
@@ -342,3 +342,7 @@ const AdminGroupOrders = () => {
 };
 
 export default AdminGroupOrders;
+
+
+
+
