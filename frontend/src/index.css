@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+
 * {
   box-sizing: border-box;
 }
@@ -11,12 +13,23 @@ body,
   padding: 0;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #ffffff;
+html {
+  scroll-behavior: smooth;
 }
 
-/* Browsers default <a> to underline + blue / purple when visited — reset for normal text links */
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(16, 185, 129, 0.08), transparent 28%),
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.08), transparent 22%),
+    #f4fff8;
+  color: #0f172a;
+}
+
+.display-font {
+  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+}
+
 a {
   text-decoration: none;
   color: inherit;
@@ -30,11 +43,154 @@ a:hover {
   text-decoration: none;
 }
 
-/* Login page — horizontal food menu strip (right → left loop) */
+.glass-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.52));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.glow-button {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #22c55e 0%, #10b981 50%, #14b8a6 100%);
+  box-shadow: 0 18px 40px -22px rgba(16, 185, 129, 0.9);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    filter 220ms ease;
+}
+
+.glow-button::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.glow-button:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 24px 50px -24px rgba(16, 185, 129, 0.95),
+    0 0 0 6px rgba(52, 211, 153, 0.12);
+  filter: saturate(1.05);
+}
+
+.glow-button:focus-visible {
+  outline: 3px solid rgba(52, 211, 153, 0.3);
+  outline-offset: 3px;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.fade-up-enter {
+  opacity: 0;
+  animation: fade-up 850ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.fade-up-enter.delay-1 {
+  animation-delay: 140ms;
+}
+
+.fade-up-enter.delay-2 {
+  animation-delay: 260ms;
+}
+
+.fade-up-enter.delay-3 {
+  animation-delay: 380ms;
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 32px, 0);
+  transition:
+    opacity 800ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-reveal='left'] {
+  transform: translate3d(-42px, 0, 0);
+}
+
+[data-reveal='right'] {
+  transform: translate3d(42px, 0, 0);
+}
+
+[data-reveal='up'] {
+  transform: translate3d(0, 36px, 0);
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+@keyframes caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+
+  46%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.float-hero {
+  animation: hero-float 6s ease-in-out infinite;
+}
+
+.float-slow {
+  animation: drift 7.4s ease-in-out infinite;
+}
+
+.float-delayed {
+  animation: drift 7.4s ease-in-out 1.2s infinite;
+}
+
+.typewriter-cursor {
+  animation: caret-blink 1s step-end infinite;
+}
+
 @keyframes login-marquee {
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -48,7 +204,31 @@ a:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-marquee-track {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .login-marquee-track,
+  .fade-up-enter,
+  .float-hero,
+  .float-slow,
+  .float-delayed {
     animation: none;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .typewriter-cursor {
+    animation: none;
+  }
+
+  .glow-button,
+  .glow-button:hover {
+    transform: none;
+    box-shadow: 0 18px 40px -22px rgba(16, 185, 129, 0.9);
   }
 }
