@@ -1,0 +1,8 @@
+/* Typography: Tailwind `font-sans` on the FoodMenu root (theme.extend.fontFamily.sans). */
+/* Strip default UA button border/outline (often renders as a heavy black ring on Windows). */
+.food-menu-feature-font button {
+	appearance: none;
+	-webkit-appearance: none;
+	border: 0;
+}
+
